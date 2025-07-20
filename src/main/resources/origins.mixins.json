@@ -14,17 +14,30 @@
     "SelectionInvulnerabilityMixin",
     "WaterBreathingMixin$CanBreatheInWater",
     "WaterBreathingMixin$UpdateAir",
-    "BrewerReducedDropsMixin",
-    "BrewerEnhancedPotionsMixin",
-    "CookEnhancedFoodMixin",
+    "BlacksmithQualityDurabilityMixin",
     "BlacksmithQualityCraftingMixin",
-    "BlacksmithQualityTooltipMixin",
-    "BlacksmithQualityTooltipInfoMixin"
+    "BrewerEnhancedPotionsMixin",
+    "BrewerReducedDropsMixin",
+    "CookEnhancedFoodMixin",
+    "CookEnhancedFoodConsumptionMixin",
+    "MiningSpeedMixin",
+    "WeaponDamageMixin",
+    "LegendaryHoeMixin",
+    "LegendaryBootsFallDamageMixin",
+    "LegendaryArmorMovementMixin",
+    "ArmorProtectionMixin",
+    "LegendaryToolEffectsMixin",
+    "ExperienceGainMixin",
+    "CraftingExperienceMixin"
   ],
   "client": [
+    "BlacksmithQualityTooltipInfoMixin",
+    "BlacksmithQualityTooltipMixin",
     "DrawContextAccessor",
     "ServerCheckMixin",
-    "WaterVisibilityMixin"
+    "WaterVisibilityMixin",
+    "ItemTooltipMixin",
+    "ItemNameColorMixin"
   ],
   "injectors": {
     "defaultRequire": 1

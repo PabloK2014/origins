@@ -3,6 +3,7 @@ package io.github.apace100.origins;
 import io.github.apace100.apoli.ApoliClient;
 import io.github.apace100.apoli.integration.PowerClearCallback;
 import io.github.apace100.origins.client.gui.OriginHudOverlay;
+import io.github.apace100.origins.client.gui.OriginProgressionScreen;
 import io.github.apace100.origins.networking.ModPacketsS2C;
 import io.github.apace100.origins.registry.ModBlocks;
 import io.github.apace100.origins.registry.ModEntities;
@@ -28,6 +29,7 @@ public class OriginsClient implements ClientModInitializer {
     public static KeyBinding usePrimaryActivePowerKeybind;
     public static KeyBinding useSecondaryActivePowerKeybind;
     public static KeyBinding viewCurrentOriginKeybind;
+    public static KeyBinding viewProgressionKeybind;
 
     public static boolean isServerRunningOrigins = false;
 

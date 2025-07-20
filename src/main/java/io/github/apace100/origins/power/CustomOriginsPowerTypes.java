@@ -29,16 +29,8 @@ public class CustomOriginsPowerTypes {
     
     public static void register() {
         register(new PowerFactory<>(Origins.identifier("blacksmith_quality_crafting"),
-            new SerializableData()
-                .add("poor_chance", SerializableDataTypes.FLOAT, 0.1f)
-                .add("normal_chance", SerializableDataTypes.FLOAT, 0.5f)
-                .add("good_chance", SerializableDataTypes.FLOAT, 0.25f)
-                .add("legendary_chance", SerializableDataTypes.FLOAT, 0.05f),
-            data -> (type, entity) -> new BlacksmithQualityCraftingPower(type, entity,
-                data.getFloat("poor_chance"),
-                data.getFloat("normal_chance"),
-                data.getFloat("good_chance"),
-                data.getFloat("legendary_chance"))
+            new SerializableData(),
+            data -> (type, entity) -> new BlacksmithQualityCraftingPower(type, entity)
         ).allowCondition());
             
         register(new PowerFactory<>(Origins.identifier("brewer_enhanced_potions"),

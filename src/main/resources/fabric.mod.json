@@ -29,7 +29,8 @@
       "io.github.apace100.origins.integration.ModMenuIntegration"
     ],
     "cardinal-components-entity": [
-      "io.github.apace100.origins.registry.ModComponents"
+      "io.github.apace100.origins.registry.ModComponents",
+      "io.github.apace100.origins.progression.ProgressionComponents"
     ],
     "calio:ordered-resource-listener": [
       "io.github.apace100.origins.Origins"
@@ -40,7 +41,8 @@
   ],
   "custom": {
     "cardinal-components": [
-      "origins:origin"
+      "origins:origin",
+      "origins:progression"
     ]
   },
 
