@@ -1,0 +1,13 @@
+{
+  "powers": [
+    "origins:warrior_increased_hunger",
+    "origins:warrior_double_damage"
+  ],
+  "icon": {
+    "item": "minecraft:iron_sword"
+  },
+  "order": 3,
+  "impact": 2,
+  "name": "origin.origins.warrior.name",
+  "description": "origin.origins.warrior.description"
+}

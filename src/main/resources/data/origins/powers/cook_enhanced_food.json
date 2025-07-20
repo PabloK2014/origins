@@ -1,0 +1,7 @@
+{
+  "type": "origins:cook_enhanced_food",
+  "nutrition_multiplier": 1.5,
+  "saturation_multiplier": 1.5,
+  "name": "power.origins.cook_enhanced_food.name",
+  "description": "power.origins.cook_enhanced_food.description"
+}

@@ -1,0 +1,9 @@
+{
+  "type": "origins:modify_exhaustion",
+  "modifier": {
+    "operation": "multiply_total",
+    "value": 1.0
+  },
+  "name": "power.origins.warrior_increased_hunger.name",
+  "description": "power.origins.warrior_increased_hunger.description"
+}

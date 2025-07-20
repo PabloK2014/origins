@@ -1,0 +1,9 @@
+{
+  "type": "origins:modify_damage_dealt",
+  "modifier": {
+    "operation": "multiply_total",
+    "value": 1.0
+  },
+  "name": "power.origins.warrior_double_damage.name",
+  "description": "power.origins.warrior_double_damage.description"
+}

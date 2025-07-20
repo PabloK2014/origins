@@ -1,0 +1,13 @@
+{
+  "powers": [
+    "origins:brewer_enhanced_potions",
+    "origins:brewer_reduced_drops"
+  ],
+  "icon": {
+    "item": "minecraft:brewing_stand"
+  },
+  "order": 1,
+  "impact": 1,
+  "name": "origin.origins.brewer.name",
+  "description": "origin.origins.brewer.description"
+}

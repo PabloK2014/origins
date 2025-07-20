@@ -1,0 +1,12 @@
+{
+  "type": "origins:blacksmith_quality_crafting",
+  "poor_chance": 0.1,
+  "normal_chance": 0.5,
+  "good_chance": 0.25,
+  "legendary_chance": 0.05,
+  "poor_modifier": -0.2,
+  "good_modifier": 0.25,
+  "legendary_modifier": 1.0,
+  "name": "power.origins.blacksmith_quality_crafting.name",
+  "description": "power.origins.blacksmith_quality_crafting.description"
+}

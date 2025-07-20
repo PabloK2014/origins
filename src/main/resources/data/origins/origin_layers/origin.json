@@ -1,0 +1,20 @@
+{
+  "replace": false,
+  "order": 0,
+  "enabled": true,
+  "origins": [
+    "origins:human",
+    "origins:brewer",
+    "origins:cook",
+    "origins:warrior",
+    "origins:miner",
+    "origins:courier",
+    "origins:blacksmith"
+  ],
+  "allow_random": true,
+  "exclude_random": [
+    "origins:human"
+  ],
+  "allow_random_unchoosable": false,
+  "hidden": false
+}

@@ -1,0 +1,20 @@
+{
+  "enabled": true,
+  "name": "Minecraft Fabric Helper",
+  "description": "Хук для помощи с разработкой модов Minecraft 1.20.1 Fabric, отслеживает изменения в исходном коде и конфигурационных файлах",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "src/**/*.java",
+      "src/**/*.json",
+      "build.gradle",
+      "gradle.properties",
+      "fabric.mod.json"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Проанализируй изменения в проекте Minecraft 1.20.1 Fabric. Отвечай на русском языке. Помоги с разработкой мода, проверь код на ошибки, предложи улучшения и убедись, что код совместим с Minecraft 1.20.1 и Fabric API. Если есть проблемы с mappings или API, предложи решения."
+  }
+}

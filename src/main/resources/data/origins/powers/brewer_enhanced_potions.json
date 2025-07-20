@@ -1,0 +1,6 @@
+{
+  "type": "origins:brewer_enhanced_potions",
+  "duration_multiplier": 2.0,
+  "name": "power.origins.brewer_enhanced_potions.name",
+  "description": "power.origins.brewer_enhanced_potions.description"
+}

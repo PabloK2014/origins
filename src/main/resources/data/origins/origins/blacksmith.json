@@ -1,0 +1,13 @@
+{
+  "powers": [
+    "origins:blacksmith_reduced_speed",
+    "origins:blacksmith_quality_crafting"
+  ],
+  "icon": {
+    "item": "minecraft:anvil"
+  },
+  "order": 6,
+  "impact": 2,
+  "name": "origin.origins.blacksmith.name",
+  "description": "origin.origins.blacksmith.description"
+}

@@ -1,0 +1,13 @@
+{
+  "powers": [
+    "origins:courier_reduced_health",
+    "origins:courier_speed_boost"
+  ],
+  "icon": {
+    "item": "minecraft:leather_boots"
+  },
+  "order": 5,
+  "impact": 1,
+  "name": "origin.origins.courier.name",
+  "description": "origin.origins.courier.description"
+}

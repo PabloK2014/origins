@@ -1,0 +1,9 @@
+{
+  "type": "origins:modify_damage_taken",
+  "modifier": {
+    "operation": "addition",
+    "value": -2.0
+  },
+  "name": "power.origins.cook_reduced_damage.name",
+  "description": "power.origins.cook_reduced_damage.description"
+}

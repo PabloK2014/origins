@@ -1,0 +1,13 @@
+{
+  "powers": [
+    "origins:miner_explosion_vulnerability",
+    "origins:miner_night_vision"
+  ],
+  "icon": {
+    "item": "minecraft:iron_pickaxe"
+  },
+  "order": 4,
+  "impact": 1,
+  "name": "origin.origins.miner.name",
+  "description": "origin.origins.miner.description"
+}

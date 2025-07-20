@@ -1,0 +1,6 @@
+{
+  "type": "origins:brewer_reduced_drops",
+  "drop_reduction_multiplier": 0.7,
+  "name": "power.origins.brewer_reduced_drops.name",
+  "description": "power.origins.brewer_reduced_drops.description"
+}

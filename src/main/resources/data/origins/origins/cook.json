@@ -1,0 +1,13 @@
+{
+  "powers": [
+    "origins:cook_reduced_damage",
+    "origins:cook_enhanced_food"
+  ],
+  "icon": {
+    "item": "minecraft:furnace"
+  },
+  "order": 2,
+  "impact": 1,
+  "name": "origin.origins.cook.name",
+  "description": "origin.origins.cook.description"
+}
