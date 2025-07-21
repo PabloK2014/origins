@@ -1,83 +1,77 @@
 package io.github.apace100.origins.networking;
 
 import io.github.apace100.origins.Origins;
+import io.github.apace100.origins.component.OriginComponent;
+import io.github.apace100.origins.origin.Origin;
+import io.github.apace100.origins.origin.OriginLayers;
+import io.github.apace100.origins.profession.ProfessionComponent;
+import io.github.apace100.origins.profession.ProfessionProgress;
+import io.github.apace100.origins.profession.ProfessionSkills;
+import io.github.apace100.origins.registry.ModComponents;
 import io.github.apace100.origins.skill.PlayerSkillComponent;
+import io.github.apace100.origins.skill.SkillTreeHandler;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayNetworkHandler;
+import net.minecraft.server.network.ServerPlayerEntity;
 
-/**
- * Регистрация обработчиков сетевых пакетов от клиента к серверу
- */
 public class ModPacketsC2S {
-    
-    public static final Identifier LEARN_SKILL = new Identifier(Origins.MODID, "learn_skill");
-    
     public static void register() {
-        // Регистрируем обработчик пакета для изучения навыка
-        ServerPlayNetworking.registerGlobalReceiver(LEARN_SKILL, (server, player, handler, buf, responseSender) -> {
-            // Получаем идентификатор навыка
-            Identifier skillId = buf.readIdentifier();
-            
-            // Выполняем действие на сервере
-            server.execute(() -> {
-                // Получаем компонент навыков игрока
-                PlayerSkillComponent playerSkills = PlayerSkillComponent.KEY.get(player);
+        ServerPlayNetworking.registerGlobalReceiver(ModPackets.SYNC_SKILLS, 
+            (MinecraftServer server, ServerPlayerEntity player, ServerPlayNetworkHandler handler, 
+             PacketByteBuf buf, net.fabricmc.fabric.api.networking.v1.PacketSender responseSender) -> {
+                String skillId = buf.readString();
                 
-                // Пытаемся изучить навык
-                playerSkills.learnSkill(skillId.toString());
-            });
-        });
-        // Обработчик выбора конкретной расы
-        ServerPlayNetworking.registerGlobalReceiver(io.github.apace100.origins.networking.ModPackets.CHOOSE_ORIGIN, (server, player, handler, buf, responseSender) -> {
-            String originIdStr = buf.readString();
-            String layerIdStr = buf.readString();
-            server.execute(() -> {
-                try {
-                    Identifier originId = Identifier.tryParse(originIdStr);
-                    Identifier layerId = Identifier.tryParse(layerIdStr);
-                    var originComponent = io.github.apace100.origins.registry.ModComponents.ORIGIN.get(player);
-                    var layer = io.github.apace100.origins.origin.OriginLayers.getLayer(layerId);
-                    var origin = io.github.apace100.origins.origin.OriginRegistry.get(originId);
-                    originComponent.setOrigin(layer, origin);
-                    originComponent.sync();
-                    // Отправляем клиенту подтверждение выбора
-                    net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(player, io.github.apace100.origins.networking.ModPackets.CONFIRM_ORIGIN, createConfirmOriginBuf(layer, origin));
-                    // Можно добавить вызов OriginComponent.onChosen(player, originComponent.hadOriginBefore());
-                } catch (Exception e) {
-                    io.github.apace100.origins.Origins.LOGGER.error("Ошибка при обработке выбора расы: " + e.getMessage());
-                }
-            });
-        });
-        // Обработчик выбора случайной расы
-        ServerPlayNetworking.registerGlobalReceiver(io.github.apace100.origins.networking.ModPackets.CHOOSE_RANDOM_ORIGIN, (server, player, handler, buf, responseSender) -> {
-            String layerIdStr = buf.readString();
-            server.execute(() -> {
-                try {
-                    Identifier layerId = Identifier.tryParse(layerIdStr);
-                    var layer = io.github.apace100.origins.origin.OriginLayers.getLayer(layerId);
-                    var possibleOrigins = layer.getRandomOrigins(player);
-                    if (!possibleOrigins.isEmpty()) {
-                        var randomOriginId = possibleOrigins.get(player.getRandom().nextInt(possibleOrigins.size()));
-                        var origin = io.github.apace100.origins.origin.OriginRegistry.get(randomOriginId);
-                        var originComponent = io.github.apace100.origins.registry.ModComponents.ORIGIN.get(player);
-                        originComponent.setOrigin(layer, origin);
-                        originComponent.sync();
-                        // Отправляем клиенту подтверждение выбора
-                        net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(player, io.github.apace100.origins.networking.ModPackets.CONFIRM_ORIGIN, createConfirmOriginBuf(layer, origin));
-                        // Можно добавить вызов OriginComponent.onChosen(player, originComponent.hadOriginBefore());
+                server.execute(() -> {
+                    ProfessionComponent component = ProfessionComponent.KEY.get(player);
+                    ProfessionProgress progress = component.getCurrentProgress();
+                    
+                    if (progress != null && progress.getSkillPoints() > 0) {
+                        ProfessionSkills skills = progress.getSkills();
+                        if (skills.canIncreaseSkill(skillId)) {
+                            skills.increaseSkill(skillId);
+                            progress.spendSkillPoint();
+                            // Синхронизируем изменения с клиентом
+                            ProfessionComponent.KEY.sync(player);
+                        }
                     }
-                } catch (Exception e) {
-                    io.github.apace100.origins.Origins.LOGGER.error("Ошибка при обработке выбора случайной расы: " + e.getMessage());
-                }
+                });
             });
-        });
-    }
 
-    // Вспомогательный метод для создания буфера подтверждения
-    private static net.minecraft.network.PacketByteBuf createConfirmOriginBuf(io.github.apace100.origins.origin.OriginLayer layer, io.github.apace100.origins.origin.Origin origin) {
-        var buf = net.fabricmc.fabric.api.networking.v1.PacketByteBufs.create();
-        buf.writeIdentifier(layer.getIdentifier());
-        buf.writeIdentifier(origin.getIdentifier());
-        return buf;
+        ServerPlayNetworking.registerGlobalReceiver(ModPackets.LEARN_TREE_SKILL,
+            (MinecraftServer server, ServerPlayerEntity player, ServerPlayNetworkHandler handler,
+             PacketByteBuf buf, net.fabricmc.fabric.api.networking.v1.PacketSender responseSender) -> {
+                String skillId = buf.readString();
+
+                server.execute(() -> {
+                    // Получаем текущий класс игрока
+                    OriginComponent originComponent = ModComponents.ORIGIN.get(player);
+                    Origin origin = originComponent.getOrigin(OriginLayers.getLayer(Origins.identifier("origin")));
+                    if (origin == null) return;
+
+                    String currentClass = origin.getIdentifier().toString();
+                    SkillTreeHandler.SkillTree skillTree = SkillTreeHandler.getSkillTree(currentClass);
+                    if (skillTree == null) return;
+
+                    // Ищем навык в дереве
+                    SkillTreeHandler.Skill skill = null;
+                    for (SkillTreeHandler.Skill s : skillTree.getAllSkills()) {
+                        if (s.getId().equals(skillId)) {
+                            skill = s;
+                            break;
+                        }
+                    }
+
+                    if (skill != null) {
+                        PlayerSkillComponent skillComponent = PlayerSkillComponent.KEY.get(player);
+                        if (skillComponent.canLearnSkill(skill)) {
+                            skillComponent.learnSkill(skillId);
+                            // Синхронизируем изменения с клиентом
+                            PlayerSkillComponent.KEY.sync(player);
+                        }
+                    }
+                });
+            });
     }
 }

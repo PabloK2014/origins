@@ -17,4 +17,7 @@ public class ModPackets {
     public static final Identifier CONFIRM_ORIGIN = Origins.identifier("confirm_origin");
     public static final Identifier PLAYER_LANDED = Origins.identifier("player_landed");
     public static final Identifier BADGE_LIST = Origins.identifier("badge_list");
+    public static final Identifier ACTIVE_COOK_SKILL = new Identifier(Origins.MODID, "active_cook_skill");
+    public static final Identifier SYNC_SKILLS = new Identifier(Origins.MODID, "sync_skills");
+    public static final Identifier LEARN_TREE_SKILL = new Identifier(Origins.MODID, "learn_tree_skill");
 }

@@ -21,7 +21,7 @@ public class ProfessionRegistry {
             "origins:miner",
             "Шахтер",
             "Мастер подземных работ",
-            "textures/gui/icons/miner.png",
+            "textures/gui/inventory/miner.png",
             java.util.Arrays.asList("mining", "ore_found"),
             50
         )
@@ -32,7 +32,7 @@ public class ProfessionRegistry {
             "origins:cook",
             "Повар",
             "Мастер кулинарного искусства",
-            "textures/gui/icons/cook.png",
+            "textures/gui/inventory/chef.png",
             java.util.Arrays.asList("cooking", "food_eaten"),
             50
         )
@@ -43,7 +43,7 @@ public class ProfessionRegistry {
             "origins:blacksmith",
             "Кузнец",
             "Мастер обработки металла",
-            "textures/gui/icons/blacksmith.png",
+            "textures/gui/inventory/customhp.png",
             java.util.Arrays.asList("crafting", "smelting"),
             50
         )
@@ -54,7 +54,7 @@ public class ProfessionRegistry {
             "origins:brewer",
             "Пивовар",
             "Мастер зельеварения",
-            "textures/gui/icons/brewer.png",
+            "textures/gui/inventory/brewer.png",
             java.util.Arrays.asList("brewing", "potion_used"),
             50
         )
@@ -65,7 +65,7 @@ public class ProfessionRegistry {
             "origins:warrior",
             "Воин",
             "Мастер боевых искусств",
-            "textures/gui/icons/warrior.png",
+            "textures/gui/inventory/war.png",
             java.util.Arrays.asList("combat", "enemy_killed"),
             50
         )

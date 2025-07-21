@@ -2,14 +2,18 @@ package io.github.apace100.origins.client.gui;
 
 import io.github.apace100.origins.Origins;
 import io.github.apace100.origins.component.OriginComponent;
+import io.github.apace100.origins.networking.ModPackets;
 import io.github.apace100.origins.origin.Origin;
 import io.github.apace100.origins.origin.OriginLayers;
 import io.github.apace100.origins.registry.ModComponents;
 import io.github.apace100.origins.skill.PlayerSkillComponent;
 import io.github.apace100.origins.skill.SkillTreeHandler;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -103,8 +107,9 @@ public class SkillTreeScreen extends Screen {
         String title = getProfessionDisplayName(currentClass);
         context.drawCenteredTextWithShadow(this.textRenderer, title, this.width / 2, backgroundY + 15, 0xFFFFFF);
 
-        // Рисуем доступные очки навыков
-        String pointsText = "Доступные очки: " + availableSkillPoints;
+        // Рисуем доступные очки навыков (теперь всегда актуально)
+        int actualPoints = skillComponent != null ? skillComponent.getAvailableSkillPoints() : 0;
+        String pointsText = "Доступные очки: " + actualPoints;
         context.drawTextWithShadow(this.textRenderer, pointsText, backgroundX + 15, backgroundY + 30, 0xFFFF55);
 
         // Рисуем линии между связанными навыками
@@ -146,7 +151,7 @@ public class SkillTreeScreen extends Screen {
 
                     if (skillLevel > 0) {
                         lineColor = 0xFF00FF00; // Зеленый для изученных навыков
-                    } else if (parentLevel > 0 && skillComponent.canLearnSkill(skill)) {
+                    } else if (parentLevel >= parentButton.skill.getMaxLevel() && skillComponent.canLearnSkill(skill)) {
                         lineColor = 0xFFFFFF00; // Желтый для доступных навыков
                     } else {
                         lineColor = 0xFF555555; // Серый для недоступных навыков
@@ -247,7 +252,8 @@ public class SkillTreeScreen extends Screen {
         }
 
         // Кнопка изучения навыка
-        if (skillComponent.canLearnSkill(skill) && currentLevel < skill.getMaxLevel() && availableSkillPoints > 0) {
+        int actualPoints = skillComponent != null ? skillComponent.getAvailableSkillPoints() : 0;
+        if (skillComponent.canLearnSkill(skill) && currentLevel < skill.getMaxLevel() && actualPoints > 0) {
             int buttonX = infoX + 5;
             int buttonY = infoY + infoHeight - 30;
             int buttonWidth = infoWidth - 10;
@@ -282,12 +288,12 @@ public class SkillTreeScreen extends Screen {
             int buttonY = infoY + infoHeight - 30;
             int buttonWidth = infoWidth - 10;
             int buttonHeight = 20;
-
+            int actualPoints = skillComponent != null ? skillComponent.getAvailableSkillPoints() : 0;
             if (mouseX >= buttonX && mouseX <= buttonX + buttonWidth &&
                 mouseY >= buttonY && mouseY <= buttonY + buttonHeight) {
                 if (skillComponent.canLearnSkill(selectedSkill) && 
                     skillComponent.getSkillLevel(selectedSkill.getId()) < selectedSkill.getMaxLevel() && 
-                    availableSkillPoints > 0) {
+                    actualPoints > 0) {
                     learnSkill(selectedSkill);
                     return true;
                 }
@@ -298,9 +304,16 @@ public class SkillTreeScreen extends Screen {
     }
 
     private void learnSkill(SkillTreeHandler.Skill skill) {
-        // Изучаем навык
-        skillComponent.learnSkill(skill.getId());
-        availableSkillPoints = skillComponent.getAvailableSkillPoints();
+        if (skillComponent.canLearnSkill(skill)) {
+            // Отправляем пакет на сервер
+            PacketByteBuf buf = PacketByteBufs.create();
+            buf.writeString(skill.getId());
+            ClientPlayNetworking.send(ModPackets.LEARN_TREE_SKILL, buf);
+
+            // Обновляем локальное состояние
+            skillComponent.learnSkill(skill.getId());
+            availableSkillPoints = skillComponent.getAvailableSkillPoints();
+        }
     }
 
     @Override
@@ -376,6 +389,25 @@ public class SkillTreeScreen extends Screen {
                 // Доступный для изучения навык
                 backgroundColor = isSelected ? 0xFFAAAA00 : 0xFF888800;
                 borderColor = 0xFFFFFF00;
+            } else if (skill.getParentId() != null) {
+                // Проверяем, прокачан ли родительский навык до максимума
+                int parentLevel = skillComponent.getSkillLevel(skill.getParentId());
+                SkillTreeHandler.Skill parentSkill = null;
+                for (SkillTreeHandler.Skill s : skillTree.getAllSkills()) {
+                    if (s.getId().equals(skill.getParentId())) {
+                        parentSkill = s;
+                        break;
+                    }
+                }
+                if (parentSkill != null && parentLevel < parentSkill.getMaxLevel()) {
+                    // Родительский навык не прокачан до максимума
+                    backgroundColor = isSelected ? 0xFF550000 : 0xFF330000;
+                    borderColor = 0xFF770000;
+                } else {
+                    // Недоступный навык по другим причинам
+                    backgroundColor = isSelected ? 0xFF555555 : 0xFF333333;
+                    borderColor = 0xFF777777;
+                }
             } else {
                 // Недоступный навык
                 backgroundColor = isSelected ? 0xFF555555 : 0xFF333333;
@@ -395,13 +427,29 @@ public class SkillTreeScreen extends Screen {
                 context.drawTextWithShadow(client.textRenderer, levelText, x + width - 4 - client.textRenderer.getWidth(levelText), y + height - 10, 0xFFFFFF);
             }
 
-            // Если навык выбран или под курсором, показываем название
+            // Если навык выбран или под курсором, показываем название и требования
             if (isSelected || isHovered) {
-                int textWidth = client.textRenderer.getWidth(skill.getName());
-                int textX = x + width / 2 - textWidth / 2;
-                int textY = y - 15;
-                context.fill(textX - 2, textY - 2, textX + textWidth + 2, textY + 10, 0x80000000);
-                context.drawTextWithShadow(client.textRenderer, skill.getName(), textX, textY, 0xFFFFFF);
+                List<Text> tooltip = new ArrayList<>();
+                tooltip.add(Text.literal(skill.getName()));
+
+                // Добавляем информацию о требованиях
+                if (skill.getParentId() != null) {
+                    SkillTreeHandler.Skill parentSkill = null;
+                    for (SkillTreeHandler.Skill s : skillTree.getAllSkills()) {
+                        if (s.getId().equals(skill.getParentId())) {
+                            parentSkill = s;
+                            break;
+                        }
+                    }
+                    if (parentSkill != null) {
+                        int parentLevel = skillComponent.getSkillLevel(skill.getParentId());
+                        tooltip.add(Text.literal("Требуется: " + parentSkill.getName() + " (" + parentLevel + "/" + parentSkill.getMaxLevel() + ")")
+                            .formatted(parentLevel >= parentSkill.getMaxLevel() ? net.minecraft.util.Formatting.GREEN : net.minecraft.util.Formatting.RED));
+                    }
+                }
+
+                // Отображаем подсказку
+                context.drawTooltip(client.textRenderer, tooltip, mouseX, mouseY);
             }
         }
 

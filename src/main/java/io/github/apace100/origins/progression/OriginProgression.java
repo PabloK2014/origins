@@ -10,6 +10,7 @@ public class OriginProgression {
     private final String originId;
     private int experience;
     private int level;
+    private int skillPoints = 0; // Новое поле для очков навыков
     private final Map<String, Integer> statistics = new HashMap<>();
     
     public OriginProgression(String originId) {
@@ -28,14 +29,17 @@ public class OriginProgression {
     
     public void setExperience(int experience) {
         this.experience = Math.max(0, experience);
-        updateLevel();
+        updateLevelWithSkillPoints();
     }
     
     public void addExperience(int amount) {
         if (amount <= 0) return;
-        
+        int oldLevel = this.level;
         this.experience += amount;
-        updateLevel();
+        updateLevelWithSkillPoints();
+        if (this.level > oldLevel) {
+            skillPoints += (this.level - oldLevel); // +1 очко за каждый новый уровень
+        }
     }
     
     public int getLevel() {
@@ -43,7 +47,14 @@ public class OriginProgression {
     }
     
     public void setLevel(int level) {
+        int oldLevel = this.level;
         this.level = Math.max(1, level);
+        if (this.level > oldLevel) {
+            skillPoints += (this.level - oldLevel); // +1 очко за каждый новый уровень
+        } else if (this.level < oldLevel) {
+            // Если уровень понижен, можно уменьшить очки (по желанию)
+            skillPoints = Math.max(0, skillPoints - (oldLevel - this.level));
+        }
     }
     
     /**
@@ -87,9 +98,8 @@ public class OriginProgression {
     /**
      * Обновляет уровень на основе текущего опыта
      */
-    private void updateLevel() {
+    private void updateLevelWithSkillPoints() {
         int newLevel = 1;
-        
         for (int i = 2; i <= getMaxLevel(); i++) {
             if (experience >= getExperienceForLevel(i)) {
                 newLevel = i;
@@ -97,7 +107,11 @@ public class OriginProgression {
                 break;
             }
         }
-        
+        if (newLevel > this.level) {
+            skillPoints += (newLevel - this.level); // +1 очко за каждый новый уровень
+        } else if (newLevel < this.level) {
+            skillPoints = Math.max(0, skillPoints - (this.level - newLevel));
+        }
         this.level = newLevel;
     }
     
@@ -169,6 +183,7 @@ public class OriginProgression {
         OriginProgression progression = new OriginProgression(originId);
         progression.experience = nbt.getInt("experience");
         progression.level = nbt.getInt("level");
+        progression.skillPoints = nbt.contains("skillPoints") ? nbt.getInt("skillPoints") : (progression.level - 1); // если нет, то по уровню
         
         // Загружаем статистику
         net.minecraft.nbt.NbtCompound statsNbt = nbt.getCompound("statistics");
@@ -186,6 +201,7 @@ public class OriginProgression {
         net.minecraft.nbt.NbtCompound nbt = new net.minecraft.nbt.NbtCompound();
         nbt.putInt("experience", experience);
         nbt.putInt("level", level);
+        nbt.putInt("skillPoints", skillPoints);
         
         // Сохраняем статистику
         net.minecraft.nbt.NbtCompound statsNbt = new net.minecraft.nbt.NbtCompound();
@@ -220,4 +236,9 @@ public class OriginProgression {
     public int hashCode() {
         return originId.hashCode();
     }
+
+    // Методы для работы с очками навыков
+    public int getSkillPoints() { return skillPoints; }
+    public void spendSkillPoint() { if (skillPoints > 0) skillPoints--; }
+    public void addSkillPoints(int amount) { skillPoints += amount; }
 }

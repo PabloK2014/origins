@@ -246,7 +246,7 @@ public class TestMod {
 
         public void setLevel(int level) {
             this.level = level;
-            this.skillPoints = level;
+            // this.skillPoints = level; // УБРАНО: теперь очки навыков не сбрасываются при ручной установке уровня
         }
 
         public int getExperience() {

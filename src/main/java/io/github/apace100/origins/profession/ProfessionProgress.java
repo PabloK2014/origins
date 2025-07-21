@@ -2,27 +2,26 @@ package io.github.apace100.origins.profession;
 
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Identifier;
+import java.util.HashMap;
+import java.util.Map;
 
-/**
- * Класс для хранения прогресса профессии
- */
 public class ProfessionProgress {
     private final Identifier professionId;
     private int level;
     private int experience;
     private int totalExperience;
-    
+    private int skillPoints = 0;
+    private final ProfessionSkills skills;
+    private final Map<String, Integer> statistics = new HashMap<>();
+
     public ProfessionProgress(Identifier professionId) {
         this.professionId = professionId;
         this.level = 1;
         this.experience = 0;
         this.totalExperience = 0;
+        this.skills = new ProfessionSkills();
     }
-    
-    /**
-     * Добавляет опыт и проверяет повышение уровня
-     * @return true если уровень повысился
-     */
+
     public boolean addExperience(int exp) {
         if (exp <= 0) return false;
         
@@ -31,104 +30,128 @@ public class ProfessionProgress {
         
         boolean leveledUp = false;
         
-        // Проверяем повышение уровня
         int expForNextLevel = getExperienceForNextLevel();
         while (this.experience >= expForNextLevel) {
             this.experience -= expForNextLevel;
             this.level++;
+            this.skillPoints++; // +1 очко за каждый новый уровень
             leveledUp = true;
             expForNextLevel = getExperienceForNextLevel();
         }
         
         return leveledUp;
     }
-    
-    /**
-     * Получает текущий уровень
-     */
+
     public int getLevel() {
         return level;
     }
-    
-    /**
-     * Устанавливает уровень
-     */
+
     public void setLevel(int level) {
+        int oldLevel = this.level;
         this.level = Math.max(1, level);
-        this.experience = 0; // Сбрасываем опыт на текущем уровне
-        // totalExperience оставляем как есть
+        this.experience = 0;
+        if (this.level > oldLevel) {
+            this.skillPoints += (this.level - oldLevel);
+        } else if (this.level < oldLevel) {
+            this.skillPoints = Math.max(0, this.skillPoints - (oldLevel - this.level));
+        }
     }
-    
-    /**
-     * Получает текущий опыт на этом уровне
-     */
+
     public int getExperience() {
         return experience;
     }
-    
-    /**
-     * Получает общий накопленный опыт
-     */
+
     public int getTotalExperience() {
         return totalExperience;
     }
-    
-    /**
-     * Получает идентификатор профессии
-     */
+
     public Identifier getProfessionId() {
         return professionId;
     }
-    
-    /**
-     * Получает опыт, необходимый для следующего уровня
-     */
+
     public int getExperienceForNextLevel() {
         return Profession.getExperienceForNextLevel(level);
     }
-    
-    /**
-     * Получает прогресс до следующего уровня (от 0.0 до 1.0)
-     */
+
     public float getLevelProgress() {
         int expForNextLevel = getExperienceForNextLevel();
         if (expForNextLevel <= 0) return 1.0f;
         return (float) experience / expForNextLevel;
     }
-    
-    /**
-     * Получает прогресс до следующего уровня (от 0.0 до 1.0) - double версия
-     */
+
     public double getProgressToNextLevel() {
         int expForNextLevel = getExperienceForNextLevel();
         if (expForNextLevel <= 0) return 1.0;
         return (double) experience / expForNextLevel;
     }
-    
-    /**
-     * Получает статистику по ключу
-     */
-    public int getStatistic(String key, int defaultValue) {
-        // Пока что возвращаем значение по умолчанию
-        // В будущем можно добавить Map для хранения статистики
-        return defaultValue;
+
+    public int getSkillPoints() {
+        return skillPoints;
     }
-    
-    /**
-     * Сохраняет прогресс в NBT
-     */
+
+    public void spendSkillPoint() {
+        if (skillPoints > 0) skillPoints--;
+    }
+
+    public void addSkillPoints(int amount) {
+        skillPoints += amount;
+    }
+
+    public ProfessionSkills getSkills() {
+        return skills;
+    }
+
+    public int getStatistic(String key, int defaultValue) {
+        return statistics.getOrDefault(key, defaultValue);
+    }
+
+    public void setStatistic(String key, int value) {
+        statistics.put(key, value);
+    }
+
+    public void incrementStatistic(String key) {
+        statistics.put(key, getStatistic(key, 0) + 1);
+    }
+
+    public void incrementStatistic(String key, int amount) {
+        statistics.put(key, getStatistic(key, 0) + amount);
+    }
+
     public void writeToNbt(NbtCompound tag) {
         tag.putInt("Level", level);
         tag.putInt("Experience", experience);
         tag.putInt("TotalExperience", totalExperience);
+        tag.putInt("SkillPoints", skillPoints);
+        
+        // Сохраняем навыки
+        NbtCompound skillsTag = new NbtCompound();
+        skills.writeToNbt(skillsTag);
+        tag.put("Skills", skillsTag);
+
+        // Сохраняем статистику
+        NbtCompound statsTag = new NbtCompound();
+        statistics.forEach(statsTag::putInt);
+        tag.put("Statistics", statsTag);
     }
-    
-    /**
-     * Загружает прогресс из NBT
-     */
+
     public void readFromNbt(NbtCompound tag) {
         this.level = tag.getInt("Level");
         this.experience = tag.getInt("Experience");
         this.totalExperience = tag.getInt("TotalExperience");
+        this.skillPoints = tag.contains("SkillPoints") ? tag.getInt("SkillPoints") : (level - 1);
+        
+        // Загружаем навыки
+        if (tag.contains("Skills")) {
+            skills.readFromNbt(tag.getCompound("Skills"));
+        }
+
+        // Загружаем статистику
+        statistics.clear();
+        if (tag.contains("Statistics")) {
+            NbtCompound statsTag = tag.getCompound("Statistics");
+            for (String key : statsTag.getKeys()) {
+                statistics.put(key, statsTag.getInt(key));
+            }
+        }
     }
 }

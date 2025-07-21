@@ -78,10 +78,10 @@ public class OriginHudOverlay {
         
         // Доступные очки навыков
         int availablePoints = skillComponent.getAvailableSkillPoints();
-        if (availablePoints > 0) {
-            String pointsText = "+" + availablePoints + " очков навыков";
-            context.drawTextWithShadow(client.textRenderer, pointsText, x + 5, y + 42, 0xFF55FF55);
-        }
+        // if (availablePoints > 0) {
+        //     String pointsText = "+" + availablePoints + " очков навыков";
+        //     context.drawTextWithShadow(client.textRenderer, pointsText, x + 5, y + 42, 0xFF55FF55);
+        // }
     }
     
     private static void drawExperienceBar(DrawContext context, int x, int y, int width, int height, 
@@ -113,14 +113,14 @@ public class OriginHudOverlay {
     
     private static Identifier getOriginIcon(String originId) {
         String iconPath = switch (originId) {
-            case "origins:blacksmith" -> "textures/gui/icons/blacksmith.png";
-            case "origins:brewer" -> "textures/gui/icons/brewer.png";
-            case "origins:cook" -> "textures/gui/icons/cook.png";
-            case "origins:courier" -> "textures/gui/icons/courier.png";
-            case "origins:warrior" -> "textures/gui/icons/warrior.png";
-            case "origins:miner" -> "textures/gui/icons/miner.png";
-            case "origins:human" -> "textures/gui/icons/human.png";
-            default -> "textures/gui/icons/default.png";
+            case "origins:blacksmith" -> "textures/gui/inventory/customhp.png";
+            case "origins:brewer" -> "textures/gui/inventory/brewer.png";
+            case "origins:cook" -> "textures/gui/inventory/chef.png";
+            case "origins:courier" -> "textures/gui/inventory/yandex.png";
+            case "origins:warrior" -> "textures/gui/inventory/war.png";
+            case "origins:miner" -> "textures/gui/inventory/miner.png";
+            case "origins:human" -> "textures/gui/inventory/human.png";
+            default -> "textures/gui/inventory/default.png";
         };
         
         return new Identifier(Origins.MODID, iconPath);

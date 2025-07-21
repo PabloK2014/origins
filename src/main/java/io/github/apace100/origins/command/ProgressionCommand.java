@@ -112,6 +112,8 @@ public class ProgressionCommand {
         component.addExperience(experience);
         int newLevel = progress.getLevel();
         
+
+        
         context.getSource().sendFeedback(() -> Text.literal("Добавлено " + experience + " опыта игроку " + player.getName().getString())
             .formatted(Formatting.GREEN), true);
         
@@ -138,6 +140,8 @@ public class ProgressionCommand {
         // Устанавливаем уровень через компонент
         component.setLevel(level);
         
+
+        
         context.getSource().sendFeedback(() -> Text.literal("Установлен уровень " + level + " для игрока " + player.getName().getString())
             .formatted(Formatting.GREEN), true);
         
@@ -157,10 +161,6 @@ public class ProgressionCommand {
         
         // Сбрасываем уровень до 1
         component.setLevel(1);
-        
-        context.getSource().sendFeedback(() -> Text.literal("Сброшена прогрессия игрока " + player.getName().getString())
-            .formatted(Formatting.YELLOW), true);
-        
         return 1;
     }
     

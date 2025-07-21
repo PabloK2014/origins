@@ -2,6 +2,7 @@ package io.github.apace100.origins;
 
 import io.github.apace100.apoli.ApoliClient;
 import io.github.apace100.apoli.integration.PowerClearCallback;
+import io.github.apace100.origins.client.gui.LevelZSkillScreen;
 import io.github.apace100.origins.client.gui.OriginHudOverlay;
 import io.github.apace100.origins.client.gui.OriginProgressionScreen;
 import io.github.apace100.origins.networking.ModPacketsS2C;
@@ -15,6 +16,8 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
@@ -68,9 +71,17 @@ public class OriginsClient implements ClientModInitializer {
             }
             
             while(viewProgressionKeybind.wasPressed()) {
-                if(!(MinecraftClient.getInstance().currentScreen instanceof OriginProgressionScreen)) {
-                    MinecraftClient.getInstance().setScreen(new OriginProgressionScreen());
+                if(!(MinecraftClient.getInstance().currentScreen instanceof LevelZSkillScreen)) {
+                    MinecraftClient.getInstance().setScreen(new LevelZSkillScreen());
                 }
+            }
+            // Обработка активного скилла повара (клавиша G)
+            while(usePrimaryActivePowerKeybind.wasPressed()) {
+                // Отправляем кастомный пакет на сервер
+                net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.send(
+                    io.github.apace100.origins.networking.ModPackets.ACTIVE_COOK_SKILL,
+                    net.fabricmc.fabric.api.networking.v1.PacketByteBufs.create()
+                );
             }
         });
 

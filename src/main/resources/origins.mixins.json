@@ -34,7 +34,13 @@
     "CookExperienceMixin",
     "CourierExperienceMixin",
     "MinerExperienceMixin",
-    "WarriorExperienceMixin"
+    "WarriorExperienceMixin",
+    "CookExperienceMixin",
+    "BoneMealItemMixin",
+    "PlayerInventoryFoodExpMixin",
+    "SlotMixin",
+    "PlayerAttributesMixin",
+    "PlayerSkillsMixin"
   ],
   "client": [
     "BlacksmithQualityTooltipInfoMixin",
@@ -44,7 +50,8 @@
     "ServerCheckMixin",
     "WaterVisibilityMixin",
     "ItemTooltipMixin",
-    "ItemNameColorMixin"
+    "ItemNameColorMixin",
+    "ScreenAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -26,7 +26,8 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
         ComponentRegistry.getOrCreate(Origins.identifier("player_skills"), PlayerSkillComponent.class);
     
     private final PlayerEntity player;
-    private final Map<String, Integer> skillLevels = new HashMap<>();
+    // Вместо одного skillLevels, делаем Map<professionId, Map<skillId, Integer>>
+    private final Map<String, Map<String, Integer>> professionSkillLevels = new HashMap<>();
     private int tickCounter = 0;
     
     public PlayerSkillComponent(PlayerEntity player) {
@@ -37,15 +38,10 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
      * Изучает навык или повышает его уровень
      */
     public void learnSkill(String skillId) {
-        // Получаем текущий класс игрока
         String currentClass = getCurrentClass();
         if (currentClass == null) return;
-
-        // Получаем дерево навыков для класса
         SkillTreeHandler.SkillTree skillTree = SkillTreeHandler.getSkillTree(currentClass);
         if (skillTree == null) return;
-
-        // Находим навык по ID
         SkillTreeHandler.Skill skill = null;
         for (SkillTreeHandler.Skill s : skillTree.getAllSkills()) {
             if (s.getId().equals(skillId)) {
@@ -53,23 +49,22 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
                 break;
             }
         }
-
         if (skill == null) return;
-
-        // Проверяем, можно ли изучить навык
         if (!canLearnSkill(skill)) return;
-
-        // Увеличиваем уровень навыка
+        io.github.apace100.origins.profession.ProfessionComponent professionComponent =
+            io.github.apace100.origins.profession.ProfessionComponent.KEY.get(player);
+        io.github.apace100.origins.profession.ProfessionProgress professionProgress = professionComponent.getCurrentProgress();
+        if (professionProgress == null || professionProgress.getSkillPoints() <= 0) return;
+        Map<String, Integer> skillLevels = professionSkillLevels.computeIfAbsent(currentClass, k -> new HashMap<>());
         int currentLevel = skillLevels.getOrDefault(skillId, 0);
         if (currentLevel < skill.getMaxLevel()) {
             skillLevels.put(skillId, currentLevel + 1);
+            professionProgress.spendSkillPoint();
+            // Синхронизируем всегда
+            KEY.sync(player);
+            professionComponent.KEY.sync(player);
         }
-
-        // Синхронизируем с клиентом
         if (player instanceof ServerPlayerEntity serverPlayer) {
-            KEY.sync(serverPlayer);
-            
-            // Отправляем сообщение об изучении навыка
             serverPlayer.sendMessage(
                 Text.literal("Вы изучили навык: ")
                     .formatted(Formatting.GREEN)
@@ -83,28 +78,49 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
      * Проверяет, может ли игрок изучить навык
      */
     public boolean canLearnSkill(SkillTreeHandler.Skill skill) {
-        // Проверяем, что у игрока достаточный уровень
+        // Проверяем уровень игрока
         int playerLevel = getPlayerLevel();
         if (playerLevel < skill.getRequiredLevel()) {
             return false;
         }
 
-        // Проверяем, что родительский навык изучен
+        String currentClass = getCurrentClass();
+        if (currentClass == null) return false;
+
+        Map<String, Integer> skillLevels = professionSkillLevels.computeIfAbsent(currentClass, k -> new HashMap<>());
+        
+        // Проверяем родительский навык
         if (skill.getParentId() != null) {
             int parentLevel = skillLevels.getOrDefault(skill.getParentId(), 0);
-            if (parentLevel == 0) {
+            // Изменяем условие: родительский навык должен быть максимального уровня
+            SkillTreeHandler.SkillTree skillTree = SkillTreeHandler.getSkillTree(currentClass);
+            if (skillTree != null) {
+                SkillTreeHandler.Skill parentSkill = null;
+                for (SkillTreeHandler.Skill s : skillTree.getAllSkills()) {
+                    if (s.getId().equals(skill.getParentId())) {
+                        parentSkill = s;
+                        break;
+                    }
+                }
+                if (parentSkill != null && parentLevel < parentSkill.getMaxLevel()) {
+                    return false;
+                }
+            } else if (parentLevel == 0) {
                 return false;
             }
         }
 
-        // Проверяем, что навык не достиг максимального уровня
+        // Проверяем текущий уровень навыка
         int currentLevel = skillLevels.getOrDefault(skill.getId(), 0);
         if (currentLevel >= skill.getMaxLevel()) {
             return false;
         }
 
-        // Проверяем, что у игрока есть доступные очки навыков
-        int availablePoints = getAvailableSkillPoints();
+        // Проверяем наличие очков навыков
+        io.github.apace100.origins.profession.ProfessionComponent professionComponent =
+            io.github.apace100.origins.profession.ProfessionComponent.KEY.get(player);
+        io.github.apace100.origins.profession.ProfessionProgress professionProgress = professionComponent.getCurrentProgress();
+        int availablePoints = professionProgress != null ? professionProgress.getSkillPoints() : 0;
         return availablePoints > 0;
     }
 
@@ -112,16 +128,10 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
      * Получает доступные очки навыков
      */
     public int getAvailableSkillPoints() {
-        int playerLevel = getPlayerLevel();
-        int spentPoints = 0;
-        
-        // Считаем потраченные очки
-        for (int level : skillLevels.values()) {
-            spentPoints += level;
-        }
-        
-        // Каждый уровень выше 1 дает 1 очко навыка
-        return Math.max(0, playerLevel - 1 - spentPoints);
+        io.github.apace100.origins.profession.ProfessionComponent professionComponent =
+            io.github.apace100.origins.profession.ProfessionComponent.KEY.get(player);
+        io.github.apace100.origins.profession.ProfessionProgress professionProgress = professionComponent.getCurrentProgress();
+        return professionProgress != null ? professionProgress.getSkillPoints() : 0;
     }
 
     /**
@@ -165,28 +175,33 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
      * Получает уровни всех навыков игрока
      */
     public Map<String, Integer> getSkillLevels() {
-        return new HashMap<>(skillLevels);
+        String currentClass = getCurrentClass();
+        return new HashMap<>(professionSkillLevels.getOrDefault(currentClass, new HashMap<>()));
     }
 
     /**
      * Получает уровень конкретного навыка
      */
     public int getSkillLevel(String skillId) {
-        return skillLevels.getOrDefault(skillId, 0);
+        String currentClass = getCurrentClass();
+        return professionSkillLevels.getOrDefault(currentClass, new HashMap<>()).getOrDefault(skillId, 0);
     }
 
     /**
      * Проверяет, изучен ли навык
      */
     public boolean hasSkill(String skillId) {
-        return skillLevels.getOrDefault(skillId, 0) > 0;
+        return getSkillLevel(skillId) > 0;
     }
 
     /**
      * Сбрасывает все навыки игрока
      */
     public void resetSkills() {
-        skillLevels.clear();
+        String currentClass = getCurrentClass();
+        if (currentClass != null) {
+            professionSkillLevels.remove(currentClass);
+        }
         if (player instanceof ServerPlayerEntity serverPlayer) {
             KEY.sync(serverPlayer);
             serverPlayer.sendMessage(
@@ -208,7 +223,7 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
         if (skillTree == null) return;
 
         // Проходим по всем изученным навыкам
-        for (Map.Entry<String, Integer> entry : skillLevels.entrySet()) {
+        for (Map.Entry<String, Integer> entry : getSkillLevels().entrySet()) {
             String skillId = entry.getKey();
             int skillLevel = entry.getValue();
             
@@ -265,20 +280,31 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
 
     @Override
     public void readFromNbt(NbtCompound tag) {
-        skillLevels.clear();
-        
-        NbtCompound skillsTag = tag.getCompound("skills");
-        for (String key : skillsTag.getKeys()) {
-            skillLevels.put(key, skillsTag.getInt(key));
+        professionSkillLevels.clear();
+        NbtCompound allSkillsTag = tag.getCompound("professionSkills");
+        for (String profession : allSkillsTag.getKeys()) {
+            NbtCompound skillsTag = allSkillsTag.getCompound(profession);
+            Map<String, Integer> skillLevels = new HashMap<>();
+            for (String key : skillsTag.getKeys()) {
+                skillLevels.put(key, skillsTag.getInt(key));
+            }
+            professionSkillLevels.put(profession, skillLevels);
+        }
+        if (player instanceof ServerPlayerEntity serverPlayer) {
+            KEY.sync(serverPlayer);
         }
     }
 
     @Override
     public void writeToNbt(NbtCompound tag) {
-        NbtCompound skillsTag = new NbtCompound();
-        for (Map.Entry<String, Integer> entry : skillLevels.entrySet()) {
-            skillsTag.putInt(entry.getKey(), entry.getValue());
+        NbtCompound allSkillsTag = new NbtCompound();
+        for (Map.Entry<String, Map<String, Integer>> entry : professionSkillLevels.entrySet()) {
+            NbtCompound skillsTag = new NbtCompound();
+            for (Map.Entry<String, Integer> skillEntry : entry.getValue().entrySet()) {
+                skillsTag.putInt(skillEntry.getKey(), skillEntry.getValue());
+            }
+            allSkillsTag.put(entry.getKey(), skillsTag);
         }
-        tag.put("skills", skillsTag);
+        tag.put("professionSkills", allSkillsTag);
     }
 }
