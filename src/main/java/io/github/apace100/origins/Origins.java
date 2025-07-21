@@ -91,6 +91,9 @@ public class Origins implements ModInitializer, OrderedResourceListenerInitializ
 		ModEntities.register();
 		ModLoot.registerLootTables();
 		Origin.init();
+		
+		// Инициализируем реестр профессий
+		io.github.apace100.origins.profession.ProfessionRegistry.init();
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			OriginCommand.register(dispatcher);

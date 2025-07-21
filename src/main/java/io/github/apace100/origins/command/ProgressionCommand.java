@@ -5,8 +5,10 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import io.github.apace100.origins.progression.OriginProgression;
-import io.github.apace100.origins.progression.OriginProgressionComponent;
+import io.github.apace100.origins.profession.Profession;
+import io.github.apace100.origins.profession.ProfessionComponent;
+import io.github.apace100.origins.profession.ProfessionProgress;
+import io.github.apace100.origins.profession.ProfessionRegistry;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -61,53 +63,54 @@ public class ProgressionCommand {
         );
     }
     
-    private static int executeInfo(CommandContext<ServerCommandSource> context, ServerPlayerEntity targetPlayer) throws CommandSyntaxException {
+    public static int executeInfo(CommandContext<ServerCommandSource> context, ServerPlayerEntity targetPlayer) throws CommandSyntaxException {
         ServerPlayerEntity player = targetPlayer != null ? targetPlayer : context.getSource().getPlayerOrThrow();
         
-        OriginProgressionComponent component = OriginProgressionComponent.KEY.get(player);
-        OriginProgression progression = component.getCurrentProgression();
+        ProfessionComponent component = ProfessionComponent.KEY.get(player);
+        ProfessionProgress progress = component.getCurrentProgress();
         
-        if (progression == null) {
+        if (progress == null) {
             context.getSource().sendFeedback(() -> Text.literal("У игрока " + player.getName().getString() + " нет активного происхождения")
                 .formatted(Formatting.YELLOW), false);
             return 0;
         }
         
-        String originName = getOriginDisplayName(progression.getOriginId());
+        Profession profession = ProfessionRegistry.get(progress.getProfessionId());
+        String professionName = profession != null ? profession.getName() : progress.getProfessionId().toString();
         
         context.getSource().sendFeedback(() -> Text.literal("=== Прогрессия игрока " + player.getName().getString() + " ===")
             .formatted(Formatting.GOLD), false);
         
-        context.getSource().sendFeedback(() -> Text.literal("Происхождение: " + originName)
+        context.getSource().sendFeedback(() -> Text.literal("Происхождение: " + professionName)
             .formatted(Formatting.AQUA), false);
         
-        context.getSource().sendFeedback(() -> Text.literal("Уровень: " + progression.getLevel())
+        context.getSource().sendFeedback(() -> Text.literal("Уровень: " + progress.getLevel())
             .formatted(Formatting.GREEN), false);
         
-        context.getSource().sendFeedback(() -> Text.literal("Опыт: " + progression.getExperience() + "/" + progression.getExperienceForNextLevel() + " (" + progression.getProgressPercent() + "%)")
+        context.getSource().sendFeedback(() -> Text.literal("Опыт: " + progress.getExperience() + "/" + progress.getExperienceForNextLevel() + " (" + (int)(progress.getLevelProgress() * 100) + "%)")
             .formatted(Formatting.BLUE), false);
         
-        context.getSource().sendFeedback(() -> Text.literal("Общий опыт: " + progression.getTotalExperience())
+        context.getSource().sendFeedback(() -> Text.literal("Общий опыт: " + progress.getTotalExperience())
             .formatted(Formatting.GRAY), false);
         
         return 1;
     }
     
-    private static int executeAddExperience(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    public static int executeAddExperience(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
         int experience = IntegerArgumentType.getInteger(context, "experience");
         
-        OriginProgressionComponent component = OriginProgressionComponent.KEY.get(player);
-        OriginProgression progression = component.getCurrentProgression();
+        ProfessionComponent component = ProfessionComponent.KEY.get(player);
+        ProfessionProgress progress = component.getCurrentProgress();
         
-        if (progression == null) {
+        if (progress == null) {
             context.getSource().sendError(Text.literal("У игрока нет активного происхождения"));
             return 0;
         }
         
-        int oldLevel = progression.getLevel();
+        int oldLevel = progress.getLevel();
         component.addExperience(experience);
-        int newLevel = progression.getLevel();
+        int newLevel = progress.getLevel();
         
         context.getSource().sendFeedback(() -> Text.literal("Добавлено " + experience + " опыта игроку " + player.getName().getString())
             .formatted(Formatting.GREEN), true);
@@ -120,20 +123,20 @@ public class ProgressionCommand {
         return 1;
     }
     
-    private static int executeSetLevel(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    public static int executeSetLevel(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
         int level = IntegerArgumentType.getInteger(context, "level");
         
-        OriginProgressionComponent component = OriginProgressionComponent.KEY.get(player);
-        OriginProgression progression = component.getCurrentProgression();
+        ProfessionComponent component = ProfessionComponent.KEY.get(player);
+        ProfessionProgress progress = component.getCurrentProgress();
         
-        if (progression == null) {
+        if (progress == null) {
             context.getSource().sendError(Text.literal("У игрока нет активного происхождения"));
             return 0;
         }
         
-        String originId = progression.getOriginId();
-        component.setLevel(originId, level);
+        // Устанавливаем уровень через компонент
+        component.setLevel(level);
         
         context.getSource().sendFeedback(() -> Text.literal("Установлен уровень " + level + " для игрока " + player.getName().getString())
             .formatted(Formatting.GREEN), true);
@@ -141,19 +144,19 @@ public class ProgressionCommand {
         return 1;
     }
     
-    private static int executeReset(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    public static int executeReset(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
         
-        OriginProgressionComponent component = OriginProgressionComponent.KEY.get(player);
-        OriginProgression progression = component.getCurrentProgression();
+        ProfessionComponent component = ProfessionComponent.KEY.get(player);
+        ProfessionProgress progress = component.getCurrentProgress();
         
-        if (progression == null) {
+        if (progress == null) {
             context.getSource().sendError(Text.literal("У игрока нет активного происхождения"));
             return 0;
         }
         
-        String originId = progression.getOriginId();
-        component.setLevel(originId, 1);
+        // Сбрасываем уровень до 1
+        component.setLevel(1);
         
         context.getSource().sendFeedback(() -> Text.literal("Сброшена прогрессия игрока " + player.getName().getString())
             .formatted(Formatting.YELLOW), true);
@@ -164,7 +167,7 @@ public class ProgressionCommand {
     private static String getOriginDisplayName(String originId) {
         return switch (originId) {
             case "origins:blacksmith" -> "🔨 Кузнец";
-            case "origins:brewer" -> "🧪 Алхимик";
+            case "origins:brewer" -> "🍺 Пивовар";
             case "origins:cook" -> "👨‍🍳 Повар";
             case "origins:courier" -> "📦 Курьер";
             case "origins:warrior" -> "⚔️ Воин";

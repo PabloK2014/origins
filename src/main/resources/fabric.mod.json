@@ -30,7 +30,9 @@
     ],
     "cardinal-components-entity": [
       "io.github.apace100.origins.registry.ModComponents",
-      "io.github.apace100.origins.progression.ProgressionComponents"
+      "io.github.apace100.origins.progression.ProgressionComponents",
+      "io.github.apace100.origins.profession.ProfessionComponents",
+      "io.github.apace100.origins.skill.SkillComponents"
     ],
     "calio:ordered-resource-listener": [
       "io.github.apace100.origins.Origins"
@@ -42,7 +44,9 @@
   "custom": {
     "cardinal-components": [
       "origins:origin",
-      "origins:progression"
+      "origins:progression",
+      "origins:profession",
+      "origins:player_skills"
     ]
   },
 

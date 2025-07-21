@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.apace100.origins.Origins;
+import io.github.apace100.origins.command.ProgressionCommand;
 import io.github.apace100.origins.component.OriginComponent;
 import io.github.apace100.origins.networking.ModPackets;
 import io.github.apace100.origins.origin.Origin;
@@ -71,6 +72,33 @@ public class OriginCommand {
 						.executes(commandContext -> OriginCommand.randomizeOrigins(commandContext, TargetType.SPECIFY))
 						.then(argument("layer", LayerArgumentType.layer())
 							.executes(OriginCommand::randomizeOrigin)
+						)
+					)
+				)
+				.then(literal("progression")
+					.then(literal("info")
+						.executes(context -> ProgressionCommand.executeInfo(context, null))
+						.then(argument("player", EntityArgumentType.player())
+							.executes(context -> ProgressionCommand.executeInfo(context, EntityArgumentType.getPlayer(context, "player")))
+						)
+					)
+					.then(literal("add")
+						.then(argument("player", EntityArgumentType.player())
+							.then(argument("experience", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1))
+								.executes(ProgressionCommand::executeAddExperience)
+							)
+						)
+					)
+					.then(literal("set")
+						.then(argument("player", EntityArgumentType.player())
+							.then(argument("level", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1))
+								.executes(ProgressionCommand::executeSetLevel)
+							)
+						)
+					)
+					.then(literal("reset")
+						.then(argument("player", EntityArgumentType.player())
+							.executes(ProgressionCommand::executeReset)
 						)
 					)
 				)

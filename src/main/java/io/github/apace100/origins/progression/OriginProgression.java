@@ -1,114 +1,223 @@
 package io.github.apace100.origins.progression;
 
-import net.minecraft.nbt.NbtCompound;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Класс для хранения прогрессии происхождения игрока
+ * Класс для хранения прогрессии конкретного происхождения
  */
 public class OriginProgression {
-    
-    private String originId;
-    private int level;
+    private final String originId;
     private int experience;
-    private int totalExperience;
-    
-    // Константы для расчета уровней
-    private static final int BASE_EXP_PER_LEVEL = 100;
-    private static final float EXP_MULTIPLIER = 1.2f;
+    private int level;
+    private final Map<String, Integer> statistics = new HashMap<>();
     
     public OriginProgression(String originId) {
         this.originId = originId;
-        this.level = 1;
         this.experience = 0;
-        this.totalExperience = 0;
+        this.level = 1;
+    }
+    
+    public String getOriginId() {
+        return originId;
+    }
+    
+    public int getExperience() {
+        return experience;
+    }
+    
+    public void setExperience(int experience) {
+        this.experience = Math.max(0, experience);
+        updateLevel();
+    }
+    
+    public void addExperience(int amount) {
+        if (amount <= 0) return;
+        
+        this.experience += amount;
+        updateLevel();
+    }
+    
+    public int getLevel() {
+        return level;
+    }
+    
+    public void setLevel(int level) {
+        this.level = Math.max(1, level);
     }
     
     /**
-     * Добавляет опыт и проверяет повышение уровня
-     */
-    public boolean addExperience(int exp) {
-        if (exp <= 0) return false;
-        
-        this.experience += exp;
-        this.totalExperience += exp;
-        
-        boolean leveledUp = false;
-        
-        // Проверяем повышение уровня
-        while (this.experience >= getExperienceForNextLevel()) {
-            this.experience -= getExperienceForNextLevel();
-            this.level++;
-            leveledUp = true;
-        }
-        
-        return leveledUp;
-    }
-    
-    /**
-     * Получить опыт, необходимый для следующего уровня
+     * Получает количество опыта, необходимое для следующего уровня
      */
     public int getExperienceForNextLevel() {
-        return (int) (BASE_EXP_PER_LEVEL * Math.pow(EXP_MULTIPLIER, level - 1));
+        return getExperienceForLevel(level + 1);
     }
     
     /**
-     * Получить прогресс до следующего уровня (0.0 - 1.0)
+     * Получает количество опыта, необходимое для достижения определенного уровня
      */
-    public float getProgressToNextLevel() {
-        int expForNext = getExperienceForNextLevel();
-        return expForNext > 0 ? (float) experience / expForNext : 1.0f;
+    public int getExperienceForLevel(int targetLevel) {
+        if (targetLevel <= 1) return 0;
+        
+        // Экспоненциальная формула: 100 * (уровень^1.5)
+        return (int) (100 * Math.pow(targetLevel, 1.5));
     }
     
     /**
-     * Получить процент прогресса (0-100)
+     * Получает прогресс до следующего уровня (0.0 - 1.0)
      */
-    public int getProgressPercent() {
-        return (int) (getProgressToNextLevel() * 100);
-    }
-    
-    // Геттеры и сеттеры
-    public String getOriginId() { return originId; }
-    public int getLevel() { return level; }
-    public int getExperience() { return experience; }
-    public int getTotalExperience() { return totalExperience; }
-    
-    public void setLevel(int level) { this.level = Math.max(1, level); }
-    public void setExperience(int experience) { this.experience = Math.max(0, experience); }
-    
-    /**
-     * Сохранение в NBT
-     */
-    public NbtCompound writeToNbt() {
-        NbtCompound nbt = new NbtCompound();
-        nbt.putString("originId", originId);
-        nbt.putInt("level", level);
-        nbt.putInt("experience", experience);
-        nbt.putInt("totalExperience", totalExperience);
-        return nbt;
+    public double getProgressToNextLevel() {
+        if (level >= getMaxLevel()) return 1.0;
+        
+        int currentLevelExp = getExperienceForLevel(level);
+        int nextLevelExp = getExperienceForLevel(level + 1);
+        
+        if (nextLevelExp <= currentLevelExp) return 1.0;
+        
+        return (double) (experience - currentLevelExp) / (nextLevelExp - currentLevelExp);
     }
     
     /**
-     * Загрузка из NBT
+     * Получает максимальный уровень для данного происхождения
      */
-    public void readFromNbt(NbtCompound nbt) {
-        this.originId = nbt.getString("originId");
-        this.level = Math.max(1, nbt.getInt("level"));
-        this.experience = Math.max(0, nbt.getInt("experience"));
-        this.totalExperience = Math.max(0, nbt.getInt("totalExperience"));
+    public int getMaxLevel() {
+        return 50; // Можно настроить для каждого происхождения отдельно
     }
     
     /**
-     * Создание из NBT
+     * Обновляет уровень на основе текущего опыта
      */
-    public static OriginProgression fromNbt(NbtCompound nbt) {
-        OriginProgression progression = new OriginProgression(nbt.getString("originId"));
-        progression.readFromNbt(nbt);
+    private void updateLevel() {
+        int newLevel = 1;
+        
+        for (int i = 2; i <= getMaxLevel(); i++) {
+            if (experience >= getExperienceForLevel(i)) {
+                newLevel = i;
+            } else {
+                break;
+            }
+        }
+        
+        this.level = newLevel;
+    }
+    
+    /**
+     * Получает статистику по ключу
+     */
+    public int getStatistic(String key, int defaultValue) {
+        return statistics.getOrDefault(key, defaultValue);
+    }
+    
+    /**
+     * Устанавливает статистику
+     */
+    public void setStatistic(String key, int value) {
+        statistics.put(key, Math.max(0, value));
+    }
+    
+    /**
+     * Увеличивает статистику на указанное количество
+     */
+    public void incrementStatistic(String key, int amount) {
+        if (amount <= 0) return;
+        
+        int currentValue = statistics.getOrDefault(key, 0);
+        statistics.put(key, currentValue + amount);
+    }
+    
+    /**
+     * Получает все статистики
+     */
+    public Map<String, Integer> getAllStatistics() {
+        return new HashMap<>(statistics);
+    }
+    
+    /**
+     * Очищает всю статистику
+     */
+    public void clearStatistics() {
+        statistics.clear();
+    }
+    
+    /**
+     * Сбрасывает прогрессию к начальному состоянию
+     */
+    public void reset() {
+        this.experience = 0;
+        this.level = 1;
+        this.statistics.clear();
+    }
+    
+    /**
+     * Копирует данные из другой прогрессии
+     */
+    public void copyFrom(OriginProgression other) {
+        if (!this.originId.equals(other.originId)) {
+            throw new IllegalArgumentException("Cannot copy progression from different origin type");
+        }
+        
+        this.experience = other.experience;
+        this.level = other.level;
+        this.statistics.clear();
+        this.statistics.putAll(other.statistics);
+    }
+    
+    /**
+     * Создает OriginProgression из NBT данных
+     */
+    public static OriginProgression fromNbt(String originId, net.minecraft.nbt.NbtCompound nbt) {
+        OriginProgression progression = new OriginProgression(originId);
+        progression.experience = nbt.getInt("experience");
+        progression.level = nbt.getInt("level");
+        
+        // Загружаем статистику
+        net.minecraft.nbt.NbtCompound statsNbt = nbt.getCompound("statistics");
+        for (String key : statsNbt.getKeys()) {
+            progression.statistics.put(key, statsNbt.getInt(key));
+        }
+        
         return progression;
+    }
+    
+    /**
+     * Сохраняет OriginProgression в NBT
+     */
+    public net.minecraft.nbt.NbtCompound writeToNbt() {
+        net.minecraft.nbt.NbtCompound nbt = new net.minecraft.nbt.NbtCompound();
+        nbt.putInt("experience", experience);
+        nbt.putInt("level", level);
+        
+        // Сохраняем статистику
+        net.minecraft.nbt.NbtCompound statsNbt = new net.minecraft.nbt.NbtCompound();
+        for (Map.Entry<String, Integer> entry : statistics.entrySet()) {
+            statsNbt.putInt(entry.getKey(), entry.getValue());
+        }
+        nbt.put("statistics", statsNbt);
+        
+        return nbt;
     }
     
     @Override
     public String toString() {
-        return String.format("OriginProgression{origin='%s', level=%d, exp=%d/%d (%d%%)}", 
-            originId, level, experience, getExperienceForNextLevel(), getProgressPercent());
+        return "OriginProgression{" +
+                "originId='" + originId + '\'' +
+                ", experience=" + experience +
+                ", level=" + level +
+                ", statistics=" + statistics.size() +
+                '}';
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        
+        OriginProgression that = (OriginProgression) obj;
+        return originId.equals(that.originId);
+    }
+    
+    @Override
+    public int hashCode() {
+        return originId.hashCode();
     }
 }

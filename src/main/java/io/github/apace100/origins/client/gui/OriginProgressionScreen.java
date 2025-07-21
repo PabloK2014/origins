@@ -1,189 +1,223 @@
 package io.github.apace100.origins.client.gui;
 
-import io.github.apace100.origins.progression.OriginProgression;
-import io.github.apace100.origins.progression.OriginProgressionComponent;
+import io.github.apace100.origins.Origins;
+import io.github.apace100.origins.component.OriginComponent;
+import io.github.apace100.origins.origin.Origin;
+import io.github.apace100.origins.origin.OriginLayers;
+import io.github.apace100.origins.profession.ProfessionComponent;
+import io.github.apace100.origins.profession.ProfessionProgress;
+import io.github.apace100.origins.registry.ModComponents;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
 /**
- * GUI экран для отображения прогрессии происхождения
+ * Экран для отображения прогрессии происхождения игрока
  */
 public class OriginProgressionScreen extends Screen {
     
-    private static final Identifier BACKGROUND_TEXTURE = new Identifier("textures/gui/demo_background.png");
-    private static final int GUI_WIDTH = 248;
-    private static final int GUI_HEIGHT = 166;
+    private static final int BACKGROUND_WIDTH = 256;
+    private static final int BACKGROUND_HEIGHT = 200;
     
-    private OriginProgression progression;
     private int backgroundX;
     private int backgroundY;
     
+    private String currentOrigin;
+    private ProfessionProgress progress;
+    
     public OriginProgressionScreen() {
-        super(Text.literal("Прогрессия происхождения"));
+        super(Text.translatable("screen.origins.progression"));
     }
     
     @Override
     protected void init() {
         super.init();
         
-        this.backgroundX = (this.width - GUI_WIDTH) / 2;
-        this.backgroundY = (this.height - GUI_HEIGHT) / 2;
+        this.backgroundX = (this.width - BACKGROUND_WIDTH) / 2;
+        this.backgroundY = (this.height - BACKGROUND_HEIGHT) / 2;
         
-        // Получаем прогрессию игрока
+        // Получаем информацию о текущем происхождении и прогрессии
         if (this.client != null && this.client.player != null) {
-            OriginProgressionComponent component = OriginProgressionComponent.KEY.get(this.client.player);
-            this.progression = component.getCurrentProgression();
+            OriginComponent originComponent = ModComponents.ORIGIN.get(this.client.player);
+            Origin origin = originComponent.getOrigin(OriginLayers.getLayer(Origins.identifier("origin")));
+            if (origin != null) {
+                this.currentOrigin = origin.getIdentifier().toString();
+            }
+            
+            ProfessionComponent professionComponent = ProfessionComponent.KEY.get(this.client.player);
+            this.progress = professionComponent.getCurrentProgress();
         }
         
-        // Кнопка закрытия
-        this.addDrawableChild(ButtonWidget.builder(Text.literal("Закрыть"), button -> this.close())
-            .dimensions(this.backgroundX + GUI_WIDTH - 80, this.backgroundY + GUI_HEIGHT - 30, 70, 20)
-            .build());
-        
-        // Кнопка дерева навыков (пока заглушка)
-        this.addDrawableChild(ButtonWidget.builder(Text.literal("Навыки"), button -> {
-            // TODO: Открыть дерево навыков
-            if (this.client != null && this.client.player != null) {
-                this.client.player.sendMessage(Text.literal("Дерево навыков будет добавлено позже!")
-                    .formatted(Formatting.YELLOW), false);
+        // Кнопка "Дерево навыков"
+        this.addDrawableChild(ButtonWidget.builder(Text.translatable("gui.origins.skill_tree"), button -> {
+            if (this.client != null) {
+                this.client.setScreen(new SkillTreeScreen());
             }
-        }).dimensions(this.backgroundX + 10, this.backgroundY + GUI_HEIGHT - 30, 70, 20).build());
+        }).dimensions(this.backgroundX + 20, this.backgroundY + BACKGROUND_HEIGHT - 60, 100, 20).build());
+        
+        // Кнопка закрытия
+        this.addDrawableChild(ButtonWidget.builder(Text.translatable("gui.close"), button -> {
+            this.close();
+        }).dimensions(this.backgroundX + BACKGROUND_WIDTH - 70, this.backgroundY + BACKGROUND_HEIGHT - 30, 50, 20).build());
     }
     
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        // Рендерим затемненный фон
         this.renderBackground(context);
         
-        // Рендерим фон GUI
-        context.drawTexture(BACKGROUND_TEXTURE, backgroundX, backgroundY, 0, 0, GUI_WIDTH, GUI_HEIGHT);
+        // Рисуем фон
+        Identifier backgroundTexture = new Identifier(Origins.MODID, "textures/gui/progression_background.png");
+        context.drawTexture(backgroundTexture, backgroundX, backgroundY, 0, 0, BACKGROUND_WIDTH, BACKGROUND_HEIGHT, BACKGROUND_WIDTH, BACKGROUND_HEIGHT);
         
-        // Рендерим содержимое
-        renderProgressionInfo(context);
+        // Заголовок
+        String title = getProfessionDisplayName(currentOrigin);
+        context.drawCenteredTextWithShadow(this.textRenderer, title, this.width / 2, backgroundY + 15, 0xFFFFFF);
         
-        // Рендерим виджеты (кнопки)
+        if (progress != null) {
+            // Текущий уровень
+            String levelText = "Уровень: " + progress.getLevel();
+            context.drawTextWithShadow(this.textRenderer, levelText, backgroundX + 20, backgroundY + 40, 0xFFFF55);
+            
+            // Опыт
+            String expText = "Опыт: " + progress.getExperience() + " / " + progress.getExperienceForNextLevel();
+            context.drawTextWithShadow(this.textRenderer, expText, backgroundX + 20, backgroundY + 55, 0xAAFFAA);
+            
+            // Полоса опыта
+            drawExperienceBar(context, backgroundX + 20, backgroundY + 70, BACKGROUND_WIDTH - 40, 10);
+            
+            // Статистика
+            context.drawTextWithShadow(this.textRenderer, "Статистика:", backgroundX + 20, backgroundY + 90, 0xFFFFFF);
+            
+            // Различная статистика в зависимости от происхождения
+            drawOriginSpecificStats(context, backgroundX + 20, backgroundY + 105);
+        }
+        
         super.render(context, mouseX, mouseY, delta);
     }
     
-    private void renderProgressionInfo(DrawContext context) {
-        if (progression == null) {
-            // Если нет прогрессии, показываем сообщение
-            Text noProgressionText = Text.literal("Нет активного происхождения")
-                .formatted(Formatting.GRAY);
-            
-            int textWidth = this.textRenderer.getWidth(noProgressionText);
-            context.drawText(this.textRenderer, noProgressionText, 
-                backgroundX + (GUI_WIDTH - textWidth) / 2, 
-                backgroundY + GUI_HEIGHT / 2, 
-                0xFFFFFF, false);
-            return;
-        }
+    private void drawExperienceBar(DrawContext context, int x, int y, int width, int height) {
+        if (progress == null) return;
         
-        int startY = backgroundY + 20;
-        int centerX = backgroundX + GUI_WIDTH / 2;
-        
-        // Заголовок
-        Text titleText = Text.literal("Прогрессия происхождения")
-            .formatted(Formatting.BOLD, Formatting.DARK_BLUE);
-        int titleWidth = this.textRenderer.getWidth(titleText);
-        context.drawText(this.textRenderer, titleText, 
-            centerX - titleWidth / 2, startY, 0xFFFFFF, false);
-        
-        startY += 25;
-        
-        // Название происхождения
-        String originName = getOriginDisplayName(progression.getOriginId());
-        Text originText = Text.literal(originName)
-            .formatted(Formatting.GOLD);
-        int originWidth = this.textRenderer.getWidth(originText);
-        context.drawText(this.textRenderer, originText, 
-            centerX - originWidth / 2, startY, 0xFFFFFF, false);
-        
-        startY += 20;
-        
-        // Уровень
-        Text levelText = Text.literal("Уровень: " + progression.getLevel())
-            .formatted(Formatting.GREEN);
-        int levelWidth = this.textRenderer.getWidth(levelText);
-        context.drawText(this.textRenderer, levelText, 
-            centerX - levelWidth / 2, startY, 0xFFFFFF, false);
-        
-        startY += 20;
-        
-        // Прогресс-бар
-        renderProgressBar(context, centerX - 100, startY, 200, 10);
-        
-        startY += 20;
-        
-        // Опыт
-        Text expText = Text.literal(String.format("Опыт: %d / %d (%d%%)", 
-            progression.getExperience(), 
-            progression.getExperienceForNextLevel(),
-            progression.getProgressPercent()))
-            .formatted(Formatting.AQUA);
-        int expWidth = this.textRenderer.getWidth(expText);
-        context.drawText(this.textRenderer, expText, 
-            centerX - expWidth / 2, startY, 0xFFFFFF, false);
-        
-        startY += 20;
-        
-        // Общий опыт
-        Text totalExpText = Text.literal("Общий опыт: " + progression.getTotalExperience())
-            .formatted(Formatting.GRAY);
-        int totalExpWidth = this.textRenderer.getWidth(totalExpText);
-        context.drawText(this.textRenderer, totalExpText, 
-            centerX - totalExpWidth / 2, startY, 0xFFFFFF, false);
-    }
-    
-    private void renderProgressBar(DrawContext context, int x, int y, int width, int height) {
-        if (progression == null) return;
-        
-        // Фон прогресс-бара
+        // Фон полосы опыта
         context.fill(x, y, x + width, y + height, 0xFF333333);
+        context.drawBorder(x, y, width, height, 0xFF666666);
         
-        // Заполнение прогресс-бара
-        float progress = progression.getProgressToNextLevel();
-        int fillWidth = (int) (width * progress);
+        // Заполненная часть
+        double progressPercent = progress.getProgressToNextLevel();
+        int filledWidth = (int) (width * progressPercent);
         
-        // Градиент от зеленого к желтому
-        int color = progress < 0.5f ? 
-            0xFF00FF00 : // Зеленый
-            0xFFFFFF00;  // Желтый
-        
-        if (fillWidth > 0) {
-            context.fill(x, y, x + fillWidth, y + height, color);
+        if (filledWidth > 0) {
+            // Градиент от зеленого к желтому
+            int color = interpolateColor(0xFF00AA00, 0xFFFFAA00, progressPercent);
+            context.fill(x + 1, y + 1, x + filledWidth - 1, y + height - 1, color);
         }
         
-        // Рамка прогресс-бара
-        context.drawBorder(x, y, width, height, 0xFFFFFFFF);
-        
-        // Текст процентов в центре
-        String percentText = progression.getProgressPercent() + "%";
-        int textWidth = this.textRenderer.getWidth(percentText);
-        context.drawText(this.textRenderer, Text.literal(percentText), 
-            x + (width - textWidth) / 2, y + 1, 0xFFFFFF, false);
+        // Текст прогресса
+        String progressText = String.format("%.1f%%", progressPercent * 100);
+        int textX = x + width / 2 - this.textRenderer.getWidth(progressText) / 2;
+        int textY = y + (height - this.textRenderer.fontHeight) / 2;
+        context.drawTextWithShadow(this.textRenderer, progressText, textX, textY, 0xFFFFFF);
     }
     
-    private String getOriginDisplayName(String originId) {
-        // Преобразуем ID происхождения в читаемое название
-        return switch (originId) {
+    private void drawOriginSpecificStats(DrawContext context, int x, int y) {
+        if (progress == null || currentOrigin == null) return;
+        
+        int lineHeight = this.textRenderer.fontHeight + 2;
+        int currentY = y;
+        
+        switch (currentOrigin) {
+            case "origins:blacksmith":
+                context.drawTextWithShadow(this.textRenderer, "• Предметов создано: " + progress.getStatistic("items_crafted", 0), x, currentY, 0xCCCCCC);
+                currentY += lineHeight;
+                context.drawTextWithShadow(this.textRenderer, "• Слитков переплавлено: " + progress.getStatistic("ingots_smelted", 0), x, currentY, 0xCCCCCC);
+                currentY += lineHeight;
+                context.drawTextWithShadow(this.textRenderer, "• Качественных предметов: " + progress.getStatistic("quality_items", 0), x, currentY, 0xCCCCCC);
+                break;
+                
+            case "origins:cook":
+                context.drawTextWithShadow(this.textRenderer, "• Блюд приготовлено: " + progress.getStatistic("food_cooked", 0), x, currentY, 0xCCCCCC);
+                currentY += lineHeight;
+                context.drawTextWithShadow(this.textRenderer, "• Еды съедено: " + progress.getStatistic("food_eaten", 0), x, currentY, 0xCCCCCC);
+                currentY += lineHeight;
+                context.drawTextWithShadow(this.textRenderer, "• Рецептов изучено: " + progress.getStatistic("recipes_learned", 0), x, currentY, 0xCCCCCC);
+                break;
+                
+            case "origins:brewer":
+                context.drawTextWithShadow(this.textRenderer, "• Зелий сварено: " + progress.getStatistic("potions_brewed", 0), x, currentY, 0xCCCCCC);
+                currentY += lineHeight;
+                context.drawTextWithShadow(this.textRenderer, "• Алкоголя выпито: " + progress.getStatistic("alcohol_consumed", 0), x, currentY, 0xCCCCCC);
+                currentY += lineHeight;
+                context.drawTextWithShadow(this.textRenderer, "• Уникальных рецептов: " + progress.getStatistic("unique_recipes", 0), x, currentY, 0xCCCCCC);
+                break;
+                
+            case "origins:miner":
+                context.drawTextWithShadow(this.textRenderer, "• Блоков добыто: " + progress.getStatistic("blocks_mined", 0), x, currentY, 0xCCCCCC);
+                currentY += lineHeight;
+                context.drawTextWithShadow(this.textRenderer, "• Руды найдено: " + progress.getStatistic("ores_found", 0), x, currentY, 0xCCCCCC);
+                currentY += lineHeight;
+                context.drawTextWithShadow(this.textRenderer, "• Глубина рекорд: " + progress.getStatistic("deepest_mine", 0), x, currentY, 0xCCCCCC);
+                break;
+                
+            case "origins:courier":
+                context.drawTextWithShadow(this.textRenderer, "• Расстояние пройдено: " + progress.getStatistic("distance_traveled", 0) + "м", x, currentY, 0xCCCCCC);
+                currentY += lineHeight;
+                context.drawTextWithShadow(this.textRenderer, "• Предметов доставлено: " + progress.getStatistic("items_delivered", 0), x, currentY, 0xCCCCCC);
+                currentY += lineHeight;
+                context.drawTextWithShadow(this.textRenderer, "• Торговых сделок: " + progress.getStatistic("trades_completed", 0), x, currentY, 0xCCCCCC);
+                break;
+                
+            case "origins:warrior":
+                context.drawTextWithShadow(this.textRenderer, "• Врагов убито: " + progress.getStatistic("enemies_killed", 0), x, currentY, 0xCCCCCC);
+                currentY += lineHeight;
+                context.drawTextWithShadow(this.textRenderer, "• Урона нанесено: " + progress.getStatistic("damage_dealt", 0), x, currentY, 0xCCCCCC);
+                currentY += lineHeight;
+                context.drawTextWithShadow(this.textRenderer, "• Боссов побеждено: " + progress.getStatistic("bosses_defeated", 0), x, currentY, 0xCCCCCC);
+                break;
+                
+            default:
+                context.drawTextWithShadow(this.textRenderer, "• Общий опыт: " + progress.getExperience(), x, currentY, 0xCCCCCC);
+                break;
+        }
+    }
+    
+    private String getProfessionDisplayName(String professionId) {
+        if (professionId == null) return "Неизвестно";
+        
+        return switch (professionId) {
             case "origins:blacksmith" -> "🔨 Кузнец";
-            case "origins:brewer" -> "🧪 Алхимик";
+            case "origins:brewer" -> "🍺 Пивовар";
             case "origins:cook" -> "👨‍🍳 Повар";
             case "origins:courier" -> "📦 Курьер";
             case "origins:warrior" -> "⚔️ Воин";
             case "origins:miner" -> "⛏️ Шахтер";
             case "origins:human" -> "👤 Человек";
-            default -> originId.replace("origins:", "").replace("_", " ");
+            default -> professionId.replace("origins:", "").replace("_", " ");
         };
+    }
+    
+    private int interpolateColor(int color1, int color2, double factor) {
+        if (factor < 0) factor = 0;
+        if (factor > 1) factor = 1;
+        
+        int r1 = (color1 >> 16) & 0xFF;
+        int g1 = (color1 >> 8) & 0xFF;
+        int b1 = color1 & 0xFF;
+        
+        int r2 = (color2 >> 16) & 0xFF;
+        int g2 = (color2 >> 8) & 0xFF;
+        int b2 = color2 & 0xFF;
+        
+        int r = (int) (r1 + (r2 - r1) * factor);
+        int g = (int) (g1 + (g2 - g1) * factor);
+        int b = (int) (b1 + (b2 - b1) * factor);
+        
+        return 0xFF000000 | (r << 16) | (g << 8) | b;
     }
     
     @Override
     public boolean shouldPause() {
-        return false; // Не ставим игру на паузу
+        return false;
     }
 }

@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "redstone",
+  "ingredients": [
+    {
+      "item": "testmod:magic_planks"
+    }
+  ],
+  "result": {
+    "item": "testmod:magic_button"
+  }
+}

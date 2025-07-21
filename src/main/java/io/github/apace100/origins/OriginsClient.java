@@ -45,6 +45,7 @@ public class OriginsClient implements ClientModInitializer {
         usePrimaryActivePowerKeybind = new KeyBinding("key.origins.primary_active", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_G, "category." + Origins.MODID);
         useSecondaryActivePowerKeybind = new KeyBinding("key.origins.secondary_active", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, "category." + Origins.MODID);
         viewCurrentOriginKeybind = new KeyBinding("key.origins.view_origin", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_O, "category." + Origins.MODID);
+        viewProgressionKeybind = new KeyBinding("key.origins.view_progression", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_P, "category." + Origins.MODID);
 
         ApoliClient.registerPowerKeybinding("key.origins.primary_active", usePrimaryActivePowerKeybind);
         ApoliClient.registerPowerKeybinding("key.origins.secondary_active", useSecondaryActivePowerKeybind);
@@ -57,6 +58,7 @@ public class OriginsClient implements ClientModInitializer {
         KeyBindingHelper.registerKeyBinding(usePrimaryActivePowerKeybind);
         KeyBindingHelper.registerKeyBinding(useSecondaryActivePowerKeybind);
         KeyBindingHelper.registerKeyBinding(viewCurrentOriginKeybind);
+        KeyBindingHelper.registerKeyBinding(viewProgressionKeybind);
 
         ClientTickEvents.START_CLIENT_TICK.register(tick -> {
             while(viewCurrentOriginKeybind.wasPressed()) {
@@ -64,12 +66,18 @@ public class OriginsClient implements ClientModInitializer {
                     MinecraftClient.getInstance().setScreen(new ViewOriginScreen());
                 }
             }
+            
+            while(viewProgressionKeybind.wasPressed()) {
+                if(!(MinecraftClient.getInstance().currentScreen instanceof OriginProgressionScreen)) {
+                    MinecraftClient.getInstance().setScreen(new OriginProgressionScreen());
+                }
+            }
         });
 
-        // Регистрируем отображение иконки происхождения в инвентаре
+        // Регистрируем HUD оверлей для отображения прогрессии
         HudRenderCallback.EVENT.register((drawContext, tickDelta) -> {
             if (MinecraftClient.getInstance().player != null) {
-                OriginHudOverlay.renderOriginIcon(drawContext, tickDelta);
+                OriginHudOverlay.render(drawContext, tickDelta);
             }
         });
 

@@ -28,12 +28,19 @@
     "ArmorProtectionMixin",
     "LegendaryToolEffectsMixin",
     "ExperienceGainMixin",
-    "CraftingExperienceMixin"
+    "CraftingExperienceMixin",
+    "BlacksmithExperienceMixin",
+    "BrewerExperienceMixin",
+    "CookExperienceMixin",
+    "CourierExperienceMixin",
+    "MinerExperienceMixin",
+    "WarriorExperienceMixin"
   ],
   "client": [
     "BlacksmithQualityTooltipInfoMixin",
     "BlacksmithQualityTooltipMixin",
     "DrawContextAccessor",
+    "InventoryScreenMixin",
     "ServerCheckMixin",
     "WaterVisibilityMixin",
     "ItemTooltipMixin",

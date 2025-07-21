@@ -1,0 +1,17 @@
+{
+  "values": [
+    "testmod:magic_log",
+    "testmod:magic_wood",
+    "testmod:stripped_magic_log",
+    "testmod:stripped_magic_wood",
+    "testmod:magic_planks",
+    "testmod:magic_stairs",
+    "testmod:magic_slab",
+    "testmod:magic_pressure_plate",
+    "testmod:magic_button",
+    "testmod:magic_fence",
+    "testmod:magic_fence_gate",
+    "testmod:magic_door",
+    "testmod:magic_trapdoor"
+  ]
+}

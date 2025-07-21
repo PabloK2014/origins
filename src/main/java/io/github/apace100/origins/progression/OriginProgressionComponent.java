@@ -48,7 +48,9 @@ public class OriginProgressionComponent implements AutoSyncedComponent, ServerTi
         if (currentOrigin == null || currentOrigin.equals("origins:human")) return;
 
         OriginProgression progression = getProgression(currentOrigin);
-        boolean leveledUp = progression.addExperience(exp);
+        int oldLevel = progression.getLevel();
+        progression.addExperience(exp);
+        boolean leveledUp = progression.getLevel() > oldLevel;
 
         // Уведомляем игрока о получении опыта
         if (exp > 0) {
@@ -78,7 +80,7 @@ public class OriginProgressionComponent implements AutoSyncedComponent, ServerTi
     private String getCurrentOriginId(ServerPlayerEntity player) {
         try {
             // Используем API Origins для получения текущего происхождения
-            var originComponent = io.github.apace100.origins.component.OriginComponent.KEY.get(player);
+            var originComponent = io.github.apace100.origins.registry.ModComponents.ORIGIN.get(player);
             var origin = originComponent.getOrigin(io.github.apace100.origins.origin.OriginLayers.getLayer(
                 Origins.identifier("origin")));
 
@@ -131,7 +133,7 @@ public class OriginProgressionComponent implements AutoSyncedComponent, ServerTi
         NbtCompound progressionsNbt = tag.getCompound("progressions");
         for (String key : progressionsNbt.getKeys()) {
             NbtCompound progressionNbt = progressionsNbt.getCompound(key);
-            OriginProgression progression = OriginProgression.fromNbt(progressionNbt);
+            OriginProgression progression = OriginProgression.fromNbt(key, progressionNbt);
             progressions.put(key, progression);
         }
     }

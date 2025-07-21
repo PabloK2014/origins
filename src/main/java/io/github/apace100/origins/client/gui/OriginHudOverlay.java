@@ -1,94 +1,165 @@
 package io.github.apace100.origins.client.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import io.github.apace100.origins.Origins;
 import io.github.apace100.origins.component.OriginComponent;
 import io.github.apace100.origins.origin.Origin;
 import io.github.apace100.origins.origin.OriginLayers;
+import io.github.apace100.origins.profession.ProfessionComponent;
+import io.github.apace100.origins.profession.ProfessionProgress;
 import io.github.apace100.origins.registry.ModComponents;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
+import io.github.apace100.origins.skill.PlayerSkillComponent;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.ingame.InventoryScreen;
-import net.minecraft.client.render.GameRenderer;
 import net.minecraft.util.Identifier;
 
 /**
- * Класс для отображения иконки происхождения в интерфейсе
+ * HUD оверлей для отображения информации о прогрессии происхождения
  */
-@Environment(EnvType.CLIENT)
 public class OriginHudOverlay {
     
-    private static final Identifier INVENTORY_TEXTURE = new Identifier(Origins.MODID, "textures/gui/inventory_overlay.png");
-    private static final Identifier MINER_TEXTURE = new Identifier(Origins.MODID, "textures/gui/inventory/miner.png");
-    private static final Identifier BREWER_TEXTURE = new Identifier(Origins.MODID, "textures/gui/inventory/brewer.png");
-    private static final Identifier COOK_TEXTURE = new Identifier(Origins.MODID, "textures/gui/inventory/chef.png");
-    private static final Identifier BLACKSMITH_TEXTURE = new Identifier(Origins.MODID, "textures/gui/inventory/customhp.png");
-    private static final Identifier WARRIOR_TEXTURE = new Identifier(Origins.MODID, "textures/gui/inventory/war.png");
-    private static final Identifier COURIER_TEXTURE = new Identifier(Origins.MODID, "textures/gui/inventory/yandex.png");
-    private static final Identifier MISSING_TEXTURE = new Identifier(Origins.MODID, "textures/gui/inventory/missing.png");
+    private static final MinecraftClient client = MinecraftClient.getInstance();
+    private static final int HUD_WIDTH = 150;
+    private static final int HUD_HEIGHT = 45;
     
-    /**
-     * Отображает иконку происхождения в инвентаре
-     */
-    public static void renderOriginIcon(DrawContext context, float tickDelta) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        
-        // Проверяем, что открыт инвентарь
-        if (client.currentScreen instanceof InventoryScreen) {
-            // Получаем компонент происхождения игрока
-            OriginComponent component = ModComponents.ORIGIN.get(client.player);
-            Origin origin = component.getOrigin(OriginLayers.getLayer(new Identifier(Origins.MODID, "origin")));
-            
-            // Если у игрока есть происхождение, отображаем его иконку
-            if (origin != null && origin.getIdentifier() != null) {
-                String originId = origin.getIdentifier().getPath();
-                
-                // Координаты для отображения иконки (центр верхней части инвентаря)
-                int width = client.getWindow().getScaledWidth();
-                int height = client.getWindow().getScaledHeight();
-                
-                // Размещаем иконку в центре верхней части инвентаря
-                int x = width / 2 - 8; // 8 - половина ширины иконки (16/2)
-                int y = height / 2 - 100; // Поднимаем выше над текстом "Создание"
-                
-                // Отображаем фон для иконки
-                RenderSystem.setShader(GameRenderer::getPositionTexProgram);
-                RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-                RenderSystem.setShaderTexture(0, INVENTORY_TEXTURE);
-                context.drawTexture(INVENTORY_TEXTURE, x, y, 0, 0, 16, 16, 16, 16);
-                
-                // Выбираем текстуру иконки в зависимости от происхождения
-                Identifier iconTexture;
-                switch (originId) {
-                    case "miner":
-                        iconTexture = MINER_TEXTURE;
-                        break;
-                    case "brewer":
-                        iconTexture = BREWER_TEXTURE;
-                        break;
-                    case "cook":
-                        iconTexture = COOK_TEXTURE;
-                        break;
-                    case "blacksmith":
-                        iconTexture = BLACKSMITH_TEXTURE;
-                        break;
-                    case "warrior":
-                        iconTexture = WARRIOR_TEXTURE;
-                        break;
-                    case "courier":
-                        iconTexture = COURIER_TEXTURE;
-                        break;
-                    default:
-                        iconTexture = MISSING_TEXTURE;
-                        break;
-                }
-                
-                // Отображаем иконку происхождения
-                RenderSystem.setShaderTexture(0, iconTexture);
-                context.drawTexture(iconTexture, x + 4, y + 4, 0, 0, 16, 16, 16, 16);
-            }
+    public static void render(DrawContext context, float tickDelta) {
+        if (client.player == null || client.options.debugEnabled) {
+            return;
         }
+        
+        // Получаем информацию о текущем происхождении
+        OriginComponent originComponent = ModComponents.ORIGIN.get(client.player);
+        Origin origin = originComponent.getOrigin(OriginLayers.getLayer(Origins.identifier("origin")));
+        
+        if (origin == null) {
+            return;
+        }
+        
+        // Получаем прогрессию
+        ProfessionComponent professionComponent = ProfessionComponent.KEY.get(client.player);
+        ProfessionProgress progress = professionComponent.getCurrentProgress();
+        
+        if (progress == null) {
+            return;
+        }
+        
+        // Получаем навыки
+        PlayerSkillComponent skillComponent = PlayerSkillComponent.KEY.get(client.player);
+        
+        // Позиция HUD (правый нижний угол)
+        int screenWidth = client.getWindow().getScaledWidth();
+        int screenHeight = client.getWindow().getScaledHeight();
+        int hudX = screenWidth - HUD_WIDTH - 10;
+        int hudY = screenHeight - HUD_HEIGHT - 10;
+        
+        renderHud(context, hudX, hudY, origin, progress, skillComponent);
+    }
+    
+    private static void renderHud(DrawContext context, int x, int y, Origin origin, 
+                                 ProfessionProgress progress, PlayerSkillComponent skillComponent) {
+        
+        // Фон HUD
+        context.fill(x, y, x + HUD_WIDTH, y + HUD_HEIGHT, 0x80000000);
+        context.drawBorder(x, y, HUD_WIDTH, HUD_HEIGHT, 0xFF555555);
+        
+        // Иконка происхождения
+        Identifier iconTexture = getOriginIcon(origin.getIdentifier().toString());
+        context.drawTexture(iconTexture, x + 5, y + 5, 0, 0, 16, 16, 16, 16);
+        
+        // Название происхождения
+        String originName = getProfessionDisplayName(origin.getIdentifier().toString());
+        context.drawTextWithShadow(client.textRenderer, originName, x + 25, y + 5, 0xFFFFFF);
+        
+        // Уровень
+        String levelText = "Ур. " + progress.getLevel();
+        context.drawTextWithShadow(client.textRenderer, levelText, x + 25, y + 17, 0xFFFF55);
+        
+        // Полоса опыта
+        int barX = x + 5;
+        int barY = y + 30;
+        int barWidth = HUD_WIDTH - 10;
+        int barHeight = 8;
+        
+        drawExperienceBar(context, barX, barY, barWidth, barHeight, progress);
+        
+        // Доступные очки навыков
+        int availablePoints = skillComponent.getAvailableSkillPoints();
+        if (availablePoints > 0) {
+            String pointsText = "+" + availablePoints + " очков навыков";
+            context.drawTextWithShadow(client.textRenderer, pointsText, x + 5, y + 42, 0xFF55FF55);
+        }
+    }
+    
+    private static void drawExperienceBar(DrawContext context, int x, int y, int width, int height, 
+                                        ProfessionProgress progress) {
+        // Фон полосы
+        context.fill(x, y, x + width, y + height, 0xFF333333);
+        context.drawBorder(x, y, width, height, 0xFF666666);
+        
+        // Заполненная часть
+        double progressPercent = progress.getProgressToNextLevel();
+        int filledWidth = (int) (width * progressPercent);
+        
+        if (filledWidth > 0) {
+            // Градиент от синего к зеленому
+            int color = interpolateColor(0xFF0066CC, 0xFF00CC66, progressPercent);
+            context.fill(x + 1, y + 1, x + filledWidth - 1, y + height - 1, color);
+        }
+        
+        // Текст опыта
+        String expText = progress.getExperience() + "/" + progress.getExperienceForNextLevel();
+        int textWidth = client.textRenderer.getWidth(expText);
+        int textX = x + (width - textWidth) / 2;
+        int textY = y + (height - client.textRenderer.fontHeight) / 2;
+        
+        // Тень для лучшей читаемости
+        context.drawText(client.textRenderer, expText, textX + 1, textY + 1, 0xFF000000, false);
+        context.drawText(client.textRenderer, expText, textX, textY, 0xFFFFFFFF, false);
+    }
+    
+    private static Identifier getOriginIcon(String originId) {
+        String iconPath = switch (originId) {
+            case "origins:blacksmith" -> "textures/gui/icons/blacksmith.png";
+            case "origins:brewer" -> "textures/gui/icons/brewer.png";
+            case "origins:cook" -> "textures/gui/icons/cook.png";
+            case "origins:courier" -> "textures/gui/icons/courier.png";
+            case "origins:warrior" -> "textures/gui/icons/warrior.png";
+            case "origins:miner" -> "textures/gui/icons/miner.png";
+            case "origins:human" -> "textures/gui/icons/human.png";
+            default -> "textures/gui/icons/default.png";
+        };
+        
+        return new Identifier(Origins.MODID, iconPath);
+    }
+    
+    private static String getProfessionDisplayName(String professionId) {
+        return switch (professionId) {
+            case "origins:blacksmith" -> "🔨 Кузнец";
+            case "origins:brewer" -> "🍺 Пивовар";
+            case "origins:cook" -> "👨‍🍳 Повар";
+            case "origins:courier" -> "📦 Курьер";
+            case "origins:warrior" -> "⚔️ Воин";
+            case "origins:miner" -> "⛏️ Шахтер";
+            case "origins:human" -> "👤 Человек";
+            default -> professionId.replace("origins:", "").replace("_", " ");
+        };
+    }
+    
+    private static int interpolateColor(int color1, int color2, double factor) {
+        if (factor < 0) factor = 0;
+        if (factor > 1) factor = 1;
+        
+        int r1 = (color1 >> 16) & 0xFF;
+        int g1 = (color1 >> 8) & 0xFF;
+        int b1 = color1 & 0xFF;
+        
+        int r2 = (color2 >> 16) & 0xFF;
+        int g2 = (color2 >> 8) & 0xFF;
+        int b2 = color2 & 0xFF;
+        
+        int r = (int) (r1 + (r2 - r1) * factor);
+        int g = (int) (g1 + (g2 - g1) * factor);
+        int b = (int) (b1 + (b2 - b1) * factor);
+        
+        return 0xFF000000 | (r << 16) | (g << 8) | b;
     }
 }

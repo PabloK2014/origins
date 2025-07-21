@@ -1,0 +1,22 @@
+{
+  "item.testmod.strawberry": "Strawberry",
+  "item.testmod.strawberry_seeds": "Strawberry Seeds",
+  "block.testmod.strawberry_crop": "Strawberry Crop",
+  "item.testmod.pepper_spray": "Pepper Spray",
+  "block.testmod.magic_log": "Magic Log",
+  "block.testmod.magic_planks": "Magic Planks",
+  "block.testmod.magic_wood": "Magic Wood",
+  "block.testmod.stripped_magic_log": "Stripped Magic Log",
+  "block.testmod.stripped_magic_wood": "Stripped Magic Wood",
+  "block.testmod.magic_leaves": "Magic Leaves",
+  "block.testmod.magic_sapling": "Magic Sapling",
+  "block.testmod.magic_stairs": "Magic Stairs",
+  "block.testmod.magic_slab": "Magic Slab",
+  "block.testmod.magic_pressure_plate": "Magic Pressure Plate",
+  "block.testmod.magic_button": "Magic Button",
+  "block.testmod.magic_fence": "Magic Fence",
+  "block.testmod.magic_fence_gate": "Magic Fence Gate",
+  "block.testmod.magic_door": "Magic Door",
+  "block.testmod.magic_trapdoor": "Magic Trapdoor",
+  "itemGroup.testmod": "Test Mod"
+}

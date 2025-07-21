@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "testmod:block/magic_slab"
+    },
+    "type=double": {
+      "model": "testmod:block/magic_planks"
+    },
+    "type=top": {
+      "model": "testmod:block/magic_slab_top"
+    }
+  }
+}

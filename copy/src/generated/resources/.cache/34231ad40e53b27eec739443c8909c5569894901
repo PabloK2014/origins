@@ -1,0 +1,12 @@
+// 1.20	2025-06-29T23:57:19.8009831	Tags for minecraft:block mod id testmod
+7463bc01a4d6816428a072cc37780ed50a48b860 data/minecraft/tags/blocks/fence_gates.json
+5955b149d46b4db5920d35d774e8756118bf8710 data/minecraft/tags/blocks/logs_that_burn.json
+eb42a5e39c8d527b97a79ba3f1e098536ce6a5e4 data/minecraft/tags/blocks/mineable/axe.json
+aa665eea3e571399d39cb411772e60f10e3305b0 data/minecraft/tags/blocks/planks.json
+9f4cb78f884772723d7810d2b2c73ddcf55202ed data/minecraft/tags/blocks/wooden_buttons.json
+ec7c1a4ca47cf5ecb61fb24b6a805bb7755de340 data/minecraft/tags/blocks/wooden_doors.json
+b2b8917427d16549c983af076715160176d78297 data/minecraft/tags/blocks/wooden_fences.json
+3a9cedf1db34428bcef58bc0d35f6a44d516382f data/minecraft/tags/blocks/wooden_pressure_plates.json
+c07e3a852693615a5956f7e47a3d94262aeaa6d7 data/minecraft/tags/blocks/wooden_slabs.json
+62d0b8e799e68d173d830ec921b85d35abb9f0e6 data/minecraft/tags/blocks/wooden_stairs.json
+ab6380b1b05f74687a2c93c5235ee6cb5c529731 data/minecraft/tags/blocks/wooden_trapdoors.json

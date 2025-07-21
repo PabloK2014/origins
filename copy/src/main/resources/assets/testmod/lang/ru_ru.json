@@ -1,0 +1,22 @@
+{
+  "item.testmod.strawberry": "Клубничка",
+  "item.testmod.strawberry_seeds": "Семена клубники",
+  "block.testmod.strawberry_crop": "Клубничная грядка",
+  "block.testmod.magic_log": "Магическое бревно",
+  "block.testmod.magic_planks": "Магические доски",
+  "item.testmod.pepper_spray": "Перцовый баллончик",
+  "block.testmod.magic_wood": "Магическая древесина",
+  "block.testmod.stripped_magic_log": "Очищенное магическое бревно",
+  "block.testmod.stripped_magic_wood": "Очищенная магическая древесина",
+  "block.testmod.magic_leaves": "Магические листья",
+  "block.testmod.magic_sapling": "Саженец магического дерева",
+  "block.testmod.magic_stairs": "Магические ступеньки",
+  "block.testmod.magic_slab": "Магическая плита",
+  "block.testmod.magic_pressure_plate": "Магическая нажимная плита",
+  "block.testmod.magic_button": "Магическая кнопка",
+  "block.testmod.magic_fence": "Магический забор",
+  "block.testmod.magic_fence_gate": "Магическая калитка",
+  "block.testmod.magic_door": "Магическая дверь",
+  "block.testmod.magic_trapdoor": "Магический люк",
+  "itemGroup.testmod": "Тестовый Мод"
+}
