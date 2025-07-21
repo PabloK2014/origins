@@ -38,10 +38,17 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
      * Изучает навык или повышает его уровень
      */
     public void learnSkill(String skillId) {
+        Origins.LOGGER.info("Попытка изучить навык: {}", skillId);
         String currentClass = getCurrentClass();
-        if (currentClass == null) return;
+        if (currentClass == null) {
+            Origins.LOGGER.info("Не удалось изучить навык: не найден текущий класс");
+            return;
+        }
         SkillTreeHandler.SkillTree skillTree = SkillTreeHandler.getSkillTree(currentClass);
-        if (skillTree == null) return;
+        if (skillTree == null) {
+            Origins.LOGGER.info("Не удалось изучить навык: не найдено дерево навыков для класса {}", currentClass);
+            return;
+        }
         SkillTreeHandler.Skill skill = null;
         for (SkillTreeHandler.Skill s : skillTree.getAllSkills()) {
             if (s.getId().equals(skillId)) {
@@ -49,17 +56,27 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
                 break;
             }
         }
-        if (skill == null) return;
-        if (!canLearnSkill(skill)) return;
+        if (skill == null) {
+            Origins.LOGGER.info("Не удалось изучить навык: навык {} не найден в дереве", skillId);
+            return;
+        }
+        if (!canLearnSkill(skill)) {
+            Origins.LOGGER.info("Не удалось изучить навык: навык {} недоступен для изучения", skillId);
+            return;
+        }
         io.github.apace100.origins.profession.ProfessionComponent professionComponent =
             io.github.apace100.origins.profession.ProfessionComponent.KEY.get(player);
         io.github.apace100.origins.profession.ProfessionProgress professionProgress = professionComponent.getCurrentProgress();
-        if (professionProgress == null || professionProgress.getSkillPoints() <= 0) return;
+        if (professionProgress == null || professionProgress.getSkillPoints() <= 0) {
+            Origins.LOGGER.info("Не удалось изучить навык: нет очков навыков");
+            return;
+        }
         Map<String, Integer> skillLevels = professionSkillLevels.computeIfAbsent(currentClass, k -> new HashMap<>());
         int currentLevel = skillLevels.getOrDefault(skillId, 0);
         if (currentLevel < skill.getMaxLevel()) {
             skillLevels.put(skillId, currentLevel + 1);
             professionProgress.spendSkillPoint();
+            Origins.LOGGER.info("Навык {} изучен: новый уровень {}/{}", skillId, currentLevel + 1, skill.getMaxLevel());
             // Синхронизируем всегда
             KEY.sync(player);
             professionComponent.KEY.sync(player);
@@ -78,50 +95,66 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
      * Проверяет, может ли игрок изучить навык
      */
     public boolean canLearnSkill(SkillTreeHandler.Skill skill) {
-        // Проверяем уровень игрока
-        int playerLevel = getPlayerLevel();
-        if (playerLevel < skill.getRequiredLevel()) {
+        Origins.LOGGER.info("Проверка навыка: " + skill.getId());
+        Origins.LOGGER.info("Текущий класс: " + getCurrentClass());
+
+        String currentClass = getCurrentClass();
+        if (currentClass == null) {
+            Origins.LOGGER.info("Навык {} недоступен: не найден текущий класс", skill.getId());
             return false;
         }
 
-        String currentClass = getCurrentClass();
-        if (currentClass == null) return false;
-
         Map<String, Integer> skillLevels = professionSkillLevels.computeIfAbsent(currentClass, k -> new HashMap<>());
+        Origins.LOGGER.info("Текущие уровни навыков: " + skillLevels);
         
+        // Проверяем текущий уровень навыка
+        int currentLevel = skillLevels.getOrDefault(skill.getId(), 0);
+        Origins.LOGGER.info("Текущий уровень навыка {}: {}", skill.getId(), currentLevel);
+        if (currentLevel >= skill.getMaxLevel()) {
+            Origins.LOGGER.info("Навык {} недоступен: достигнут максимальный уровень {}/{}", 
+                skill.getId(), currentLevel, skill.getMaxLevel());
+            return false;
+        }
+
         // Проверяем родительский навык
         if (skill.getParentId() != null) {
+            Origins.LOGGER.info("Проверка родительского навыка: " + skill.getParentId());
             int parentLevel = skillLevels.getOrDefault(skill.getParentId(), 0);
-            // Изменяем условие: родительский навык должен быть максимального уровня
+            Origins.LOGGER.info("Уровень родительского навыка: " + parentLevel);
+            
             SkillTreeHandler.SkillTree skillTree = SkillTreeHandler.getSkillTree(currentClass);
             if (skillTree != null) {
                 SkillTreeHandler.Skill parentSkill = null;
                 for (SkillTreeHandler.Skill s : skillTree.getAllSkills()) {
+                    Origins.LOGGER.info("Сравниваем {} с {}", s.getId(), skill.getParentId());
                     if (s.getId().equals(skill.getParentId())) {
                         parentSkill = s;
                         break;
                     }
                 }
-                if (parentSkill != null && parentLevel < parentSkill.getMaxLevel()) {
+                if (parentSkill != null) {
+                    Origins.LOGGER.info("Найден родительский навык: {} (макс. уровень: {})", 
+                        parentSkill.getId(), parentSkill.getMaxLevel());
+                    if (parentLevel < parentSkill.getMaxLevel()) {
+                        Origins.LOGGER.info("Навык {} недоступен: родительский навык не прокачан до максимума ({}/{})", 
+                            skill.getId(), parentLevel, parentSkill.getMaxLevel());
+                        return false;
+                    }
+                    Origins.LOGGER.info("Родительский навык {} прокачан до максимума ({}/{})", 
+                        parentSkill.getId(), parentLevel, parentSkill.getMaxLevel());
+                } else {
+                    Origins.LOGGER.info("Родительский навык {} не найден в дереве навыков", skill.getParentId());
                     return false;
                 }
-            } else if (parentLevel == 0) {
+            } else {
+                Origins.LOGGER.info("Дерево навыков не найдено для класса {}", currentClass);
                 return false;
             }
         }
 
-        // Проверяем текущий уровень навыка
-        int currentLevel = skillLevels.getOrDefault(skill.getId(), 0);
-        if (currentLevel >= skill.getMaxLevel()) {
-            return false;
-        }
-
-        // Проверяем наличие очков навыков
-        io.github.apace100.origins.profession.ProfessionComponent professionComponent =
-            io.github.apace100.origins.profession.ProfessionComponent.KEY.get(player);
-        io.github.apace100.origins.profession.ProfessionProgress professionProgress = professionComponent.getCurrentProgress();
-        int availablePoints = professionProgress != null ? professionProgress.getSkillPoints() : 0;
-        return availablePoints > 0;
+        Origins.LOGGER.info("Навык {} доступен для изучения: уровень {}/{}", 
+            skill.getId(), currentLevel, skill.getMaxLevel());
+        return true;
     }
 
     /**
@@ -137,10 +170,15 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
     /**
      * Получает уровень игрока
      */
-    private int getPlayerLevel() {
+    public int getPlayerLevel() {
         // Получаем компонент прогрессии
         ServerPlayerEntity serverPlayer = player instanceof ServerPlayerEntity ? (ServerPlayerEntity) player : null;
-        if (serverPlayer == null) return 1;
+        if (serverPlayer == null) {
+            io.github.apace100.origins.profession.ProfessionComponent professionComponent =
+                io.github.apace100.origins.profession.ProfessionComponent.KEY.get(player);
+            io.github.apace100.origins.profession.ProfessionProgress professionProgress = professionComponent.getCurrentProgress();
+            return professionProgress != null ? professionProgress.getLevel() : 1;
+        }
         
         try {
             io.github.apace100.origins.profession.ProfessionComponent progressionComponent = 
@@ -160,13 +198,14 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
     /**
      * Получает текущий класс игрока
      */
-    private String getCurrentClass() {
+    public String getCurrentClass() {
         try {
             // Используем API Origins для получения текущего происхождения
             OriginComponent originComponent = io.github.apace100.origins.registry.ModComponents.ORIGIN.get(player);
             Origin origin = originComponent.getOrigin(OriginLayers.getLayer(Origins.identifier("origin")));
             return origin != null ? origin.getIdentifier().toString() : null;
         } catch (Exception e) {
+            Origins.LOGGER.error("Ошибка при получении текущего класса: " + e.getMessage());
             return null;
         }
     }
@@ -282,6 +321,7 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
     public void readFromNbt(NbtCompound tag) {
         professionSkillLevels.clear();
         NbtCompound allSkillsTag = tag.getCompound("professionSkills");
+        Origins.LOGGER.info("Загрузка навыков из NBT: {}", allSkillsTag);
         for (String profession : allSkillsTag.getKeys()) {
             NbtCompound skillsTag = allSkillsTag.getCompound(profession);
             Map<String, Integer> skillLevels = new HashMap<>();
@@ -290,6 +330,7 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
             }
             professionSkillLevels.put(profession, skillLevels);
         }
+        Origins.LOGGER.info("Загруженные навыки: {}", professionSkillLevels);
         if (player instanceof ServerPlayerEntity serverPlayer) {
             KEY.sync(serverPlayer);
         }
@@ -306,5 +347,6 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
             allSkillsTag.put(entry.getKey(), skillsTag);
         }
         tag.put("professionSkills", allSkillsTag);
+        Origins.LOGGER.info("Сохранение навыков в NBT: {}", allSkillsTag);
     }
 }

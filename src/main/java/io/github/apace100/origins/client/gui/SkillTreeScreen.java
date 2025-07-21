@@ -30,6 +30,7 @@ public class SkillTreeScreen extends Screen {
     private static final int SKILL_BUTTON_SIZE = 24;
     private static final int BRANCH_SPACING = 100;
     private static final int SKILL_SPACING = 40;
+    private static final int INFO_HEIGHT = 100; // Увеличиваем высоту панели информации
 
     private int backgroundX;
     private int backgroundY;
@@ -194,69 +195,67 @@ public class SkillTreeScreen extends Screen {
     }
 
     private void renderSkillInfo(DrawContext context, SkillTreeHandler.Skill skill, int mouseX, int mouseY) {
-        int infoX = backgroundX + BACKGROUND_WIDTH - 150;
-        int infoY = backgroundY + 50;
-        int infoWidth = 130;
-        int infoHeight = 150;
-
+        int infoX = backgroundX;
+        int infoY = backgroundY + BACKGROUND_HEIGHT + 5;
+        int infoWidth = BACKGROUND_WIDTH;
+        
         // Рисуем фон для информации
-        context.fill(infoX, infoY, infoX + infoWidth, infoY + infoHeight, 0x80000000);
-        context.drawBorder(infoX, infoY, infoWidth, infoHeight, 0xFFAAAAAA);
+        context.fill(infoX, infoY, infoX + infoWidth, infoY + INFO_HEIGHT, 0x80000000);
+        context.drawBorder(infoX, infoY, infoWidth, INFO_HEIGHT, 0xFFAAAAAA);
 
         // Название навыка
-        context.drawTextWithShadow(this.textRenderer, skill.getName(), infoX + 5, infoY + 5, 0xFFFFFF);
+        context.drawTextWithShadow(this.textRenderer, skill.getName(), infoX + 10, infoY + 10, 0xFFFFFF);
 
-        // Тип навыка
+        // Тип навыка и требуемый уровень
         String typeText = "Тип: " + getSkillTypeText(skill.getType());
-        context.drawTextWithShadow(this.textRenderer, typeText, infoX + 5, infoY + 20, 0xAAAAAA);
-
-        // Требуемый уровень
         String levelText = "Требуемый уровень: " + skill.getRequiredLevel();
-        context.drawTextWithShadow(this.textRenderer, levelText, infoX + 5, infoY + 35, 0xAAAAAA);
+        context.drawTextWithShadow(this.textRenderer, typeText, infoX + 10, infoY + 25, 0xAAAAAA);
+        context.drawTextWithShadow(this.textRenderer, levelText, infoX + 200, infoY + 25, 0xAAAAAA);
 
         // Текущий уровень навыка
         int currentLevel = skillComponent.getSkillLevel(skill.getId());
         String currentLevelText = "Уровень: " + currentLevel + "/" + skill.getMaxLevel();
-        context.drawTextWithShadow(this.textRenderer, currentLevelText, infoX + 5, infoY + 50, 0xFFFF55);
+        context.drawTextWithShadow(this.textRenderer, currentLevelText, infoX + 10, infoY + 40, 0xFFFF55);
 
-        // Описание навыка
-        List<String> descriptionLines = new ArrayList<>();
-        String[] descriptionParts = skill.getDescription().split("\\n");
-        for (String part : descriptionParts) {
-            // Разбиваем текст на строки вручную
-            String[] words = part.split(" ");
-            StringBuilder currentLine = new StringBuilder();
-            
-            for (String word : words) {
-                String testLine = currentLine.length() == 0 ? word : currentLine + " " + word;
-                if (this.textRenderer.getWidth(testLine) <= infoWidth - 10) {
-                    currentLine = new StringBuilder(testLine);
-                } else {
-                    if (currentLine.length() > 0) {
-                        descriptionLines.add(currentLine.toString());
-                        currentLine = new StringBuilder(word);
-                    } else {
-                        descriptionLines.add(word);
+        // Описание навыка (ограничиваем ширину для текста)
+        String[] descriptionLines = skill.getDescription().split("\\n");
+        int descY = infoY + 55;
+        int maxDescWidth = infoWidth / 2 - 20; // Половина ширины минус отступы
+        for (String line : descriptionLines) {
+            context.drawTextWithShadow(this.textRenderer, line, infoX + 10, descY, 0xFFFFFF);
+            descY += this.textRenderer.fontHeight + 2;
+        }
+
+        // Проверяем условия для изучения навыка
+        boolean hasPoints = skillComponent.getAvailableSkillPoints() > 0;
+        boolean notMaxLevel = currentLevel < skill.getMaxLevel();
+        boolean hasRequiredLevel = skillComponent.getPlayerLevel() >= skill.getRequiredLevel();
+        boolean parentOk = true;
+        
+        if (skill.getParentId() != null) {
+            String parentId = skill.getParentId();
+            int parentLevel = skillComponent.getSkillLevel(parentId);
+            SkillTreeHandler.SkillTree skillTree = SkillTreeHandler.getSkillTree(currentClass);
+            if (skillTree != null) {
+                SkillTreeHandler.Skill parentSkill = null;
+                for (SkillTreeHandler.Skill s : skillTree.getAllSkills()) {
+                    if (s.getId().equals(parentId)) {
+                        parentSkill = s;
+                        break;
                     }
                 }
-            }
-            if (currentLine.length() > 0) {
-                descriptionLines.add(currentLine.toString());
+                if (parentSkill != null) {
+                    parentOk = parentLevel >= parentSkill.getMaxLevel();
+                }
             }
         }
 
-        int lineY = infoY + 65;
-        for (String line : descriptionLines) {
-            context.drawTextWithShadow(this.textRenderer, line, infoX + 5, lineY, 0xFFFFFF);
-            lineY += this.textRenderer.fontHeight + 2;
-        }
-
-        // Кнопка изучения навыка
-        int actualPoints = skillComponent != null ? skillComponent.getAvailableSkillPoints() : 0;
-        if (skillComponent.canLearnSkill(skill) && currentLevel < skill.getMaxLevel() && actualPoints > 0) {
-            int buttonX = infoX + 5;
-            int buttonY = infoY + infoHeight - 30;
-            int buttonWidth = infoWidth - 10;
+        // Кнопка изучения навыка или сообщение о недоступности
+        boolean canLearn = skillComponent.canLearnSkill(skill) && hasRequiredLevel && parentOk;
+        if (canLearn && hasPoints && notMaxLevel) {
+            int buttonX = infoX + (infoWidth - 100) / 2;
+            int buttonY = infoY + INFO_HEIGHT - 25; // Опускаем кнопку ниже
+            int buttonWidth = 100;
             int buttonHeight = 20;
 
             boolean isHovered = mouseX >= buttonX && mouseX <= buttonX + buttonWidth &&
@@ -265,6 +264,46 @@ public class SkillTreeScreen extends Screen {
             int buttonColor = isHovered ? 0xFF00AA00 : 0xFF008800;
             context.fill(buttonX, buttonY, buttonX + buttonWidth, buttonY + buttonHeight, buttonColor);
             context.drawCenteredTextWithShadow(this.textRenderer, "Изучить навык", buttonX + buttonWidth / 2, buttonY + 6, 0xFFFFFF);
+
+            if (isHovered) {
+                List<Text> tooltip = new ArrayList<>();
+                tooltip.add(Text.literal("Стоимость: 1 очко навыка"));
+                tooltip.add(Text.literal("У вас есть: " + skillComponent.getAvailableSkillPoints()));
+                context.drawTooltip(this.textRenderer, tooltip, mouseX, mouseY);
+            }
+        } else {
+            // Перемещаем сообщения о требованиях в правую часть
+            int textX = infoX + infoWidth / 2 + 10; // Правая половина панели
+            int textY = infoY + 10; // Выравниваем по верху с основным текстом
+            if (currentLevel >= skill.getMaxLevel()) {
+                context.drawTextWithShadow(this.textRenderer, "Максимальный уровень!", textX, textY, 0xFFAA00);
+            } else if (!hasPoints) {
+                context.drawTextWithShadow(this.textRenderer, "Нет очков навыков!", textX, textY, 0xFFAA00);
+            } else if (!hasRequiredLevel) {
+                context.drawTextWithShadow(this.textRenderer, 
+                    "Требуется уровень " + skill.getRequiredLevel() + "!", textX, textY, 0xFFAA00);
+            } else if (!canLearn) {
+                if (skill.getParentId() != null && !parentOk) {
+                    SkillTreeHandler.SkillTree skillTree = SkillTreeHandler.getSkillTree(currentClass);
+                    if (skillTree != null) {
+                        SkillTreeHandler.Skill parentSkill = null;
+                        for (SkillTreeHandler.Skill s : skillTree.getAllSkills()) {
+                            if (s.getId().equals(skill.getParentId())) {
+                                parentSkill = s;
+                                break;
+                            }
+                        }
+                        if (parentSkill != null) {
+                            int parentLevel = skillComponent.getSkillLevel(skill.getParentId());
+                            context.drawTextWithShadow(this.textRenderer, 
+                                "Требуется " + parentSkill.getName() + " (" + parentLevel + "/" + parentSkill.getMaxLevel() + ")", 
+                                textX, textY, 0xFFAA00);
+                        }
+                    }
+                } else {
+                    context.drawTextWithShadow(this.textRenderer, "Навык недоступен!", textX, textY, 0xFFAA00);
+                }
+            }
         }
     }
 
@@ -280,20 +319,19 @@ public class SkillTreeScreen extends Screen {
 
         // Проверяем клик по кнопке изучения навыка
         if (selectedSkill != null) {
-            int infoX = backgroundX + BACKGROUND_WIDTH - 150;
-            int infoY = backgroundY + 50;
-            int infoWidth = 130;
-            int infoHeight = 150;
-            int buttonX = infoX + 5;
-            int buttonY = infoY + infoHeight - 30;
-            int buttonWidth = infoWidth - 10;
+            int infoX = backgroundX;
+            int infoY = backgroundY + BACKGROUND_HEIGHT + 5;
+            int buttonX = infoX + (BACKGROUND_WIDTH - 100) / 2;
+            int buttonY = infoY + INFO_HEIGHT - 25;
+            int buttonWidth = 100;
             int buttonHeight = 20;
-            int actualPoints = skillComponent != null ? skillComponent.getAvailableSkillPoints() : 0;
+
             if (mouseX >= buttonX && mouseX <= buttonX + buttonWidth &&
                 mouseY >= buttonY && mouseY <= buttonY + buttonHeight) {
                 if (skillComponent.canLearnSkill(selectedSkill) && 
                     skillComponent.getSkillLevel(selectedSkill.getId()) < selectedSkill.getMaxLevel() && 
-                    actualPoints > 0) {
+                    skillComponent.getAvailableSkillPoints() > 0 &&
+                    skillComponent.getPlayerLevel() >= selectedSkill.getRequiredLevel()) {
                     learnSkill(selectedSkill);
                     return true;
                 }
@@ -313,6 +351,11 @@ public class SkillTreeScreen extends Screen {
             // Обновляем локальное состояние
             skillComponent.learnSkill(skill.getId());
             availableSkillPoints = skillComponent.getAvailableSkillPoints();
+
+            // Воспроизводим звук изучения навыка
+            if (this.client != null && this.client.player != null) {
+                this.client.player.playSound(net.minecraft.sound.SoundEvents.ENTITY_PLAYER_LEVELUP, 1.0F, 1.0F);
+            }
         }
     }
 
@@ -427,8 +470,8 @@ public class SkillTreeScreen extends Screen {
                 context.drawTextWithShadow(client.textRenderer, levelText, x + width - 4 - client.textRenderer.getWidth(levelText), y + height - 10, 0xFFFFFF);
             }
 
-            // Если навык выбран или под курсором, показываем название и требования
-            if (isSelected || isHovered) {
+            // Показываем подсказку при наведении
+            if (isHovered) {
                 List<Text> tooltip = new ArrayList<>();
                 tooltip.add(Text.literal(skill.getName()));
 
