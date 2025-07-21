@@ -10,6 +10,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -17,8 +18,9 @@ import net.minecraft.world.phys.AABB;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.level.BlockEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
@@ -175,6 +177,49 @@ public class CookSkillHandler {
         }
     }
 
+    // Опыт за получение еды из печки
+    @SubscribeEvent
+    public static void onItemSmelted(PlayerEvent.ItemSmeltedEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            player.getCapability(TestMod.PlayerClassCapability.CAPABILITY).ifPresent(cap -> {
+                if (!cap.getPlayerClass().equals("cook")) return;
+                ItemStack result = event.getSmelting();
+                if (result.isEdible()) {
+                    cap.addExperience(5);
+                    player.sendSystemMessage(Component.literal("[DEBUG] +5 опыта за получение еды из печки (повар)"));
+                }
+            });
+        }
+    }
+
+    // Опыт за посадку семян
+    @SubscribeEvent(priority = EventPriority.LOW)
+    public static void onBlockPlaced(BlockEvent.EntityPlaceEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        player.getCapability(TestMod.PlayerClassCapability.CAPABILITY).ifPresent(cap -> {
+            if (!cap.getPlayerClass().equals("cook")) return;
+            ItemStack held = player.getMainHandItem();
+            if (held.getItem().toString().contains("seeds") || held.getItem().toString().contains("carrot") || held.getItem().toString().contains("potato") || held.getItem().toString().contains("beetroot")) {
+                cap.addExperience(2);
+                player.sendSystemMessage(Component.literal("[DEBUG] +2 опыта за посадку культуры (повар)"));
+            }
+        });
+    }
+
+    // Опыт за использование костной муки
+    @SubscribeEvent(priority = EventPriority.LOW)
+    public static void onBoneMealUse(net.minecraftforge.event.entity.player.PlayerInteractEvent.RightClickBlock event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        player.getCapability(TestMod.PlayerClassCapability.CAPABILITY).ifPresent(cap -> {
+            if (!cap.getPlayerClass().equals("cook")) return;
+            ItemStack held = event.getItemStack();
+            if (held.getItem() == Items.BONE_MEAL) {
+                cap.addExperience(1);
+                player.sendSystemMessage(Component.literal("[DEBUG] +1 опыт за использование костной муки (повар)"));
+            }
+        });
+    }
+
     // Активные навыки
     public static void activateSmokeScreen(Player player, TestMod.PlayerClassCapability cap) {
         if (cap.getSkillLevel("smoke_screen") > 0) {
@@ -317,5 +362,42 @@ public class CookSkillHandler {
 
             ally.sendSystemMessage(Component.literal("🍽️ Банкет повара! Получены мощные баффы! 🍽️"));
         }
+    }
+
+    // Активный скилл: G — массовое удобрение
+    @SubscribeEvent
+    public static void onKeyInput(TickEvent.PlayerTickEvent event) {
+        if (event.player.level().isClientSide()) return;
+        Player player = event.player;
+        player.getCapability(TestMod.PlayerClassCapability.CAPABILITY).ifPresent(cap -> {
+            if (!cap.getPlayerClass().equals("cook")) return;
+            // Проверяем, нажата ли клавиша G (код 34)
+            if (player instanceof ServerPlayer serverPlayer && serverPlayer.getServer().getTickCount() % 5 == 0) {
+                if (net.minecraft.client.Minecraft.getInstance().options.keyHotbarSlots[6].isDown()) { // G
+                    // Ищем все растения в радиусе 5 блоков
+                    BlockPos pos = player.blockPosition();
+                    Level world = player.level();
+                    int used = 0;
+                    for (int x = -5; x <= 5; x++) {
+                        for (int y = -2; y <= 2; y++) {
+                            for (int z = -5; z <= 5; z++) {
+                                BlockPos target = pos.offset(x, y, z);
+                                BlockEntity be = world.getBlockEntity(target);
+                                if (world.getBlockState(target).getBlock().toString().contains("crop") || world.getBlockState(target).getBlock().toString().contains("sapling")) {
+                                    if (world.random.nextFloat() < 0.5f) { // 50% шанс для баланса
+                                        world.getBlockState(target).randomTick(world, target, world.random);
+                                        used++;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (used > 0) {
+                        player.hurt(player.damageSources().magic(), used * 2.0F); // 1 сердечко = 2 урона
+                        player.sendSystemMessage(Component.literal("[DEBUG] Массовое удобрение: " + used + " растений, потеряно " + used + " сердечек!"));
+                    }
+                }
+            }
+        });
     }
 }

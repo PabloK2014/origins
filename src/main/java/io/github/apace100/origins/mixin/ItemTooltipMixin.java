@@ -25,5 +25,9 @@ public class ItemTooltipMixin {
         List<Text> tooltip = cir.getReturnValue();
         
         ItemQualityHelper.addQualityTooltip(stack, tooltip);
+        // Добавляем подпись для улучшенной еды повара
+        if (stack.isFood() && stack.hasNbt() && stack.getNbt().getBoolean("CookEnhanced")) {
+            tooltip.add(net.minecraft.text.Text.literal("Сытость +50 процентов").formatted(net.minecraft.util.Formatting.GREEN));
+        }
     }
 }

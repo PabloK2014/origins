@@ -59,10 +59,11 @@ public class Profession {
      */
     public int getExperienceForLevel(int level) {
         if (level <= 1) return 0;
-        
-        // Экспоненциальная формула: базовый опыт * (уровень^1.5)
-        int baseExperience = 100;
-        return (int) (baseExperience * Math.pow(level, 1.5));
+        int exp = 100;
+        for (int i = 2; i <= level; i++) {
+            exp = (int)Math.round(exp * 1.2);
+        }
+        return exp;
     }
 
     /**
@@ -99,9 +100,12 @@ public class Profession {
      * Статический метод для получения опыта для следующего уровня
      */
     public static int getExperienceForNextLevel(int currentLevel) {
-        // Экспоненциальная формула: базовый опыт * (уровень^1.5)
-        int baseExperience = 100;
-        return (int) (baseExperience * Math.pow(currentLevel + 1, 1.5));
+        if (currentLevel < 1) return 100;
+        int exp = 100;
+        for (int i = 2; i <= currentLevel + 1; i++) {
+            exp = (int)Math.round(exp * 1.2);
+        }
+        return exp;
     }
 
     @Override

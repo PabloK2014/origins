@@ -25,32 +25,27 @@ public class OriginHudOverlay {
         if (client.player == null || client.options.debugEnabled) {
             return;
         }
-        
+        // Проверка на скрытие HUD через конфиг
+        if (!io.github.apace100.origins.Origins.config.showHudOverlay) {
+            return;
+        }
         // Получаем информацию о текущем происхождении
         OriginComponent originComponent = ModComponents.ORIGIN.get(client.player);
         Origin origin = originComponent.getOrigin(OriginLayers.getLayer(Origins.identifier("origin")));
-        
         if (origin == null) {
             return;
         }
-        
         // Получаем прогрессию
         ProfessionComponent professionComponent = ProfessionComponent.KEY.get(client.player);
         ProfessionProgress progress = professionComponent.getCurrentProgress();
-        
         if (progress == null) {
             return;
         }
-        
         // Получаем навыки
         PlayerSkillComponent skillComponent = PlayerSkillComponent.KEY.get(client.player);
-        
-        // Позиция HUD (правый нижний угол)
-        int screenWidth = client.getWindow().getScaledWidth();
-        int screenHeight = client.getWindow().getScaledHeight();
-        int hudX = screenWidth - HUD_WIDTH - 10;
-        int hudY = screenHeight - HUD_HEIGHT - 10;
-        
+        // Позиция HUD (левый верхний угол)
+        int hudX = 10;
+        int hudY = 10;
         renderHud(context, hudX, hudY, origin, progress, skillComponent);
     }
     

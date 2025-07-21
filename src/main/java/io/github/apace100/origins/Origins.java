@@ -140,6 +140,8 @@ public class Origins implements ModInitializer, OrderedResourceListenerInitializ
 
 		public boolean performVersionCheck = true;
 
+		public boolean showHudOverlay = true; // Показывать HUD оверлей (можно скрыть в настройках)
+
 		public JsonObject origins = new JsonObject();
 
 		public boolean isOriginDisabled(Identifier originId) {

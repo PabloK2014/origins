@@ -44,6 +44,7 @@ public class CookExperienceMixin {
             // Начисляем опыт за сбор созревшего урожая
             ProfessionComponent component = ProfessionComponent.KEY.get(serverPlayer);
             component.addExperience(3); // 3 опыта за сбор созревшего урожая
+            serverPlayer.sendMessage(net.minecraft.text.Text.literal("[DEBUG] +3 опыта за сбор урожая (повар)").formatted(net.minecraft.util.Formatting.YELLOW), false);
         }
     }
     
@@ -91,10 +92,12 @@ class CookingExperienceMixin {
                         // Начисляем опыт за приготовление пищи
                         ProfessionComponent component = ProfessionComponent.KEY.get(serverPlayer);
                         component.addExperience(5); // 5 опыта за приготовление пищи
+                        serverPlayer.sendMessage(net.minecraft.text.Text.literal("[DEBUG] +5 опыта за готовку еды (повар)").formatted(net.minecraft.util.Formatting.YELLOW), false);
                     }
                 }
             } catch (Exception e) {
                 // Игнорируем ошибки
+                io.github.apace100.origins.Origins.LOGGER.error("[DEBUG] Ошибка начисления опыта повару за готовку: " + e.getMessage());
             }
         }
     }

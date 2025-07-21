@@ -52,5 +52,9 @@ public class CookEnhancedFoodMixin {
         nbt.putString("CookName", cook.getName().getString());
         nbt.putFloat("NutritionMultiplier", power.getNutritionMultiplier());
         nbt.putFloat("SaturationMultiplier", power.getSaturationMultiplier());
+        if (cook instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
+            serverPlayer.sendMessage(net.minecraft.text.Text.literal("[DEBUG] Еда улучшена бафом повара!").formatted(net.minecraft.util.Formatting.AQUA), false);
+        }
+        io.github.apace100.origins.Origins.LOGGER.info("[DEBUG] Еда улучшена поваром: " + stack.getItem().toString());
     }
 }
