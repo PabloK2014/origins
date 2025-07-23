@@ -21,6 +21,9 @@ public class CookEnhancedFoodMixin {
 
     @Inject(method = "tick", at = @At("TAIL"))
     private static void enhanceCookedFood(net.minecraft.world.World world, BlockPos pos, net.minecraft.block.BlockState state, AbstractFurnaceBlockEntity blockEntity, CallbackInfo ci) {
+        // ВРЕМЕННО ОТКЛЮЧЕНО для решения проблемы стакования
+        // Логика улучшения еды перенесена в момент употребления
+        /*
         if (!world.isClient) {
             // Проверяем, есть ли что-то в слоте результата
             ItemStack resultStack = blockEntity.getStack(2);
@@ -38,6 +41,7 @@ public class CookEnhancedFoodMixin {
                 }
             }
         }
+        */
     }
     
     private static void enhanceFoodStack(ItemStack stack, CookEnhancedFoodPower power, PlayerEntity cook) {
@@ -47,14 +51,13 @@ public class CookEnhancedFoodMixin {
             return; // Уже улучшена
         }
         
-        // Помечаем еду как приготовленную поваром
+        // Помечаем еду как приготовленную поваром, но БЕЗ имени повара для стакования
         nbt.putBoolean("CookEnhanced", true);
-        nbt.putString("CookName", cook.getName().getString());
+        // Убираем CookName чтобы еда могла стакаться
+        // nbt.putString("CookName", cook.getName().getString());
         nbt.putFloat("NutritionMultiplier", power.getNutritionMultiplier());
         nbt.putFloat("SaturationMultiplier", power.getSaturationMultiplier());
-        if (cook instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
-            // serverPlayer.sendMessage(net.minecraft.text.Text.literal("[DEBUG] Еда улучшена бафом повара!").formatted(net.minecraft.util.Formatting.AQUA), false);
-        }
+        
         io.github.apace100.origins.Origins.LOGGER.info("[DEBUG] Еда улучшена поваром: " + stack.getItem().toString());
     }
 }

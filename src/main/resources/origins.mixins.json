@@ -35,12 +35,17 @@
     "CourierExperienceMixin",
     "MinerExperienceMixin",
     "WarriorExperienceMixin",
-    "CookExperienceMixin",
     "BoneMealItemMixin",
     "PlayerInventoryFoodExpMixin",
     "SlotMixin",
+
+    "BlacksmithSmeltingSkillMixin",
+    "BlacksmithAutoRepairMixin",
+    "BlacksmithFireImmunityMixin",
+    "BlacksmithHotStrikeMixin",
     "PlayerAttributesMixin",
-    "PlayerSkillsMixin"
+    "PlayerSkillsMixin",
+    "PlayerAttackMixin"
   ],
   "client": [
     "BlacksmithQualityTooltipInfoMixin",

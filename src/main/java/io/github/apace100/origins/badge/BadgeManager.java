@@ -9,7 +9,7 @@ import io.github.apace100.calio.registry.DataObjectRegistry;
 import io.github.apace100.origins.Origins;
 import io.github.apace100.origins.integration.AutoBadgeCallback;
 import io.github.apace100.origins.networking.ModPackets;
-import io.netty.buffer.Unpooled;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.network.PacketByteBuf;
@@ -71,7 +71,7 @@ public final class BadgeManager {
 
     public static void sync(ServerPlayerEntity player) {
         REGISTRY.sync(player);
-        PacketByteBuf badgeData = new PacketByteBuf(Unpooled.buffer());
+        PacketByteBuf badgeData = PacketByteBufs.create();
         badgeData.writeInt(BADGES.size());
         BADGES.forEach((id, list) -> {
             badgeData.writeIdentifier(id);

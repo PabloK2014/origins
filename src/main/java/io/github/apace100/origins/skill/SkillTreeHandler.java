@@ -22,7 +22,7 @@ public class SkillTreeHandler {
         List<Skill> berserkBranch = Arrays.asList(
                 new Skill("berserk_way", "Путь Берсерка", "Увеличивает урон при низком здоровье", SkillType.PASSIVE, 1, 3, null),
                 new Skill("bloody_wound", "Кровавая Рана", "Шанс нанести кровотечение", SkillType.PASSIVE, 5, 3, "berserk_way"),
-                new Skill("mad_boost", "Безумный Рывок", "Рывок с уроном по области", SkillType.ACTIVE, 10, 1, "bloody_wound"),
+                new Skill("mad_boost", "Безумный Рывок", "Рывок", SkillType.ACTIVE, 10, 1, "bloody_wound"),
                 new Skill("thirst_battle", "Жажда Битвы", "Восстановление здоровья при убийстве", SkillType.PASSIVE, 15, 1, "mad_boost"),
                 new Skill("last_chance", "Последний Шанс", "Неуязвимость при смертельном ударе", SkillType.PASSIVE, 20, 1, "thirst_battle")
         );
@@ -60,8 +60,8 @@ public class SkillTreeHandler {
         // Ветка "Инвентарь"
         List<Skill> inventoryBranch = Arrays.asList(
                 new Skill("inventory_slots_basic", "Базовые слоты", "Добавляет 1 слот инвентаря за уровень", SkillType.PASSIVE, 3, 1, null),
-                new Skill("crafting_efficiency", "Стаки", "Увеличивает количество стаков в инвентаре (на 16 за уровень)", SkillType.PASSIVE, 4, 10, "inventory_slots_basic"),
-                new Skill("inventory_surge", "Улыбка Курьера", "Скидка в 15% на все товары", SkillType.GLOBAL, 1, 4, "crafting_efficiency")
+                new Skill("magnetic_pockets", "Магнитные карманы", "Увеличивает радиус подбора предметов на 1 блок за уровень", SkillType.PASSIVE, 4, 5, "inventory_slots_basic"),
+                new Skill("inventory_surge", "Улыбка Курьера", "Скидка в 15% на все товары", SkillType.GLOBAL, 1, 4, "magnetic_pockets")
         );
 
         // Ветка "Переноска"

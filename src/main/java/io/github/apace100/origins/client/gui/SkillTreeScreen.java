@@ -352,10 +352,7 @@ public class SkillTreeScreen extends Screen {
             skillComponent.learnSkill(skill.getId());
             availableSkillPoints = skillComponent.getAvailableSkillPoints();
 
-            // Воспроизводим звук изучения навыка
-            if (this.client != null && this.client.player != null) {
-                this.client.player.playSound(net.minecraft.sound.SoundEvents.ENTITY_PLAYER_LEVELUP, 1.0F, 1.0F);
-            }
+            // Навык изучен
         }
     }
 

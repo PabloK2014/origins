@@ -65,14 +65,14 @@ public class OriginProgressionComponent implements AutoSyncedComponent, ServerTi
                 .append(Text.literal("Уровень " + progression.getLevel())
                     .formatted(Formatting.YELLOW)), false);
 
-            // Звуковой эффект повышения уровня
-            serverPlayer.playSound(net.minecraft.sound.SoundEvents.ENTITY_PLAYER_LEVELUP,
-                1.0f, 1.0f);
+            // Уровень повышен
         }
 
         // Синхронизируем с клиентом
         KEY.sync(serverPlayer);
     }
+
+
 
     /**
      * Получить ID текущего происхождения игрока

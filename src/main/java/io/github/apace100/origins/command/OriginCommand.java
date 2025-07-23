@@ -12,7 +12,7 @@ import io.github.apace100.origins.origin.OriginLayer;
 import io.github.apace100.origins.origin.OriginLayers;
 import io.github.apace100.origins.origin.OriginRegistry;
 import io.github.apace100.origins.registry.ModComponents;
-import io.netty.buffer.Unpooled;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.network.PacketByteBuf;
@@ -324,7 +324,7 @@ public class OriginCommand {
 	private static void openLayerScreen(ServerPlayerEntity target, OriginLayer originLayer) {
 
 		OriginComponent originComponent = ModComponents.ORIGIN.get(target);
-		PacketByteBuf buffer = new PacketByteBuf(Unpooled.buffer());
+		PacketByteBuf buffer = PacketByteBufs.create();
 
 		if (originLayer.isEnabled()) originComponent.setOrigin(originLayer, Origin.EMPTY);
 

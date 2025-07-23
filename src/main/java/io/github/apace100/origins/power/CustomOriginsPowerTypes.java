@@ -27,6 +27,8 @@ public class CustomOriginsPowerTypes {
     public static final PowerType<?> COOK_ENHANCED_FOOD = 
         new PowerTypeReference<>(Origins.identifier("cook_enhanced_food"));
     
+
+    
     public static void register() {
         register(new PowerFactory<>(Origins.identifier("blacksmith_quality_crafting"),
             new SerializableData(),
@@ -55,6 +57,8 @@ public class CustomOriginsPowerTypes {
                 data.getFloat("nutrition_multiplier"),
                 data.getFloat("saturation_multiplier"))
         ).allowCondition());
+        
+
     }
     
     private static void register(PowerFactory<?> serializer) {

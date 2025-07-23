@@ -1,7 +1,8 @@
 {
   "powers": [
     "origins:cook_reduced_damage",
-    "origins:cook_enhanced_food"
+    "origins:cook_enhanced_food",
+    "origins:cook_fertilize"
   ],
   "icon": {
     "item": "minecraft:furnace"

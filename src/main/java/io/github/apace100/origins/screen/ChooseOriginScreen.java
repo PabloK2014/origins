@@ -7,8 +7,8 @@ import io.github.apace100.origins.origin.Origin;
 import io.github.apace100.origins.origin.OriginLayer;
 import io.github.apace100.origins.origin.OriginRegistry;
 import io.github.apace100.origins.registry.ModItems;
-import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -93,7 +93,7 @@ public class ChooseOriginScreen extends OriginDisplayScreen {
 			}).dimensions(guiLeft + windowWidth + 20, this.height / 2 - 10, 20, 20).build());
 		}
 		addDrawableChild(ButtonWidget.builder(Text.translatable(Origins.MODID + ".gui.select"), b -> {
-			PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
+			PacketByteBuf buf = PacketByteBufs.create();
 			if(currentOrigin == originSelection.size()) {
 				buf.writeString(layerList.get(currentLayerIndex).getIdentifier().toString());
 				ClientPlayNetworking.send(ModPackets.CHOOSE_RANDOM_ORIGIN, buf);

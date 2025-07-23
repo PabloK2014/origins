@@ -1,0 +1,35 @@
+modLoader = "kotlinforforge"
+loaderVersion = "[4,)"
+#issueTrackerURL = ""
+license = "GPL 3.0"
+
+[[mods]]
+modId = "bountiful"
+version = "${version}"
+displayName = "Bountiful"
+authors = "Ejektaflex"
+description = '''
+Bountiful adds bounty boards to the world.
+'''
+#logoFile = ""
+
+[[dependencies.bountiful]]
+modId = "forge"
+mandatory = true
+versionRange = "[47,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.bountiful]]
+modId = "kambrik"
+mandatory = true
+versionRange = "[6.1.0,7.0.0)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.bountiful]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.20.1,)"
+ordering = "NONE"
+side = "BOTH"

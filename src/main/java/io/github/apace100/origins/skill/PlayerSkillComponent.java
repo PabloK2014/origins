@@ -30,6 +30,13 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
     private final Map<String, Map<String, Integer>> professionSkillLevels = new HashMap<>();
     private int tickCounter = 0;
     
+    // Хранение активного навыка для каждой профессии
+    private final Map<String, String> activeSkills = new HashMap<>();
+    
+    // Хранение состояния навыков (кулдауны, готовность и т.д.)
+    private final Map<String, Long> skillCooldowns = new HashMap<>();
+    private final Map<String, Boolean> skillStates = new HashMap<>();
+    
     public PlayerSkillComponent(PlayerEntity player) {
         this.player = player;
     }
@@ -240,6 +247,7 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
         String currentClass = getCurrentClass();
         if (currentClass != null) {
             professionSkillLevels.remove(currentClass);
+            activeSkills.remove(currentClass);
         }
         if (player instanceof ServerPlayerEntity serverPlayer) {
             KEY.sync(serverPlayer);
@@ -249,6 +257,85 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
                 false
             );
         }
+    }
+    
+    /**
+     * Устанавливает активный навык для текущего класса
+     */
+    public void setActiveSkill(String skillId) {
+        String currentClass = getCurrentClass();
+        if (currentClass != null) {
+            activeSkills.put(currentClass, skillId);
+            if (player instanceof ServerPlayerEntity serverPlayer) {
+                KEY.sync(serverPlayer);
+            }
+        }
+    }
+    
+    /**
+     * Получает активный навык для текущего класса
+     */
+    public String getActiveSkill() {
+        String currentClass = getCurrentClass();
+        return currentClass != null ? activeSkills.get(currentClass) : null;
+    }
+    
+    /**
+     * Проверяет, установлен ли активный навык
+     */
+    public boolean hasActiveSkill() {
+        String activeSkill = getActiveSkill();
+        return activeSkill != null && !activeSkill.isEmpty();
+    }
+    
+    /**
+     * Устанавливает кулдаун для навыка
+     */
+    public void setSkillCooldown(String skillId, long cooldownTicks) {
+        long currentTime = player.getWorld().getTime();
+        skillCooldowns.put(skillId, currentTime + cooldownTicks);
+        if (player instanceof ServerPlayerEntity serverPlayer) {
+            KEY.sync(serverPlayer);
+        }
+    }
+    
+    /**
+     * Проверяет, находится ли навык на кулдауне
+     */
+    public boolean isSkillOnCooldown(String skillId) {
+        Long cooldownEnd = skillCooldowns.get(skillId);
+        if (cooldownEnd == null) return false;
+        
+        long currentTime = player.getWorld().getTime();
+        return currentTime < cooldownEnd;
+    }
+    
+    /**
+     * Получает оставшееся время кулдауна в тиках
+     */
+    public long getSkillCooldownRemaining(String skillId) {
+        Long cooldownEnd = skillCooldowns.get(skillId);
+        if (cooldownEnd == null) return 0;
+        
+        long currentTime = player.getWorld().getTime();
+        return Math.max(0, cooldownEnd - currentTime);
+    }
+    
+    /**
+     * Устанавливает состояние навыка
+     */
+    public void setSkillState(String skillId, boolean state) {
+        skillStates.put(skillId, state);
+        if (player instanceof ServerPlayerEntity serverPlayer) {
+            KEY.sync(serverPlayer);
+        }
+    }
+    
+    /**
+     * Получает состояние навыка
+     */
+    public boolean getSkillState(String skillId) {
+        return skillStates.getOrDefault(skillId, false);
     }
 
     /**
@@ -320,6 +407,10 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
     @Override
     public void readFromNbt(NbtCompound tag) {
         professionSkillLevels.clear();
+        activeSkills.clear();
+        skillCooldowns.clear();
+        skillStates.clear();
+        
         NbtCompound allSkillsTag = tag.getCompound("professionSkills");
         Origins.LOGGER.info("Загрузка навыков из NBT: {}", allSkillsTag);
         for (String profession : allSkillsTag.getKeys()) {
@@ -330,7 +421,27 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
             }
             professionSkillLevels.put(profession, skillLevels);
         }
+        
+        // Загружаем активные навыки
+        NbtCompound activeSkillsTag = tag.getCompound("activeSkills");
+        for (String profession : activeSkillsTag.getKeys()) {
+            activeSkills.put(profession, activeSkillsTag.getString(profession));
+        }
+        
+        // Загружаем кулдауны навыков
+        NbtCompound cooldownsTag = tag.getCompound("skillCooldowns");
+        for (String skillId : cooldownsTag.getKeys()) {
+            skillCooldowns.put(skillId, cooldownsTag.getLong(skillId));
+        }
+        
+        // Загружаем состояния навыков
+        NbtCompound statesTag = tag.getCompound("skillStates");
+        for (String skillId : statesTag.getKeys()) {
+            skillStates.put(skillId, statesTag.getBoolean(skillId));
+        }
+        
         Origins.LOGGER.info("Загруженные навыки: {}", professionSkillLevels);
+        Origins.LOGGER.info("Загруженные активные навыки: {}", activeSkills);
         if (player instanceof ServerPlayerEntity serverPlayer) {
             KEY.sync(serverPlayer);
         }
@@ -347,6 +458,29 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
             allSkillsTag.put(entry.getKey(), skillsTag);
         }
         tag.put("professionSkills", allSkillsTag);
+        
+        // Сохраняем активные навыки
+        NbtCompound activeSkillsTag = new NbtCompound();
+        for (Map.Entry<String, String> entry : activeSkills.entrySet()) {
+            activeSkillsTag.putString(entry.getKey(), entry.getValue());
+        }
+        tag.put("activeSkills", activeSkillsTag);
+        
+        // Сохраняем кулдауны навыков
+        NbtCompound cooldownsTag = new NbtCompound();
+        for (Map.Entry<String, Long> entry : skillCooldowns.entrySet()) {
+            cooldownsTag.putLong(entry.getKey(), entry.getValue());
+        }
+        tag.put("skillCooldowns", cooldownsTag);
+        
+        // Сохраняем состояния навыков
+        NbtCompound statesTag = new NbtCompound();
+        for (Map.Entry<String, Boolean> entry : skillStates.entrySet()) {
+            statesTag.putBoolean(entry.getKey(), entry.getValue());
+        }
+        tag.put("skillStates", statesTag);
+        
         Origins.LOGGER.info("Сохранение навыков в NBT: {}", allSkillsTag);
+        Origins.LOGGER.info("Сохранение активных навыков в NBT: {}", activeSkillsTag);
     }
 }

@@ -1,0 +1,19 @@
+{
+  "type": "origins:active_self",
+  "entity_action": {
+    "type": "origins:execute_command",
+    "command": "tellraw @s {\"text\":\"Раскалённый удар готов!\",\"color\":\"red\"}"
+  },
+  "cooldown": 600,
+  "hud_render": {
+    "should_render": true,
+    "sprite_location": "origins:textures/gui/community/spiderkolo/resource_bar_01.png",
+    "bar_index": 5
+  },
+  "key": {
+    "key": "key.origins.primary_active",
+    "continuous": false
+  },
+  "name": "power.origins.blacksmith_hot_strike.name",
+  "description": "power.origins.blacksmith_hot_strike.description"
+}

@@ -6,7 +6,7 @@
   "origin.origins.brewer.description": "Мастер зелий, который варит улучшенные эликсиры, но получает меньше добычи с мобов.",
 
   "origin.origins.cook.name": "Повар",
-  "origin.origins.cook.description": "Опытный в кухонных опасностях, вы получаете меньше урона и готовите более сытную еду.",
+  "origin.origins.cook.description": "Опытный в кухонных опасностях, вы получаете меньше урона и готовите более сытную еду. Нажмите основную клавишу (по умолчанию G), чтобы удобрить растения в радиусе 10 блоков за 1 сердце.",
 
   "origin.origins.warrior.name": "Воин",
   "origin.origins.warrior.description": "Свирепый боец, который наносит двойной урон, но потребляет еду в два раза быстрее.",
@@ -218,6 +218,20 @@
   "power.origins.cook_enhanced_food.name": "Мастер-Повар",
   "power.origins.cook_enhanced_food.description": "Еда, которую вы готовите, обеспечивает на 50% больше питания и насыщения.",
 
+  "power.origins.cook_fertilize.name": "Зеленый Палец",
+  "power.origins.cook_fertilize.description": "Нажмите основную клавишу (по умолчанию G), чтобы удобрить все растения в радиусе 10 блоков, потратив 1 сердце здоровья.",
+
+  "power.origins.blacksmith_instant_repair.name": "Мгновенный Ремонт",
+  "power.origins.blacksmith_instant_repair.description": "Нажмите вторичную клавишу, чтобы мгновенно отремонтировать все предметы в инвентаре на 50% прочности (перезарядка 5 минут).",
+
+  "power.origins.blacksmith_hot_strike.name": "Раскалённый Удар",
+  "power.origins.blacksmith_hot_strike.description": "Нажмите основную клавишу (по умолчанию G), чтобы подготовить раскалённый удар. Следующая атака поджигает цель на 5 секунд (перезарядка 30 секунд).",
+
+  "category.origins.skills": "Навыки Origins",
+  "key.origins.activate_active_skill": "Активировать навык (K)",
+  "key.origins.open_skill_selection": "Выбор навыка (L)",
+  "key.origins.activate_global_skill": "Глобальный навык (G)",
+
   "power.origins.blacksmith_quality_crafting.name": "Качественный Крафт",
   "power.origins.blacksmith_quality_crafting.description": "Ваши созданные инструменты и броня имеют различное качество: Плохое (10%), Обычное (50%), Хорошее (25%) или Легендарное (5%).",
 
@@ -324,10 +338,10 @@
   "screen.origins.levelz_skill_tree": "Навыки (LevelZ)",
   "button.origins.skills": "Навыки",
   "screen.origins.levelz_skill_screen": "Навыки",
-  "gui.origins.level": "Уровень: %d",
+  "gui.origins.player_level": "Уровень: %d",
   "gui.origins.skill_points": "Очки навыков: %d",
-  "gui.origins.experience": "Опыт: %d / %d",
-  "gui.origins.skill_tree": "Дерево навыков",
+  "gui.origins.player_experience": "Опыт: %d / %d",
+  "gui.origins.skill_tree_title": "Дерево навыков",
   "gui.back": "Назад",
   "skill.origins.health.name": "Здоровье",
   "skill.origins.health.desc": "Увеличивает максимальное здоровье",

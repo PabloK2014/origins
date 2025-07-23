@@ -94,17 +94,40 @@ public class Origins implements ModInitializer, OrderedResourceListenerInitializ
 		
 		// Инициализируем реестр профессий
 		io.github.apace100.origins.profession.ProfessionRegistry.init();
+		
+		// Регистрируем обработчик активации навыков
+		io.github.apace100.origins.networking.SkillActivationHandler.register();
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			OriginCommand.register(dispatcher);
 			GiveQualityItemCommand.register(dispatcher, registryAccess);
 			ProgressionCommand.register(dispatcher);
+			io.github.apace100.origins.command.ResetOriginCommand.register(dispatcher);
+			io.github.apace100.origins.command.SetActiveSkillCommand.register(dispatcher);
+			io.github.apace100.origins.command.JsonDiagnosticCommand.register(dispatcher, registryAccess);
 		});
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register((content) -> {
 			content.add(ModItems.ORB_OF_ORIGIN);
 		});
 
 		CriteriaRegistryInvoker.callRegister(ChoseOriginCriterion.INSTANCE);
+		
+		// Запускаем диагностику JSON файлов при инициализации
+		if (config.debugMode) {
+			LOGGER.info("Debug mode enabled - running JSON diagnostic on startup");
+			try {
+				io.github.apace100.origins.util.JsonDiagnostic.runFullDiagnostic();
+			} catch (Exception e) {
+				LOGGER.error("Failed to run startup JSON diagnostic: " + e.getMessage(), e);
+			}
+		}
+		
+		// Инициализируем службу постоянной валидации
+		try {
+			io.github.apace100.origins.util.OngoingValidationService.initialize();
+		} catch (Exception e) {
+			LOGGER.error("Failed to initialize ongoing validation service: " + e.getMessage(), e);
+		}
 	}
 
 	public static void serializeConfig() {
@@ -141,6 +164,8 @@ public class Origins implements ModInitializer, OrderedResourceListenerInitializ
 		public boolean performVersionCheck = true;
 
 		public boolean showHudOverlay = true; // Показывать HUD оверлей (можно скрыть в настройках)
+		
+		public boolean debugMode = false; // Режим отладки для подробного логирования
 
 		public JsonObject origins = new JsonObject();
 

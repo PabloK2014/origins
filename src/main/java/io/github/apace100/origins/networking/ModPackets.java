@@ -20,4 +20,6 @@ public class ModPackets {
     public static final Identifier ACTIVE_COOK_SKILL = new Identifier(Origins.MODID, "active_cook_skill");
     public static final Identifier SYNC_SKILLS = new Identifier(Origins.MODID, "sync_skills");
     public static final Identifier LEARN_TREE_SKILL = new Identifier(Origins.MODID, "learn_tree_skill");
+    public static final Identifier ACTIVATE_GLOBAL_SKILL = new Identifier(Origins.MODID, "activate_global_skill");
+    public static final Identifier ACTIVATE_ACTIVE_SKILL = new Identifier(Origins.MODID, "activate_active_skill");
 }

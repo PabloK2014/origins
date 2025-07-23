@@ -23,7 +23,8 @@
       "io.github.apace100.origins.Origins"
     ],
     "client": [
-      "io.github.apace100.origins.OriginsClient"
+      "io.github.apace100.origins.OriginsClient",
+      "io.github.apace100.origins.client.SkillKeybinds"
     ],
     "modmenu": [
       "io.github.apace100.origins.integration.ModMenuIntegration"

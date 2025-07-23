@@ -7,7 +7,7 @@ import io.github.apace100.origins.origin.OriginLayer;
 import io.github.apace100.origins.origin.OriginLayers;
 import io.github.apace100.origins.origin.OriginRegistry;
 import io.github.apace100.origins.registry.ModComponents;
-import io.netty.buffer.Unpooled;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.client.item.TooltipContext;
@@ -55,7 +55,7 @@ public class OrbOfOriginItem extends Item {
             }
             component.checkAutoChoosingLayers(user, false);
             component.sync();
-            PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
+            PacketByteBuf data = PacketByteBufs.create();
             data.writeBoolean(false);
             ServerPlayNetworking.send((ServerPlayerEntity) user, ModPackets.OPEN_ORIGIN_SCREEN, data);
         }

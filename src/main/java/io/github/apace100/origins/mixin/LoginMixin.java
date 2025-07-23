@@ -8,7 +8,7 @@ import io.github.apace100.origins.origin.Origin;
 import io.github.apace100.origins.origin.OriginLayers;
 import io.github.apace100.origins.origin.OriginRegistry;
 import io.github.apace100.origins.registry.ModComponents;
-import io.netty.buffer.Unpooled;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.PacketByteBuf;
@@ -32,7 +32,7 @@ public abstract class LoginMixin {
 	private void openOriginsGui(ClientConnection connection, ServerPlayerEntity player, CallbackInfo info) {
 		OriginComponent component = ModComponents.ORIGIN.get(player);
 
-		PacketByteBuf originListData = new PacketByteBuf(Unpooled.buffer());
+		PacketByteBuf originListData = PacketByteBufs.create();
 		originListData.writeInt(OriginRegistry.size() - 1);
 		OriginRegistry.entries().forEach((entry) -> {
 			if(entry.getValue() != Origin.EMPTY) {
@@ -41,7 +41,7 @@ public abstract class LoginMixin {
 			}
 		});
 
-		PacketByteBuf originLayerData = new PacketByteBuf(Unpooled.buffer());
+		PacketByteBuf originLayerData = PacketByteBufs.create();
 		originLayerData.writeInt(OriginLayers.size());
 		OriginLayers.getLayers().forEach((layer) -> {
 			layer.write(originLayerData);
@@ -67,7 +67,7 @@ public abstract class LoginMixin {
 			if(component.hasAllOrigins()) {
 				OriginComponent.onChosen(player, false);
 			} else {
-				PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
+				PacketByteBuf data = PacketByteBufs.create();
 				data.writeBoolean(true);
 				ServerPlayNetworking.send(player, ModPackets.OPEN_ORIGIN_SCREEN, data);
 			}

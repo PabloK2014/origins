@@ -1,7 +1,9 @@
 {
   "powers": [
     "origins:blacksmith_reduced_speed",
-    "origins:blacksmith_quality_crafting"
+    "origins:blacksmith_quality_crafting",
+    "origins:blacksmith_hot_strike",
+    "origins:blacksmith_instant_repair"
   ],
   "icon": {
     "item": "minecraft:anvil"
