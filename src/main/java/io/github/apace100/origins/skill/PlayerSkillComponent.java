@@ -37,6 +37,12 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
     private final Map<String, Long> skillCooldowns = new HashMap<>();
     private final Map<String, Boolean> skillStates = new HashMap<>();
     
+    // Система энергии
+    private int currentEnergy = 100; // Текущая энергия
+    private int maxEnergy = 100; // Максимальная энергия
+    private int energyRegenRate = 1; // Восстановление энергии за тик (20 тиков = 1 секунда)
+    private int energyRegenDelay = 0; // Задержка перед восстановлением энергии после использования навыка
+    
     public PlayerSkillComponent(PlayerEntity player) {
         this.player = player;
     }
@@ -337,6 +343,89 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
     public boolean getSkillState(String skillId) {
         return skillStates.getOrDefault(skillId, false);
     }
+    
+    // ========== СИСТЕМА ЭНЕРГИИ ==========
+    
+    /**
+     * Получает текущую энергию
+     */
+    public int getCurrentEnergy() {
+        return currentEnergy;
+    }
+    
+    /**
+     * Получает максимальную энергию
+     */
+    public int getMaxEnergy() {
+        return maxEnergy;
+    }
+    
+    /**
+     * Устанавливает текущую энергию
+     */
+    public void setCurrentEnergy(int energy) {
+        this.currentEnergy = Math.max(0, Math.min(energy, maxEnergy));
+        if (player instanceof ServerPlayerEntity serverPlayer) {
+            KEY.sync(serverPlayer);
+        }
+    }
+    
+    /**
+     * Устанавливает максимальную энергию
+     */
+    public void setMaxEnergy(int maxEnergy) {
+        this.maxEnergy = Math.max(1, maxEnergy);
+        this.currentEnergy = Math.min(this.currentEnergy, this.maxEnergy);
+        if (player instanceof ServerPlayerEntity serverPlayer) {
+            KEY.sync(serverPlayer);
+        }
+    }
+    
+    /**
+     * Проверяет, хватает ли энергии для использования навыка
+     */
+    public boolean hasEnoughEnergy(int requiredEnergy) {
+        return currentEnergy >= requiredEnergy;
+    }
+    
+    /**
+     * Тратит энергию на использование навыка
+     */
+    public boolean consumeEnergy(int amount) {
+        if (currentEnergy >= amount) {
+            currentEnergy -= amount;
+            energyRegenDelay = 60; // 3 секунды задержки перед восстановлением
+            if (player instanceof ServerPlayerEntity serverPlayer) {
+                KEY.sync(serverPlayer);
+            }
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Восстанавливает энергию
+     */
+    public void restoreEnergy(int amount) {
+        currentEnergy = Math.min(currentEnergy + amount, maxEnergy);
+        if (player instanceof ServerPlayerEntity serverPlayer) {
+            KEY.sync(serverPlayer);
+        }
+    }
+    
+    /**
+     * Получает процент энергии (0.0 - 1.0)
+     */
+    public float getEnergyPercentage() {
+        return (float) currentEnergy / maxEnergy;
+    }
+    
+    /**
+     * Проверяет, можно ли использовать навык (проверяет энергию и кулдаун)
+     */
+    public boolean canUseSkill(String skillId, int energyCost) {
+        return hasEnoughEnergy(energyCost) && !isSkillOnCooldown(skillId);
+    }
 
     /**
      * Применяет эффекты пассивных навыков
@@ -398,6 +487,16 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
     public void serverTick() {
         tickCounter++;
         
+        // Восстановление энергии
+        if (energyRegenDelay > 0) {
+            energyRegenDelay--;
+        } else if (currentEnergy < maxEnergy) {
+            // Восстанавливаем энергию каждый тик (можно настроить частоту)
+            if (tickCounter % 20 == 0) { // Каждую секунду
+                restoreEnergy(energyRegenRate);
+            }
+        }
+        
         // Применяем пассивные эффекты каждые 20 тиков (1 секунда)
         if (tickCounter % 20 == 0) {
             applyPassiveSkillEffects();
@@ -440,8 +539,20 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
             skillStates.put(skillId, statesTag.getBoolean(skillId));
         }
         
+        // Загружаем систему энергии
+        currentEnergy = tag.getInt("currentEnergy");
+        maxEnergy = tag.getInt("maxEnergy");
+        energyRegenRate = tag.getInt("energyRegenRate");
+        energyRegenDelay = tag.getInt("energyRegenDelay");
+        
+        // Устанавливаем значения по умолчанию, если они не были сохранены
+        if (maxEnergy <= 0) maxEnergy = 100;
+        if (currentEnergy < 0) currentEnergy = maxEnergy;
+        if (energyRegenRate <= 0) energyRegenRate = 1;
+        
         Origins.LOGGER.info("Загруженные навыки: {}", professionSkillLevels);
         Origins.LOGGER.info("Загруженные активные навыки: {}", activeSkills);
+        Origins.LOGGER.info("Загруженная энергия: {}/{}", currentEnergy, maxEnergy);
         if (player instanceof ServerPlayerEntity serverPlayer) {
             KEY.sync(serverPlayer);
         }
@@ -480,7 +591,14 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
         }
         tag.put("skillStates", statesTag);
         
+        // Сохраняем систему энергии
+        tag.putInt("currentEnergy", currentEnergy);
+        tag.putInt("maxEnergy", maxEnergy);
+        tag.putInt("energyRegenRate", energyRegenRate);
+        tag.putInt("energyRegenDelay", energyRegenDelay);
+        
         Origins.LOGGER.info("Сохранение навыков в NBT: {}", allSkillsTag);
         Origins.LOGGER.info("Сохранение активных навыков в NBT: {}", activeSkillsTag);
+        Origins.LOGGER.info("Сохранение энергии в NBT: {}/{}", currentEnergy, maxEnergy);
     }
 }

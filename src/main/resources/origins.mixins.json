@@ -45,7 +45,12 @@
     "BlacksmithHotStrikeMixin",
     "PlayerAttributesMixin",
     "PlayerSkillsMixin",
-    "PlayerAttackMixin"
+    "PlayerAttackMixin",
+    "WarriorDamageMixin",
+    "WarriorAttackMixin",
+    "WarriorDamageBoostMixin",
+    "WarriorKillMixin",
+    "WarriorRegenMixin"
   ],
   "client": [
     "BlacksmithQualityTooltipInfoMixin",

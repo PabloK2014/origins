@@ -4,6 +4,8 @@ import io.github.apace100.origins.Origins;
 import io.github.apace100.origins.client.SkillKeybinds;
 import io.github.apace100.origins.skill.*;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -322,15 +324,74 @@ public class SkillActivationHandler {
      */
     private static String getSkillDisplayName(String skillId) {
         return switch (skillId) {
+            // Навыки кузнеца
             case "hot_strike" -> "Раскалённый удар";
             case "instant_repair" -> "Мгновенный ремонт";
+            
+            // Навыки воина
             case "mad_boost" -> "Безумный рывок";
             case "indestructibility" -> "Несокрушимость";
             case "dagestan" -> "Дагестанская братва";
+            
+            // Навыки курьера
             case "sprint_boost" -> "Рывок";
             case "speed_surge" -> "Всплеск скорости";
             case "carry_capacity_basic" -> "Ловушка";
+            
+            // Навыки шахтера
+            case "ore_highlight" -> "Подсветка руды";
+            case "vein_miner" -> "Жилокопатель";
+            
+            // Навыки пивовара
+            case "master_brewer" -> "Мастер-пивовар";
+            case "bottle_throw" -> "Метание бутылок";
+            case "berserker_drink" -> "Напиток берсерка";
+            case "healing_ale" -> "Лечебный эль";
+            case "party_time" -> "Время вечеринки";
+            
+            // Навыки повара
+            case "smoke_screen" -> "Дымовая завеса";
+            case "banquet" -> "Банкет";
+            
             default -> skillId;
+        };
+    }
+    
+    /**
+     * Получает стоимость энергии для навыка
+     */
+    private static int getSkillEnergyCost(String skillId) {
+        return switch (skillId) {
+            // Навыки кузнеца
+            case "hot_strike" -> 15;
+            case "instant_repair" -> 25;
+            
+            // Навыки воина
+            case "mad_boost" -> 20;
+            case "indestructibility" -> 30;
+            case "dagestan" -> 50;
+            
+            // Навыки курьера
+            case "sprint_boost" -> 10;
+            case "speed_surge" -> 25;
+            case "carry_capacity_basic" -> 15;
+            
+            // Навыки шахтера
+            case "ore_highlight" -> 20;
+            case "vein_miner" -> 30;
+            
+            // Навыки пивовара
+            case "master_brewer" -> 15;
+            case "bottle_throw" -> 20;
+            case "berserker_drink" -> 40;
+            case "healing_ale" -> 25;
+            case "party_time" -> 50;
+            
+            // Навыки повара
+            case "smoke_screen" -> 15;
+            case "banquet" -> 40;
+            
+            default -> 10; // Стоимость по умолчанию
         };
     }
     
@@ -342,6 +403,49 @@ public class SkillActivationHandler {
      */
     private static void activateSkillByInfo(ServerPlayerEntity player, SkillInfo skill) {
         try {
+            // Проверяем систему энергии
+            PlayerSkillComponent skillComponent = PlayerSkillComponent.KEY.get(player);
+            if (skillComponent == null) {
+                player.sendMessage(
+                    Text.literal("Ошибка: компонент навыков не найден")
+                        .formatted(Formatting.RED), 
+                    true
+                );
+                return;
+            }
+            
+            // Получаем стоимость энергии для навыка
+            int energyCost = getSkillEnergyCost(skill.id);
+            
+            // Проверяем, хватает ли энергии
+            if (!skillComponent.canUseSkill(skill.id, energyCost)) {
+                if (!skillComponent.hasEnoughEnergy(energyCost)) {
+                    player.sendMessage(
+                        Text.literal("Недостаточно энергии! Требуется: " + energyCost + ", у вас: " + skillComponent.getCurrentEnergy())
+                            .formatted(Formatting.RED), 
+                        true
+                    );
+                } else if (skillComponent.isSkillOnCooldown(skill.id)) {
+                    long cooldownRemaining = skillComponent.getSkillCooldownRemaining(skill.id);
+                    player.sendMessage(
+                        Text.literal("Навык перезарядится через " + (cooldownRemaining / 20) + " сек")
+                            .formatted(Formatting.GRAY), 
+                        true
+                    );
+                }
+                return;
+            }
+            
+            // Тратим энергию
+            if (!skillComponent.consumeEnergy(energyCost)) {
+                player.sendMessage(
+                    Text.literal("Не удалось потратить энергию")
+                        .formatted(Formatting.RED), 
+                    true
+                );
+                return;
+            }
+            
             switch (skill.id) {
                 // Навыки кузнеца
                 case "hot_strike":
@@ -371,6 +475,39 @@ public class SkillActivationHandler {
                     break;
                 case "carry_capacity_basic":
                     CourierSkillHandler.handleTrap(player, skill.level);
+                    break;
+                    
+                // Навыки шахтера
+                case "ore_highlight":
+                    handleMinerOreHighlight(player, skill.level);
+                    break;
+                case "vein_miner":
+                    handleMinerVeinMiner(player, skill.level);
+                    break;
+                    
+                // Навыки пивовара
+                case "master_brewer":
+                    handleBrewerMasterBrewer(player, skill.level);
+                    break;
+                case "bottle_throw":
+                    handleBrewerBottleThrow(player, skill.level);
+                    break;
+                case "berserker_drink":
+                    handleBrewerBerserkerDrink(player, skill.level);
+                    break;
+                case "healing_ale":
+                    handleBrewerHealingAle(player, skill.level);
+                    break;
+                case "party_time":
+                    handleBrewerPartyTime(player, skill.level);
+                    break;
+                    
+                // Навыки повара
+                case "smoke_screen":
+                    handleCookSmokeScreen(player, skill.level);
+                    break;
+                case "banquet":
+                    handleCookBanquet(player, skill.level);
                     break;
                     
                 default:
@@ -442,6 +579,25 @@ public class SkillActivationHandler {
             int trapLevel = skillComponent.getSkillLevel("carry_capacity_basic");
             if (trapLevel > 0) {
                 availableSkills.add(new SkillInfo("carry_capacity_basic", "Ловушка", trapLevel));
+            }
+        }
+        else {
+            // Для других классов получаем навыки из SkillTreeHandler
+            String originId = getCurrentOriginId(player);
+            if (originId != null) {
+                SkillTreeHandler.SkillTree skillTree = SkillTreeHandler.getSkillTree(originId);
+                if (skillTree != null) {
+                    for (SkillTreeHandler.Skill skill : skillTree.getAllSkills()) {
+                        // Проверяем активные навыки (ACTIVE и GLOBAL могут быть активированы)
+                        if (skill.getType() == SkillTreeHandler.SkillType.ACTIVE || 
+                            skill.getType() == SkillTreeHandler.SkillType.GLOBAL) {
+                            int skillLevel = skillComponent.getSkillLevel(skill.getId());
+                            if (skillLevel > 0) {
+                                availableSkills.add(new SkillInfo(skill.getId(), skill.getName(), skillLevel));
+                            }
+                        }
+                    }
+                }
             }
         }
         
@@ -544,6 +700,256 @@ public class SkillActivationHandler {
         ));
         
         Origins.LOGGER.info("Активирован глобальный навык пивовара для игрока {}", player.getName().getString());
+    }
+    
+    // Методы активации навыков шахтера
+    private static void handleMinerOreHighlight(ServerPlayerEntity player, int level) {
+        player.sendMessage(
+            Text.literal("Подсветка руды активирована на " + (30 + level * 10) + " секунд!")
+                .formatted(Formatting.YELLOW), 
+            true
+        );
+        
+        // Даем эффект ночного зрения для подсветки руды
+        player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+            net.minecraft.entity.effect.StatusEffects.NIGHT_VISION, 
+            (30 + level * 10) * 20, // время в тиках
+            0, 
+            false, 
+            false
+        ));
+        
+        // Даем светящийся эффект для лучшей видимости
+        player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+            net.minecraft.entity.effect.StatusEffects.GLOWING, 
+            (30 + level * 10) * 20,
+            0, 
+            false, 
+            false
+        ));
+    }
+    
+    private static void handleMinerVeinMiner(ServerPlayerEntity player, int level) {
+        player.sendMessage(
+            Text.literal("Жилокопатель активирован! Следующие " + (3 + level) + " блоков руды будут добыты автоматически")
+                .formatted(Formatting.GOLD), 
+            true
+        );
+        
+        // Даем эффект спешки для быстрой добычи
+        player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+            net.minecraft.entity.effect.StatusEffects.HASTE, 
+            600, // 30 секунд
+            level - 1, 
+            false, 
+            false
+        ));
+    }
+    
+    // Методы активации навыков пивовара
+    private static void handleBrewerMasterBrewer(ServerPlayerEntity player, int level) {
+        player.sendMessage(
+            Text.literal("Мастер-пивовар активирован! Создание уникальных напитков доступно")
+                .formatted(Formatting.LIGHT_PURPLE), 
+            true
+        );
+        
+        // Даем временный эффект удачи для лучших результатов варки
+        player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+            net.minecraft.entity.effect.StatusEffects.LUCK, 
+            1200, // 60 секунд
+            level - 1, 
+            false, 
+            false
+        ));
+    }
+    
+    private static void handleBrewerBottleThrow(ServerPlayerEntity player, int level) {
+        player.sendMessage(
+            Text.literal("Метание бутылок готово! Следующие " + level + " бросков будут взрывными")
+                .formatted(Formatting.RED), 
+            true
+        );
+        
+        // Даем эффект силы для более мощных бросков
+        player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+            net.minecraft.entity.effect.StatusEffects.STRENGTH, 
+            300, // 15 секунд
+            0, 
+            false, 
+            false
+        ));
+    }
+    
+    private static void handleBrewerBerserkerDrink(ServerPlayerEntity player, int level) {
+        player.sendMessage(
+            Text.literal("Напиток берсерка! Временная неуязвимость и ярость!")
+                .formatted(Formatting.DARK_RED), 
+            true
+        );
+        
+        // Даем мощные эффекты
+        player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+            net.minecraft.entity.effect.StatusEffects.STRENGTH, 
+            400, // 20 секунд
+            1, // уровень 2
+            false, 
+            false
+        ));
+        
+        player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+            net.minecraft.entity.effect.StatusEffects.RESISTANCE, 
+            400, // 20 секунд
+            0, 
+            false, 
+            false
+        ));
+        
+        player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+            net.minecraft.entity.effect.StatusEffects.SPEED, 
+            400, // 20 секунд
+            0, 
+            false, 
+            false
+        ));
+    }
+    
+    private static void handleBrewerHealingAle(ServerPlayerEntity player, int level) {
+        player.sendMessage(
+            Text.literal("Лечебный эль! Восстановление здоровья союзников")
+                .formatted(Formatting.GREEN), 
+            true
+        );
+        
+        // Лечим игрока
+        player.heal(2.0f * level);
+        
+        // Даем регенерацию
+        player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+            net.minecraft.entity.effect.StatusEffects.REGENERATION, 
+            200, // 10 секунд
+            level - 1, 
+            false, 
+            false
+        ));
+        
+        // Лечим ближайших союзников
+        player.getWorld().getOtherEntities(player, player.getBoundingBox().expand(10.0), 
+            entity -> entity instanceof ServerPlayerEntity).forEach(entity -> {
+            if (entity instanceof ServerPlayerEntity ally) {
+                ally.heal(1.0f * level);
+                ally.sendMessage(
+                    Text.literal("Вы получили лечение от лечебного эля!")
+                        .formatted(Formatting.GREEN), 
+                    true
+                );
+            }
+        });
+    }
+    
+    private static void handleBrewerPartyTime(ServerPlayerEntity player, int level) {
+        player.sendMessage(
+            Text.literal("Время вечеринки! Массовые баффы для всей команды!")
+                .formatted(Formatting.GOLD), 
+            true
+        );
+        
+        // Даем баффы всем игрокам в радиусе 20 блоков
+        player.getWorld().getOtherEntities(player, player.getBoundingBox().expand(20.0), 
+            entity -> entity instanceof ServerPlayerEntity).forEach(entity -> {
+            if (entity instanceof ServerPlayerEntity ally) {
+                // Даем различные положительные эффекты
+                ally.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                    net.minecraft.entity.effect.StatusEffects.STRENGTH, 600, 0, false, false));
+                ally.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                    net.minecraft.entity.effect.StatusEffects.SPEED, 600, 0, false, false));
+                ally.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                    net.minecraft.entity.effect.StatusEffects.REGENERATION, 200, 0, false, false));
+                ally.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                    net.minecraft.entity.effect.StatusEffects.LUCK, 600, 0, false, false));
+                
+                ally.sendMessage(
+                    Text.literal("Вечеринка началась! Получены баффы!")
+                        .formatted(Formatting.GOLD), 
+                    true
+                );
+            }
+        });
+    }
+    
+    // Методы активации навыков повара
+    private static void handleCookSmokeScreen(ServerPlayerEntity player, int level) {
+        player.sendMessage(
+            Text.literal("Дымовая завеса! Невидимость активирована")
+                .formatted(Formatting.GRAY), 
+            true
+        );
+        
+        // Даем невидимость
+        player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+            net.minecraft.entity.effect.StatusEffects.INVISIBILITY, 
+            60 + (level * 20), // 3 + level секунд
+            0, 
+            false, 
+            false
+        ));
+        
+        // Даем скорость для быстрого отступления
+        player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+            net.minecraft.entity.effect.StatusEffects.SPEED, 
+            60 + (level * 20),
+            0, 
+            false, 
+            false
+        ));
+    }
+    
+    private static void handleCookBanquet(ServerPlayerEntity player, int level) {
+        player.sendMessage(
+            Text.literal("Банкет! Все союзники получают регенерацию и сопротивление")
+                .formatted(Formatting.GOLD), 
+            true
+        );
+        
+        // Даем мощные эффекты всем игрокам в радиусе 15 блоков
+        player.getWorld().getOtherEntities(player, player.getBoundingBox().expand(15.0), 
+            entity -> entity instanceof ServerPlayerEntity).forEach(entity -> {
+            if (entity instanceof ServerPlayerEntity ally) {
+                ally.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                    net.minecraft.entity.effect.StatusEffects.REGENERATION, 
+                    400, // 20 секунд
+                    level - 1, 
+                    false, 
+                    false
+                ));
+                
+                ally.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                    net.minecraft.entity.effect.StatusEffects.RESISTANCE, 
+                    400, // 20 секунд
+                    0, 
+                    false, 
+                    false
+                ));
+                
+                ally.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                    net.minecraft.entity.effect.StatusEffects.SATURATION, 
+                    200, // 10 секунд
+                    level - 1, 
+                    false, 
+                    false
+                ));
+                
+                // Восстанавливаем здоровье и голод
+                ally.heal(4.0f);
+                ally.getHungerManager().add(6, 0.6f);
+                
+                ally.sendMessage(
+                    Text.literal("Банкет! Вы получили мощные баффы и восстановление!")
+                        .formatted(Formatting.GOLD), 
+                    true
+                );
+            }
+        });
     }
 
 }

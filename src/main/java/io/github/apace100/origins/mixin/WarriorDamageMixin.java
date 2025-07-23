@@ -8,7 +8,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
@@ -17,31 +17,29 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(PlayerEntity.class)
 public class WarriorDamageMixin {
     
-    @Inject(method = "damage", at = @At("HEAD"), cancellable = true)
-    private void origins$handleWarriorDefense(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
+    @ModifyVariable(method = "damage", at = @At("HEAD"), ordinal = 0, argsOnly = true)
+    private float origins$modifyDamageAmount(float amount, DamageSource source) {
         try {
             PlayerEntity player = (PlayerEntity) (Object) this;
             
             if (!(player instanceof ServerPlayerEntity serverPlayer)) {
-                return;
+                return amount;
             }
             
             if (!WarriorSkillHandler.isWarrior(serverPlayer)) {
-                return;
+                return amount;
             }
             
             PlayerSkillComponent skillComponent = PlayerSkillComponent.KEY.get(serverPlayer);
             if (skillComponent == null) {
-                return;
+                return amount;
             }
             
             // Проверяем навык "Последний Шанс"
             int lastChanceLevel = skillComponent.getSkillLevel("last_chance");
             if (lastChanceLevel > 0) {
-                boolean cancelled = WarriorSkillHandler.handleLastChance(serverPlayer, amount, lastChanceLevel);
-                if (cancelled) {
-                    cir.setReturnValue(false); // Отменяем урон
-                    return;
+                if (WarriorSkillHandler.handleLastChance(serverPlayer, amount, lastChanceLevel)) {
+                    return 0.0f;
                 }
             }
             
@@ -62,19 +60,13 @@ public class WarriorDamageMixin {
             
             // Применяем снижение урона
             if (damageReduction > 0.0f) {
-                float reducedAmount = amount * (1.0f - Math.min(damageReduction, 0.8f)); // Максимум 80% снижения
-                
-                // Создаем новый источник урона с измененным количеством
-                if (reducedAmount < amount) {
-                    // Отменяем оригинальный урон и наносим уменьшенный
-                    cir.setReturnValue(false);
-                    serverPlayer.damage(source, reducedAmount);
-                    cir.setReturnValue(true);
-                }
+                return amount * (1.0f - Math.min(damageReduction, 0.8f)); // Максимум 80% снижения
             }
             
+            return amount;
         } catch (Exception e) {
             Origins.LOGGER.error("Ошибка в WarriorDamageMixin: " + e.getMessage(), e);
+            return amount;
         }
     }
 }

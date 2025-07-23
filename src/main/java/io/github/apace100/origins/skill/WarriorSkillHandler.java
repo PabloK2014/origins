@@ -11,6 +11,8 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.util.math.Vec3d;
 
 import java.util.Random;
 
@@ -91,57 +93,67 @@ public class WarriorSkillHandler {
     public static void handleMadBoost(ServerPlayerEntity player, int skillLevel) {
         if (skillLevel <= 0) return;
         
-        // Проверяем кулдаун
-        var nbt = new net.minecraft.nbt.NbtCompound();
-        player.writeNbt(nbt);
-        long lastUse = nbt.getLong("MadBoostLastUse");
-        long currentTime = player.getWorld().getTime();
+        // Наносим урон по области вокруг игрока
+        var areaTargets = player.getWorld().getEntitiesByClass(
+            LivingEntity.class,
+            player.getBoundingBox().expand(3.0),
+            entity -> entity != player && entity.isAlive() && !entity.isTeammate(player)
+        );
         
-        if (currentTime - lastUse >= 1200) { // 60 секунд
-            nbt.putLong("MadBoostLastUse", currentTime);
-            player.readNbt(nbt);
-            
-            // Телепортируемся к ближайшему врагу и наносим урон по области
-            var nearbyEnemies = player.getWorld().getEntitiesByClass(
-                LivingEntity.class,
-                player.getBoundingBox().expand(10.0),
-                entity -> entity != player && entity.isAlive() && !entity.isTeammate(player)
-            );
-            
-            if (!nearbyEnemies.isEmpty()) {
-                LivingEntity target = nearbyEnemies.get(RANDOM.nextInt(nearbyEnemies.size()));
-                
-                // Телепортируемся к цели
-                player.teleport(target.getX(), target.getY(), target.getZ());
-                
-                // Наносим урон по области
-                var areaTargets = player.getWorld().getEntitiesByClass(
-                    LivingEntity.class,
-                    player.getBoundingBox().expand(3.0),
-                    entity -> entity != player && entity.isAlive()
-                );
-                
-                float damage = 4.0f + (skillLevel * 2.0f);
-                for (LivingEntity areaTarget : areaTargets) {
-                    areaTarget.damage(player.getDamageSources().playerAttack(player), damage);
-                }
-                
-                player.sendMessage(
-                    Text.literal("Безумный рывок! Урон по области: " + damage)
-                        .formatted(Formatting.RED), 
-                    false
-                );
-                
-                Origins.LOGGER.info("Воин {} использовал безумный рывок", player.getName().getString());
-            }
-        } else {
-            long cooldownLeft = 1200 - (currentTime - lastUse);
+        float damage = 4.0f + (skillLevel * 2.0f);
+        for (LivingEntity areaTarget : areaTargets) {
+            areaTarget.damage(player.getDamageSources().playerAttack(player), damage);
+        }
+        
+        // ИСПРАВЛЕНО: Толкаем игрока вперед вместо телепортации
+        Vec3d lookDirection = player.getRotationVector();
+        double pushForce = 2.0 + (skillLevel * 0.5); // Сила толчка увеличивается с уровнем
+        
+        // Добавляем вертикальную составляющую для прыжка
+        double verticalBoost = Math.max(0.5, lookDirection.y * pushForce + 0.3);
+        
+        // Ограничиваем максимальную скорость для предотвращения проблем
+        double maxHorizontalSpeed = 4.0;
+        double maxVerticalSpeed = 2.0;
+        
+        Vec3d pushVector = new Vec3d(
+            Math.max(-maxHorizontalSpeed, Math.min(maxHorizontalSpeed, lookDirection.x * pushForce)),
+            Math.max(0.3, Math.min(maxVerticalSpeed, verticalBoost)),
+            Math.max(-maxHorizontalSpeed, Math.min(maxHorizontalSpeed, lookDirection.z * pushForce))
+        );
+        
+        // Устанавливаем скорость движения игрока
+        player.setVelocity(pushVector);
+        player.velocityModified = true; // Важно для синхронизации с клиентом
+        
+        // Добавляем эффект неуязвимости на короткое время для предотвращения урона от падения
+        player.addStatusEffect(new StatusEffectInstance(
+            StatusEffects.RESISTANCE,
+            20, // 1 секунда
+            1 // Уровень II
+        ));
+        
+        // Устанавливаем кулдаун через систему навыков
+        PlayerSkillComponent skillComponent = PlayerSkillComponent.KEY.get(player);
+        if (skillComponent != null) {
+            skillComponent.setSkillCooldown("mad_boost", 100); // 5 секунд
+        }
+        
+        if (areaTargets.size() > 0) {
             player.sendMessage(
-                Text.literal("Безумный рывок перезарядится через " + (cooldownLeft / 20) + " сек")
-                    .formatted(Formatting.GRAY), 
-                true // action bar
+                Text.literal("Безумный рывок! Урон по области: " + damage)
+                    .formatted(Formatting.RED), 
+                false
+            );
+        } else {
+            player.sendMessage(
+                Text.literal("Безумный рывок!")
+                    .formatted(Formatting.RED), 
+                true
             );
         }
+        
+        Origins.LOGGER.info("Воин {} использовал безумный рывок", player.getName().getString());
     }
     
     /**
@@ -179,15 +191,13 @@ public class WarriorSkillHandler {
         
         // Проверяем, будет ли урон смертельным
         if (player.getHealth() - damage <= 0) {
-            var nbt = new net.minecraft.nbt.NbtCompound();
-            player.writeNbt(nbt);
-            long lastUse = nbt.getLong("LastChanceLastUse");
-            long currentTime = player.getWorld().getTime();
+            PlayerSkillComponent skillComponent = PlayerSkillComponent.KEY.get(player);
+            if (skillComponent == null) return false;
             
-            // Кулдаун 5 минут
-            if (currentTime - lastUse >= 6000) {
-                nbt.putLong("LastChanceLastUse", currentTime);
-                player.readNbt(nbt);
+            // Проверяем кулдаун через систему навыков (60 секунд = 1200 тиков)
+            if (!skillComponent.isSkillOnCooldown("last_chance")) {
+                // Устанавливаем кулдаун
+                skillComponent.setSkillCooldown("last_chance", 1200); // 60 секунд
                 
                 // Даем неуязвимость на 3 секунды
                 player.addStatusEffect(new StatusEffectInstance(
@@ -219,7 +229,7 @@ public class WarriorSkillHandler {
     public static float handleIronWall(ServerPlayerEntity player, int skillLevel) {
         if (skillLevel <= 0) return 0.0f;
         
-        return skillLevel * 0.15f; // 15% снижение урона за уровень
+        return skillLevel * 0.02f; // 2% снижение урона за уровень
     }
     
     /**
