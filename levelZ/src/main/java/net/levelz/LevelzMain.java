@@ -18,6 +18,7 @@ public class LevelzMain implements ModInitializer {
         PlayerStatsServerPacket.init();
         TagInit.init();
         ItemInit.init();
+        SkillInit.init(); // Добавляем инициализацию скиллов
     }
 }
 

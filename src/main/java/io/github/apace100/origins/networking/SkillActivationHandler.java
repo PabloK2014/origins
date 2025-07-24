@@ -363,35 +363,35 @@ public class SkillActivationHandler {
     private static int getSkillEnergyCost(String skillId) {
         return switch (skillId) {
             // Навыки кузнеца
-            case "hot_strike" -> 15;
-            case "instant_repair" -> 25;
+            case "hot_strike" -> 3;
+            case "instant_repair" -> 5;
             
             // Навыки воина
-            case "mad_boost" -> 20;
-            case "indestructibility" -> 30;
-            case "dagestan" -> 50;
+            case "mad_boost" -> 4;
+            case "indestructibility" -> 6;
+            case "dagestan" -> 10;
             
             // Навыки курьера
-            case "sprint_boost" -> 10;
-            case "speed_surge" -> 25;
-            case "carry_capacity_basic" -> 15;
+            case "sprint_boost" -> 2;
+            case "speed_surge" -> 5;
+            case "carry_capacity_basic" -> 3;
             
             // Навыки шахтера
-            case "ore_highlight" -> 20;
-            case "vein_miner" -> 30;
+            case "ore_highlight" -> 4;
+            case "vein_miner" -> 6;
             
             // Навыки пивовара
-            case "master_brewer" -> 15;
-            case "bottle_throw" -> 20;
-            case "berserker_drink" -> 40;
-            case "healing_ale" -> 25;
-            case "party_time" -> 50;
+            case "master_brewer" -> 3;
+            case "bottle_throw" -> 4;
+            case "berserker_drink" -> 8;
+            case "healing_ale" -> 5;
+            case "party_time" -> 10;
             
             // Навыки повара
-            case "smoke_screen" -> 15;
-            case "banquet" -> 40;
+            case "smoke_screen" -> 3;
+            case "banquet" -> 8;
             
-            default -> 10; // Стоимость по умолчанию
+            default -> 2; // Стоимость по умолчанию
         };
     }
     

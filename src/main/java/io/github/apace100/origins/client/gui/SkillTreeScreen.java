@@ -73,8 +73,90 @@ public class SkillTreeScreen extends Screen {
             this.close();
         }).dimensions(this.backgroundX + BACKGROUND_WIDTH - 60, this.backgroundY + BACKGROUND_HEIGHT - 30, 50, 20).build());
 
+        // Кнопки для прокачки энергии
+        createEnergyButtons();
+
         // Создаем кнопки навыков
         createSkillButtons();
+    }
+
+    private void createEnergyButtons() {
+        if (skillComponent == null) return;
+
+        int energyPanelX = backgroundX + BACKGROUND_WIDTH + 10;
+        int energyPanelY = backgroundY + 90; // Размещаем кнопки ниже информации об энергии
+        int buttonWidth = 120;
+        int buttonHeight = 20;
+
+        // Проверяем, есть ли доступные очки навыков
+        int availablePoints = skillComponent.getAvailableSkillPoints();
+        boolean canUpgrade = availablePoints > 0;
+
+        // Кнопка увеличения максимальной энергии
+        String energyButtonText = canUpgrade ? 
+            "Увеличить энергию (+5)" : 
+            "Увеличить энергию (нет очков)";
+        
+        ButtonWidget energyButton = ButtonWidget.builder(
+            Text.literal(energyButtonText),
+            button -> upgradeMaxEnergy()
+        ).dimensions(energyPanelX, energyPanelY, buttonWidth, buttonHeight).build();
+        
+        energyButton.active = canUpgrade;
+        this.addDrawableChild(energyButton);
+
+        // Кнопка увеличения скорости восстановления энергии
+        String regenButtonText = canUpgrade ? 
+            "Скорость восст. (+1)" : 
+            "Скорость восст. (нет очков)";
+            
+        ButtonWidget regenButton = ButtonWidget.builder(
+            Text.literal(regenButtonText),
+            button -> upgradeEnergyRegen()
+        ).dimensions(energyPanelX, energyPanelY + 25, buttonWidth, buttonHeight).build();
+        
+        regenButton.active = canUpgrade;
+        this.addDrawableChild(regenButton);
+    }
+
+    private void upgradeMaxEnergy() {
+        if (skillComponent == null || skillComponent.getAvailableSkillPoints() < 1) {
+            return;
+        }
+
+        // Отправляем пакет на сервер для увеличения максимальной энергии
+        PacketByteBuf buf = PacketByteBufs.create();
+        buf.writeString("upgrade_max_energy");
+        ClientPlayNetworking.send(new Identifier("origins", "upgrade_energy"), buf);
+
+        // Показываем сообщение игроку
+        if (client != null && client.player != null) {
+            client.player.sendMessage(
+                Text.literal("Максимальная энергия увеличена на 5!")
+                    .formatted(net.minecraft.util.Formatting.GREEN), 
+                true
+            );
+        }
+    }
+
+    private void upgradeEnergyRegen() {
+        if (skillComponent == null || skillComponent.getAvailableSkillPoints() < 1) {
+            return;
+        }
+
+        // Отправляем пакет на сервер для увеличения скорости восстановления энергии
+        PacketByteBuf buf = PacketByteBufs.create();
+        buf.writeString("upgrade_energy_regen");
+        ClientPlayNetworking.send(new Identifier("origins", "upgrade_energy"), buf);
+
+        // Показываем сообщение игроку
+        if (client != null && client.player != null) {
+            client.player.sendMessage(
+                Text.literal("Скорость восстановления энергии увеличена!")
+                    .formatted(net.minecraft.util.Formatting.GREEN), 
+                true
+            );
+        }
     }
 
     private void createSkillButtons() {
@@ -112,6 +194,27 @@ public class SkillTreeScreen extends Screen {
         int actualPoints = skillComponent != null ? skillComponent.getAvailableSkillPoints() : 0;
         String pointsText = "Доступные очки: " + actualPoints;
         context.drawTextWithShadow(this.textRenderer, pointsText, backgroundX + 15, backgroundY + 30, 0xFFFF55);
+
+        // Рисуем информацию об энергии
+        if (skillComponent != null) {
+            int energyPanelX = backgroundX + BACKGROUND_WIDTH + 10;
+            int energyPanelY = backgroundY;
+            
+            // Фон для панели энергии
+            context.fill(energyPanelX, energyPanelY, energyPanelX + 140, energyPanelY + 80, 0x80000000);
+            context.drawBorder(energyPanelX, energyPanelY, 140, 80, 0xFFAAAAAA);
+            
+            // Заголовок
+            context.drawTextWithShadow(this.textRenderer, "Энергия", energyPanelX + 5, energyPanelY + 5, 0xFFFFFF);
+            
+            // Текущая/максимальная энергия
+            String energyText = skillComponent.getCurrentEnergy() + "/" + skillComponent.getMaxEnergy();
+            context.drawTextWithShadow(this.textRenderer, energyText, energyPanelX + 5, energyPanelY + 55, 0x55FFFF);
+            
+            // Скорость восстановления (предполагаем, что есть геттер)
+            String regenText = "Восст: " + skillComponent.getEnergyRegenRate() + "/сек";
+            context.drawTextWithShadow(this.textRenderer, regenText, energyPanelX + 5, energyPanelY + 65, 0xAAFFAA);
+        }
 
         // Рисуем линии между связанными навыками
         drawSkillConnections(context);

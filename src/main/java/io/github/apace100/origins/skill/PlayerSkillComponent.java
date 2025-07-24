@@ -38,8 +38,8 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
     private final Map<String, Boolean> skillStates = new HashMap<>();
     
     // Система энергии
-    private int currentEnergy = 100; // Текущая энергия
-    private int maxEnergy = 100; // Максимальная энергия
+    private int currentEnergy = 20; // Текущая энергия
+    private int maxEnergy = 20; // Максимальная энергия
     private int energyRegenRate = 1; // Восстановление энергии за тик (20 тиков = 1 секунда)
     private int energyRegenDelay = 0; // Задержка перед восстановлением энергии после использования навыка
     
@@ -419,6 +419,17 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
     public float getEnergyPercentage() {
         return (float) currentEnergy / maxEnergy;
     }
+
+    public int getEnergyRegenRate() {
+        return energyRegenRate;
+    }
+
+    public void setEnergyRegenRate(int regenRate) {
+        this.energyRegenRate = Math.max(1, regenRate);
+        if (player instanceof ServerPlayerEntity serverPlayer) {
+            KEY.sync(serverPlayer);
+        }
+    }
     
     /**
      * Проверяет, можно ли использовать навык (проверяет энергию и кулдаун)
@@ -546,7 +557,7 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
         energyRegenDelay = tag.getInt("energyRegenDelay");
         
         // Устанавливаем значения по умолчанию, если они не были сохранены
-        if (maxEnergy <= 0) maxEnergy = 100;
+        if (maxEnergy <= 0) maxEnergy = 20;
         if (currentEnergy < 0) currentEnergy = maxEnergy;
         if (energyRegenRate <= 0) energyRegenRate = 1;
         

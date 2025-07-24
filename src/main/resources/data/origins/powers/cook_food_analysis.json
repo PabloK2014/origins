@@ -1,5 +1,5 @@
 {
-  "type": "origins:empty",
-  "name": "Default Power",
-  "description": "A default power with no effects"
+  "type": "origins:multiple",
+  "name": "Анализ еды",
+  "description": "Повар может анализировать питательность еды"
 }

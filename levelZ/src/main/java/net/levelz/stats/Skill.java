@@ -18,7 +18,9 @@ public enum Skill {
     SMITHING(9, "SmithingLevel"),
     MINING(10, "MiningLevel"),
     FARMING(11, "FarmingLevel"),
-    ALCHEMY(12, "AlchemyLevel");
+    ALCHEMY(12, "AlchemyLevel"),
+    ENERGY_CAPACITY(13, "EnergyCapacityLevel"),
+    ENERGY_REGEN(14, "EnergyRegenLevel");
 
     final int id;
     final String nbt;

@@ -22,11 +22,57 @@ public class PlayerStatsManager {
     private int totalLevelExperience;
     public float levelProgress;
     private int skillPoints;
+    
+    // Energy
+    private int currentEnergy = 20;
+    private int maxEnergy = 20;
+    private float energyRegen = 1.0f;
+    
     // Skill
     private final Map<Skill, Integer> skillLevel = new HashMap<>();
 
     public PlayerStatsManager(PlayerEntity playerEntity) {
         this.playerEntity = playerEntity;
+        updateEnergyStats();
+    }
+
+    public void updateEnergyStats() {
+        int capacityLevel = getSkillLevel(Skill.ENERGY_CAPACITY);
+        int regenLevel = getSkillLevel(Skill.ENERGY_REGEN);
+        
+        this.maxEnergy = 20 + (capacityLevel * 5);
+        this.energyRegen = 1.0f + (regenLevel * 0.5f);
+        this.currentEnergy = Math.min(this.currentEnergy, this.maxEnergy);
+    }
+
+    public void tick() {
+        if (this.currentEnergy < this.maxEnergy) {
+            this.currentEnergy = Math.min(this.maxEnergy, this.currentEnergy + Math.round(this.energyRegen));
+        }
+    }
+
+    public int getCurrentEnergy() {
+        return this.currentEnergy;
+    }
+
+    public int getMaxEnergy() {
+        return this.maxEnergy;
+    }
+
+    public float getEnergyRegen() {
+        return this.energyRegen;
+    }
+
+    public void setCurrentEnergy(int energy) {
+        this.currentEnergy = Math.min(Math.max(0, energy), this.maxEnergy);
+    }
+
+    public void addEnergy(int amount) {
+        setCurrentEnergy(this.currentEnergy + amount);
+    }
+
+    public void removeEnergy(int amount) {
+        setCurrentEnergy(this.currentEnergy - amount);
     }
 
     public PlayerEntity getPlayerEntity() {
@@ -41,6 +87,7 @@ public class PlayerStatsManager {
 
     // Wood, Stone, Iron, Gold, Diamond, Netherite
 
+    @Override
     public void readNbt(NbtCompound tag) {
         if (tag.contains("SkillPoints", 99)) {
             // Level
@@ -48,22 +95,29 @@ public class PlayerStatsManager {
             this.levelProgress = tag.getFloat("LevelProgress");
             this.totalLevelExperience = tag.getInt("TotalLevelExperience");
             this.skillPoints = tag.getInt("SkillPoints");
+            // Energy
+            this.currentEnergy = tag.getInt("CurrentEnergy");
             // Skill
             for (Skill stats : Skill.values()) {
                 skillLevel.put(stats, tag.getInt(stats.getNbt()));
             }
+            updateEnergyStats();
         }
     }
 
+    @Override
     public void writeNbt(NbtCompound tag) {
         // Level
         tag.putInt("Level", this.overallLevel);
         tag.putFloat("LevelProgress", this.levelProgress);
         tag.putInt("TotalLevelExperience", this.totalLevelExperience);
         tag.putInt("SkillPoints", this.skillPoints);
+        // Energy
+        tag.putInt("CurrentEnergy", this.currentEnergy);
         // Skill
-        skillLevel.forEach((k, v) -> tag.putInt(k.getNbt(), v));
-
+        for (Skill stats : Skill.values()) {
+            tag.putInt(stats.getNbt(), skillLevel.getOrDefault(stats, 0));
+        }
     }
 
     public void setOverallLevel(int overallLevel) {
@@ -101,8 +155,13 @@ public class PlayerStatsManager {
         return levelProgress;
     }
 
+    // Override the setSkillLevel method to update energy stats when relevant skills change
+    @Override
     public void setSkillLevel(Skill skill, int level) {
         skillLevel.put(skill, level);
+        if (skill == Skill.ENERGY_CAPACITY || skill == Skill.ENERGY_REGEN) {
+            updateEnergyStats();
+        }
     }
 
     public int getSkillLevel(Skill skill) {

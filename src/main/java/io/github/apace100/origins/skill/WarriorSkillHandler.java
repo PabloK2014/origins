@@ -203,7 +203,7 @@ public class WarriorSkillHandler {
                 player.addStatusEffect(new StatusEffectInstance(
                     StatusEffects.RESISTANCE,
                     60, // 3 секунды
-                    4 // Уровень V (почти полная неуязвимость)
+                    2 // Уровень III (высокая защита, но не полная неуязвимость)
                 ));
                 
                 // Восстанавливаем немного здоровья

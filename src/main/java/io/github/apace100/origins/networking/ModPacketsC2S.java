@@ -178,6 +178,75 @@ public class ModPacketsC2S {
             });
         });
 
+        // Обработчик прокачки энергии
+        ServerPlayNetworking.registerGlobalReceiver(new Identifier("origins", "upgrade_energy"),
+            (MinecraftServer server, ServerPlayerEntity player, ServerPlayNetworkHandler handler,
+             PacketByteBuf buf, net.fabricmc.fabric.api.networking.v1.PacketSender responseSender) -> {
+                String upgradeType = buf.readString();
+
+                server.execute(() -> {
+                    PlayerSkillComponent skillComponent = PlayerSkillComponent.KEY.get(player);
+                    ProfessionComponent professionComponent = ProfessionComponent.KEY.get(player);
+                    ProfessionProgress progress = professionComponent.getCurrentProgress();
+                    
+                    if (progress != null && progress.getSkillPoints() > 0) {
+                        if ("upgrade_max_energy".equals(upgradeType)) {
+                            // Увеличиваем максимальную энергию на 5
+                            int oldMaxEnergy = skillComponent.getMaxEnergy();
+                            int energyIncrease = 5;
+                            int maxEnergyLimit = 100; // Максимальный лимит энергии
+                            
+                            if (oldMaxEnergy >= maxEnergyLimit) {
+                                player.sendMessage(
+                                    Text.translatable("message.origins.energy.max_limit_reached", maxEnergyLimit)
+                                        .formatted(net.minecraft.util.Formatting.RED), 
+                                    false
+                                );
+                                return;
+                            }
+                            
+                            int newMaxEnergy = Math.min(oldMaxEnergy + energyIncrease, maxEnergyLimit);
+                            skillComponent.setMaxEnergy(newMaxEnergy);
+                            progress.spendSkillPoint();
+                            
+                            player.sendMessage(
+                                Text.translatable("message.origins.energy.max_upgraded", oldMaxEnergy, skillComponent.getMaxEnergy(), energyIncrease)
+                                    .formatted(net.minecraft.util.Formatting.GREEN), 
+                                false
+                            );
+                        } else if ("upgrade_energy_regen".equals(upgradeType)) {
+                            // Увеличиваем скорость восстановления энергии на 1
+                            int oldRegenRate = skillComponent.getEnergyRegenRate();
+                            int regenIncrease = 1;
+                            int maxRegenLimit = 10; // Максимальный лимит восстановления
+                            
+                            if (oldRegenRate >= maxRegenLimit) {
+                                player.sendMessage(
+                                    Text.translatable("message.origins.energy.regen_limit_reached", maxRegenLimit)
+                                        .formatted(net.minecraft.util.Formatting.RED), 
+                                    false
+                                );
+                                return;
+                            }
+                            
+                            int newRegenRate = Math.min(oldRegenRate + regenIncrease, maxRegenLimit);
+                            skillComponent.setEnergyRegenRate(newRegenRate);
+                            progress.spendSkillPoint();
+                            
+                            player.sendMessage(
+                                Text.translatable("message.origins.energy.regen_upgraded", oldRegenRate, newRegenRate, regenIncrease)
+                                    .formatted(net.minecraft.util.Formatting.GREEN), 
+                                false
+                            );
+                        }
+                        
+                        // Синхронизируем изменения с клиентом
+                        PlayerSkillComponent.KEY.sync(player);
+                        ProfessionComponent.KEY.sync(player);
+                    }
+                });
+            });
+
         // Примечание: Обработчики ACTIVATE_GLOBAL_SKILL и ACTIVATE_ACTIVE_SKILL 
         // теперь находятся в SkillActivationHandler.register()
     }

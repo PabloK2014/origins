@@ -158,6 +158,17 @@ public class SkillInfoScreen extends Screen implements Tab {
                 this.client.setScreen(new SkillListScreen(this.title));
             }));
             break;
+        case "energy_capacity":
+            this.translatableText1A = Text.translatable("text.levelz.energy_capacity_info_1", 20);
+            this.translatableText2A = Text.translatable("text.levelz.energy_capacity_info_2", 5);
+            this.translatableText6A = Text.translatable("text.levelz.energy_capacity_max_lvl", ConfigInit.CONFIG.maxLevel * 5 + 20);
+            break;
+        case "energy_regen":
+            this.translatableText1A = Text.translatable("text.levelz.energy_regen_info_1", 1.0f);
+            this.translatableText2A = Text.translatable("text.levelz.energy_regen_info_2", 0.5f);
+            this.translatableText6A = Text.translatable("text.levelz.energy_regen_max_lvl", 
+                1.0f + (ConfigInit.CONFIG.maxLevel * 0.5f));
+            break;
         default:
             break;
         }

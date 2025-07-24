@@ -52,8 +52,8 @@ public class SkillScreen extends Screen implements Tab {
     public static final Identifier BACKGROUND_TEXTURE = new Identifier("levelz:textures/gui/skill_background.png");
     public static final Identifier ICON_TEXTURES = new Identifier("levelz:textures/gui/icons.png");
 
-    private final WidgetButtonPage[] skillButtons = new WidgetButtonPage[12];
-    private final WidgetButtonPage[] levelButtons = new WidgetButtonPage[12];
+    private final WidgetButtonPage[] skillButtons = new WidgetButtonPage[14]; // Changed from 12 to 14
+    private final WidgetButtonPage[] levelButtons = new WidgetButtonPage[14]; // Changed from 12 to 14
 
     private PlayerEntity playerEntity;
     private PlayerStatsManager playerStatsManager;
@@ -76,12 +76,30 @@ public class SkillScreen extends Screen implements Tab {
         this.x = (this.width - this.backgroundWidth) / 2;
         this.y = (this.height - this.backgroundHeight) / 2;
 
+        // Добавляем кнопки для всех скиллов, включая новые
         for (int i = 0; i < this.skillButtons.length; i++) {
             final int skillInt = i;
-            this.skillButtons[i] = this.addDrawableChild(new WidgetButtonPage(this.x + 15 + (i > 5 ? 90 : 0), this.y + 90 + i * 20 - (i > 5 ? 120 : 0), 16, 16, i * 16, 16, false, true,
-                    Text.translatable("spritetip.levelz." + Skill.values()[i].name().toLowerCase() + "_skill"), button -> {
-                        this.client.setScreen(new SkillInfoScreen(Skill.values()[skillInt].name().toLowerCase()));
-                    }));
+            
+            // Вычисляем позицию для кнопок
+            int row = i > 6 ? 1 : 0; // Делим на два ряда
+            int col = i > 6 ? i - 7 : i; // Номер в ряду
+            
+            // Создаем кнопку скилла
+            this.skillButtons[i] = this.addDrawableChild(new WidgetButtonPage(
+                this.x + 15 + (row * 90), // X позиция
+                this.y + 90 + col * 20, // Y позиция
+                16, // ширина
+                16, // высота
+                i * 16, // текстура X
+                16, // текстура Y
+                false,
+                true,
+                Text.translatable("spritetip.levelz." + Skill.values()[i].name().toLowerCase() + "_skill"),
+                button -> {
+                    this.client.setScreen(new SkillInfoScreen(Skill.values()[skillInt].name().toLowerCase()));
+                }));
+
+            // Добавляем подсказки
             for (int o = 1; o < 10; o++) {
                 String translatable = "spritetip.levelz." + Skill.values()[i].name().toLowerCase() + "_skill_info_" + o;
                 Text tooltip = Text.translatable(translatable);
@@ -89,16 +107,30 @@ public class SkillScreen extends Screen implements Tab {
                     this.skillButtons[i].addTooltip(tooltip);
                 }
             }
-            this.levelButtons[i] = this.addDrawableChild(new WidgetButtonPage(this.x + 83 + (i > 5 ? 90 : 0), this.y + 92 + i * 20 - (i > 5 ? 120 : 0), 13, 13, 33, 42, true, true, null, button -> {
-                int level = 1;
-                if (((WidgetButtonPage) button).wasRightButtonClicked()) {
-                    level = 5;
-                } else if (((WidgetButtonPage) button).wasMiddleButtonClicked()) {
-                    level = 10;
-                }
-                PlayerStatsClientPacket.writeC2SIncreaseLevelPacket(this.playerStatsManager, Skill.values()[skillInt], level);
-            }));
-            this.levelButtons[i].active = playerStatsManager.getSkillPoints() > 0 && this.playerStatsManager.getSkillLevel(Skill.values()[i]) < ConfigInit.CONFIG.maxLevel;
+
+            // Создаем кнопку уровня
+            this.levelButtons[i] = this.addDrawableChild(new WidgetButtonPage(
+                this.x + 83 + (row * 90), // X позиция
+                this.y + 92 + col * 20, // Y позиция
+                13, // ширина
+                13, // высота
+                33,
+                42,
+                true,
+                true,
+                null,
+                button -> {
+                    int level = 1;
+                    if (((WidgetButtonPage) button).wasRightButtonClicked()) {
+                        level = 5;
+                    } else if (((WidgetButtonPage) button).wasMiddleButtonClicked()) {
+                        level = 10;
+                    }
+                    PlayerStatsClientPacket.writeC2SIncreaseLevelPacket(this.playerStatsManager, Skill.values()[skillInt], level);
+                }));
+
+            this.levelButtons[i].active = playerStatsManager.getSkillPoints() > 0 && 
+                this.playerStatsManager.getSkillLevel(Skill.values()[i]) < ConfigInit.CONFIG.maxLevel;
         }
 
         WidgetButtonPage infoButton = this.addDrawableChild(new WidgetButtonPage(this.x + 178, this.y + 73, 11, 13, 0, 42, true, false, Text.translatable("text.levelz.more_info"), button -> {
@@ -139,9 +171,8 @@ public class SkillScreen extends Screen implements Tab {
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         this.renderBackground(context);
-        int i = (this.width - this.backgroundWidth) / 2;
-        int j = (this.height - this.backgroundHeight) / 2;
-        context.drawTexture(BACKGROUND_TEXTURE, i, j, 0, 0, this.backgroundWidth, this.backgroundHeight);
+        RenderSystem.setShaderTexture(0, BACKGROUND_TEXTURE);
+        context.drawTexture(BACKGROUND_TEXTURE, this.x, this.y, 0, 0, this.backgroundWidth, this.backgroundHeight);
 
         if (this.client.player != null) {
             int scaledWidth = this.client.getWindow().getScaledWidth();
@@ -203,11 +234,28 @@ public class SkillScreen extends Screen implements Tab {
             }
 
             // Small icons text
-            for (int o = 0; o < 12; o++) {
-                Text currentLevelText = Text.translatable("text.levelz.gui.current_level", playerStatsManager.getSkillLevel(Skill.values()[o]), ConfigInit.CONFIG.maxLevel);
-                context.drawText(this.textRenderer, currentLevelText, this.x - this.textRenderer.getWidth(currentLevelText) / 2 + 57 + (o > 5 ? 90 : 0), this.y + 95 + o * 20 - (o > 5 ? 120 : 0),
-                        0x3F3F3F, false);
+            for (int o = 0; o < this.skillButtons.length; o++) { // Changed from 12 to skillButtons.length
+                Text currentLevelText = Text.translatable("text.levelz.gui.current_level", 
+                    playerStatsManager.getSkillLevel(Skill.values()[o]), ConfigInit.CONFIG.maxLevel);
+                int row = o > 6 ? 1 : 0;
+                int col = o > 6 ? o - 7 : o;
+                context.drawText(this.textRenderer, currentLevelText, 
+                    this.x - this.textRenderer.getWidth(currentLevelText) / 2 + 57 + (row * 90),
+                    this.y + 95 + col * 20,
+                    0x3F3F3F, false);
             }
+
+            // Energy stats
+            Text energyText = Text.translatable("text.levelz.gui.energy", 
+                playerStatsManager.getCurrentEnergy(),
+                playerStatsManager.getMaxEnergy());
+            Text energyRegenText = Text.translatable("text.levelz.gui.energy_regen",
+                playerStatsManager.getEnergyRegen());
+            
+            context.drawText(this.textRenderer, energyText, 
+                this.x + 155, this.y + 52, 0x3F3F3F, false);
+            context.drawText(this.textRenderer, energyRegenText,
+                this.x + 155, this.y + 64, 0x3F3F3F, false);
         }
         // Small icons
         RenderSystem.setShaderTexture(0, ICON_TEXTURES);
@@ -215,8 +263,23 @@ public class SkillScreen extends Screen implements Tab {
         context.drawTexture(ICON_TEXTURES, this.x + 58, this.y + 34, 9, 0, 9, 9); // protectionIcon
         context.drawTexture(ICON_TEXTURES, this.x + 108, this.y + 21, 18, 0, 9, 9); // speedIcon
         context.drawTexture(ICON_TEXTURES, this.x + 108, this.y + 34, 27, 0, 9, 9); // damageIcon
-        context.drawTexture(ICON_TEXTURES, this.x + 155, this.y + 21, 36, 0, 9, 9); // foodIcon
-        context.drawTexture(ICON_TEXTURES, this.x + 155, this.y + 34, 45, 0, 9, 9); // fortuneIcon
+        
+        // Energy icons
+        context.drawTexture(ICON_TEXTURES, this.x + 158, this.y + 21, 36, 0, 9, 9); // energyCapacityIcon
+        context.drawTexture(ICON_TEXTURES, this.x + 158, this.y + 34, 45, 0, 9, 9); // energyRegenIcon
+
+        // Отображаем текст энергии
+        if (this.playerStatsManager != null) {
+            Text energyCapacityText = Text.translatable("text.levelz.gui.energy_capacity", 
+                20 + (playerStatsManager.getSkillLevel(Skill.ENERGY_CAPACITY) * 5));
+            Text energyRegenText = Text.translatable("text.levelz.gui.energy_regen",
+                1.0f + (playerStatsManager.getSkillLevel(Skill.ENERGY_REGEN) * 0.5f));
+                
+            context.drawText(this.textRenderer, energyCapacityText, 
+                this.x + 170, this.y + 22, 0x3F3F3F, false);
+            context.drawText(this.textRenderer, energyRegenText,
+                this.x + 170, this.y + 35, 0x3F3F3F, false);
+        }
 
         super.render(context, mouseX, mouseY, delta);
         DrawTabHelper.drawTab(client, context, this, x, y, mouseX, mouseY);

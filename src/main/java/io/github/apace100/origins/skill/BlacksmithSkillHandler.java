@@ -25,6 +25,17 @@ public class BlacksmithSkillHandler {
     
     private static final Random RANDOM = new Random();
     
+    // Константы для навыка "Мгновенный ремонт"
+    private static final int INSTANT_REPAIR_BASE_ENERGY_COST = 80;
+    private static final int INSTANT_REPAIR_MIN_ENERGY_COST = 40;
+    private static final int INSTANT_REPAIR_ENERGY_REDUCTION_PER_LEVEL = 10;
+    
+    private static final int INSTANT_REPAIR_BASE_COOLDOWN = 6000; // 5 минут в тиках
+    private static final int INSTANT_REPAIR_MIN_COOLDOWN = 3000;  // 2.5 минуты в тиках
+    private static final int INSTANT_REPAIR_COOLDOWN_REDUCTION_PER_LEVEL = 600; // 30 секунд в тиках
+    
+    private static final float INSTANT_REPAIR_PERCENTAGE = 0.5f; // 50% восстановления прочности
+    
     /**
      * Проверяет, является ли игрок кузнецом
      */
@@ -167,6 +178,49 @@ public class BlacksmithSkillHandler {
     public static void handleInstantRepair(ServerPlayerEntity player, int skillLevel) {
         if (skillLevel <= 0) return;
         
+        PlayerSkillComponent skillComponent = PlayerSkillComponent.KEY.get(player);
+        if (skillComponent == null) {
+            Origins.LOGGER.warn("PlayerSkillComponent не найден для игрока {}", player.getName().getString());
+            return;
+        }
+        
+        String skillId = "instant_repair";
+        // Стоимость энергии зависит от уровня навыка (уменьшается с ростом уровня)
+        int energyCost = Math.max(40, 80 - (skillLevel - 1) * 10);
+        // Кулдаун также уменьшается с уровнем навыка
+        int cooldownTicks = Math.max(3000, 6000 - (skillLevel - 1) * 600); // от 5 минут до 2.5 минут
+        
+        // Проверяем кулдаун
+        if (skillComponent.isSkillOnCooldown(skillId)) {
+            long remainingTicks = skillComponent.getSkillCooldownRemaining(skillId);
+            long remainingSeconds = remainingTicks / 20;
+            
+            player.sendMessage(
+                Text.literal("Мгновенный ремонт перезарядится через " + remainingSeconds + " сек")
+                    .formatted(Formatting.GRAY), 
+                true // action bar
+            );
+            return;
+        }
+        
+        // Проверяем энергию
+        if (!skillComponent.hasEnoughEnergy(energyCost)) {
+            player.sendMessage(
+                Text.literal("Недостаточно энергии! Требуется: " + energyCost + ", у вас: " + skillComponent.getCurrentEnergy())
+                    .formatted(Formatting.RED), 
+                true // action bar
+            );
+            return;
+        }
+        
+        // Тратим энергию
+        if (!skillComponent.consumeEnergy(energyCost)) {
+            return; // Не удалось потратить энергию
+        }
+        
+        // Устанавливаем кулдаун
+        skillComponent.setSkillCooldown(skillId, cooldownTicks);
+        
         int repairedCount = 0;
         
         // Ремонтируем все предметы в инвентаре
@@ -185,13 +239,23 @@ public class BlacksmithSkillHandler {
         
         if (repairedCount > 0) {
             player.sendMessage(
-                Text.literal("Отремонтировано предметов: " + repairedCount)
+                Text.literal("Отремонтировано предметов: " + repairedCount + " (потрачено " + energyCost + " энергии)")
                     .formatted(Formatting.GREEN), 
                 false
             );
             
-            Origins.LOGGER.info("Кузнец {} мгновенно отремонтировал {} предметов", 
-                player.getName().getString(), repairedCount);
+            Origins.LOGGER.info("Кузнец {} мгновенно отремонтировал {} предметов за {} энергии", 
+                player.getName().getString(), repairedCount, energyCost);
+        } else {
+            // Если нечего было ремонтировать, возвращаем энергию и сбрасываем кулдаун
+            skillComponent.restoreEnergy(energyCost);
+            skillComponent.setSkillCooldown(skillId, 0);
+            
+            player.sendMessage(
+                Text.literal("Нет поврежденных предметов для ремонта")
+                    .formatted(Formatting.YELLOW), 
+                true // action bar
+            );
         }
     }
     

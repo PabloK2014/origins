@@ -220,5 +220,19 @@
   
     "config.waila.plugin_levelz": "LevelZ",
     "config.waila.plugin_levelz.mineable_info": "Mineable информация",
-    "config.waila.plugin_levelz.mineable_level_info": "Mineable Level информация"
+    "config.waila.plugin_levelz.mineable_level_info": "Mineable Level информация",
+    "text.levelz.gui.energy": "Энергия: %d / %d",
+    "text.levelz.gui.energy_regen": "Восст.: %.1f/сек",
+    "text.levelz.gui.energy_capacity": "Макс. энергия: %d",
+    "text.levelz.gui.energy_regen_rate": "Восстановление: %.1f/сек",
+    "spritetip.levelz.energy_capacity_skill": "Увеличение максимальной энергии",
+    "spritetip.levelz.energy_capacity_skill_info_1": "Каждый уровень добавляет +5 к максимальной энергии",
+    "spritetip.levelz.energy_regen_skill": "Ускорение восстановления энергии",
+    "spritetip.levelz.energy_regen_skill_info_1": "Каждый уровень добавляет +0.5 к скорости восстановления энергии в секунду",
+    "text.levelz.energy_capacity_info_1": "Базовый запас энергии: %d",
+    "text.levelz.energy_capacity_info_2": "Каждый уровень навыка увеличивает максимальную энергию на %d единиц",
+    "text.levelz.energy_capacity_max_lvl": "На максимальном уровне ваш запас энергии составит %d единиц",
+    "text.levelz.energy_regen_info_1": "Базовая скорость восстановления: %.1f/сек",
+    "text.levelz.energy_regen_info_2": "Каждый уровень навыка увеличивает скорость восстановления на %.1f/сек",
+    "text.levelz.energy_regen_max_lvl": "На максимальном уровне скорость восстановления составит %.1f единиц в секунду"
   }

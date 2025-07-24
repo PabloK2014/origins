@@ -182,6 +182,15 @@ public abstract class PlayerEntityMixin extends LivingEntity implements PlayerSt
         }
     }
 
+    @Inject(method = "tick", at = @At("HEAD"))
+    private void tickEnergy(CallbackInfo ci) {
+        PlayerEntity player = (PlayerEntity)(Object)this;
+        PlayerStatsManager statsManager = ((PlayerStatsManagerAccess)player).getPlayerStatsManager();
+        if (statsManager != null) {
+            statsManager.tick();
+        }
+    }
+
     @Override
     public PlayerStatsManager getPlayerStatsManager() {
         return this.playerStatsManager;

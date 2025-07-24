@@ -343,21 +343,45 @@
   "gui.origins.player_experience": "Опыт: %d / %d",
   "gui.origins.skill_tree_title": "Дерево навыков",
   "gui.back": "Назад",
+  "skill.origins.energy_capacity.name": "Емкость энергии",
+  "skill.origins.energy_capacity.description": "Увеличивает максимальный запас энергии",
+  "skill.origins.energy_capacity.bonus": "+%d к максимальной энергии",
+  
+  "skill.origins.energy_regen.name": "Восстановление энергии",
+  "skill.origins.energy_regen.description": "Ускоряет восстановление энергии",
+  "skill.origins.energy_regen.bonus": "+%d%% к скорости восстановления",
+  
   "skill.origins.health.name": "Здоровье",
-  "skill.origins.health.desc": "Увеличивает максимальное здоровье",
-  "skill.origins.health.current": "Текущий бонус: +%d HP",
-  "skill.origins.health.next": "Следующий уровень: +%d HP",
+  "skill.origins.health.description": "Увеличивает максимальное здоровье",
+  "skill.origins.health.bonus": "+%d к здоровью",
+  
   "skill.origins.strength.name": "Сила",
-  "skill.origins.strength.desc": "Увеличивает наносимый урон",
-  "skill.origins.strength.current": "Текущий бонус: +%.1f урона",
-  "skill.origins.strength.next": "Следующий уровень: +%.1f урона",
+  "skill.origins.strength.description": "Увеличивает наносимый урон",
+  "skill.origins.strength.bonus": "+%s к урону",
+  
   "skill.origins.agility.name": "Ловкость",
-  "skill.origins.agility.desc": "Увеличивает скорость передвижения",
-  "skill.origins.agility.current": "Текущий бонус: +%d%% скорости",
-  "skill.origins.agility.next": "Следующий уровень: +%d%% скорости",
+  "skill.origins.agility.description": "Увеличивает скорость передвижения",
+  "skill.origins.agility.bonus": "+%s к скорости",
+  
   "skill.origins.defense.name": "Защита",
-  "skill.origins.defense.desc": "Увеличивает броню",
-  "skill.origins.defense.current": "Текущий бонус: +%d брони",
-  "skill.origins.defense.next": "Следующий уровень: +%d брони",
-  "skill.origins.max_level": "§6Максимальный уровень достигнут"
+  "skill.origins.defense.description": "Увеличивает броню",
+  "skill.origins.defense.bonus": "+%s к броне",
+  
+  "skill.origins.level": "Уровень: %d/%d",
+  "gui.origins.skill_tree": "Дерево навыков",
+  "screen.origins.levelz_skill_screen": "Навыки",
+  "gui.origins.level": "Уровень: %d",
+  "gui.origins.skill_points": "Очки навыков: %d",
+  "gui.origins.experience": "Опыт: %d/%d",
+  "gui.origins.profession.warrior": "Воин",
+  "gui.origins.profession.cook": "Повар",
+  "gui.origins.profession.miner": "Шахтер",
+  "gui.origins.profession.courier": "Курьер",
+  "gui.origins.profession.brewer": "Пивовар",
+  "gui.origins.profession.blacksmith": "Кузнец",
+  
+  "message.origins.energy.max_upgraded": "Максимальная энергия увеличена с %d до %d (+%d)",
+  "message.origins.energy.max_limit_reached": "Достигнут максимальный лимит энергии (%d)",
+  "message.origins.energy.regen_upgraded": "Скорость восстановления энергии увеличена с %d до %d/сек (+%d)",
+  "message.origins.energy.regen_limit_reached": "Достигнут максимальный лимит восстановления энергии (%d/сек)"
 }

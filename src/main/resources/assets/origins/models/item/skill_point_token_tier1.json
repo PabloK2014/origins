@@ -1,0 +1,6 @@
+{
+    "parent": "item/generated",
+    "textures": {
+        "layer0": "origins:item/skill_point_token_tier1"
+    }
+} 
