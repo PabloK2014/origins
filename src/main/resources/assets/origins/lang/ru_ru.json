@@ -1,257 +1,174 @@
 {
   "origin.origins.human.name": "Человек",
   "origin.origins.human.description": "Обычный Человек. Ваша обычная игра в Майнкрафт ждет вас.",
-
   "origin.origins.brewer.name": "Пивовар",
   "origin.origins.brewer.description": "Мастер зелий, который варит улучшенные эликсиры, но получает меньше добычи с мобов.",
-
   "origin.origins.cook.name": "Повар",
   "origin.origins.cook.description": "Опытный в кухонных опасностях, вы получаете меньше урона и готовите более сытную еду. Нажмите основную клавишу (по умолчанию G), чтобы удобрить растения в радиусе 10 блоков за 1 сердце.",
-
   "origin.origins.warrior.name": "Воин",
   "origin.origins.warrior.description": "Свирепый боец, который наносит двойной урон, но потребляет еду в два раза быстрее.",
-
   "origin.origins.miner.name": "Шахтер",
   "origin.origins.miner.description": "Приспособленный к подземной работе с ночным зрением, но уязвимый к взрывам.",
-
   "origin.origins.courier.name": "Курьер",
   "origin.origins.courier.description": "Быстрый и ловкий, но хрупкий. Вы двигаетесь быстро, но имеете пониженное здоровье.",
-
   "origin.origins.blacksmith.name": "Кузнец",
   "origin.origins.blacksmith.description": "Мастер-ремесленник, который медленно двигается, но создает предметы различного качества.",
-
   "origin.origins.merling.name": "Мерлин",
   "origin.origins.merling.description": "Эти естественные обитатели океана не привыкли слишком долго находиться на суше.",
-
   "origin.origins.arachnid.name": "Арахнид",
   "origin.origins.arachnid.description": "Их способности взбираться и ловить своих врагов в паутину делают Арахнидов идеальными охотниками.",
-
   "origin.origins.blazeborn.name": "Огнерожденный",
   "origin.origins.blazeborn.description": "Поздние потомки пламени, Огнерожденные, естественно, невосприимчивы к опасностям Нижнего Мира.",
-
   "origin.origins.avian.name": "Авианы",
   "origin.origins.avian.description": "Авианы уже давно потеряли способность летать. Теперь эти мирные существа могут быть замечены скользящими с одного места на другое.",
-
   "origin.origins.phantom.name": "Фантом",
   "origin.origins.phantom.description": "Будучи наполовину людьми и наполовину фантомами, эти существа могут переключаться между фантомом и нормальной формой.",
-
   "origin.origins.feline.name": "Коточеловек",
   "origin.origins.feline.description": "С их кошачьей внешностью, Котолюди отпугивают ползучих прочь. С кошачьей ловкостью они всегда благополучно приземляются на ноги.",
-
   "origin.origins.elytrian.name": "Элитрианец",
   "origin.origins.elytrian.description": "Часто летая по ветру, Элитрианцы чувствуют себя неуютно, когда им не хватает места над головой.",
-
   "origin.origins.enderian.name": "Эндерианец",
   "origin.origins.enderian.description": "Рожденные как сыновья и дочери Дракона Края, Эндерианцы способны к телепортации, но уязвимы для воды.",
-
   "origin.origins.shulk.name": "Шалк",
   "origin.origins.shulk.description": "Из-за родства с шалкерами, Шалки снабжены защитной оболочкой, похожий на панцирь.",
-
   "power.origins.water_breathing.name": "Жабры",
   "power.origins.water_breathing.description": "Ты можешь дышать под водой, но не на суше.",
-
   "power.origins.aqua_affinity.name": "Родство с Водой",
   "power.origins.aqua_affinity.description": "Ты можешь ломать блоки под водой так же быстро, как и на земле.",
-
   "power.origins.water_vision.name": "Мокрые Глаза",
   "power.origins.water_vision.description": "Твое зрение под водой идеально.",
-
   "power.origins.swim_speed.name": "Ласты",
   "power.origins.swim_speed.description": "Твоя подводная скорость увеличена.",
-
   "power.origins.like_water.name": "Любовь к Воде",
   "power.origins.like_water.description": "Находясь под водой, ты не опускаешься глубже, если не хочешь этого.",
-
   "power.origins.fragile.name": "Хрупкость",
   "power.origins.fragile.description": "У тебя на 3 сердца меньше здоровья, чем у людей.",
-
   "power.origins.webbing.name": "Плетение",
   "power.origins.webbing.description": "Когда ты поражаешь врага в ближнем бою, он застревает в паутине.",
-
   "power.origins.climbing.name": "Карабканье",
   "power.origins.climbing.description": "Ты можешь взобраться на любую стену, а не только по лестницам.",
-
   "power.origins.carnivore.name": "Хищничество",
   "power.origins.carnivore.description": "Твой рацион ограничен мясом, ты не можешь есть овощи.",
-
   "power.origins.fire_immunity.name": "Иммунитет к Огню",
   "power.origins.fire_immunity.description": "Ты невосприимчив ко всем видам повреждений от огня.",
-
   "power.origins.nether_spawn.name": "Обитатель Нижнего Мира",
   "power.origins.nether_spawn.description": "Твоя естественная точка появления будет в нижнем мире.",
-
   "power.origins.burning_wrath.name": "Пылающий Гнев",
   "power.origins.burning_wrath.description": "Когда ты в огне, ты наносишь дополнительный урон своими атаками.",
-
   "power.origins.hotblooded.name": "Горячая Кровь",
   "power.origins.hotblooded.description": "Из-за твоего горячего тела, яды сгорают, что делает тебя невосприимчивыми к воздействию яда и голода.",
-
   "power.origins.water_vulnerability.name": "Гидрофобия",
   "power.origins.water_vulnerability.description": "Ты получаешь повреждения с течением времени, находясь в контакте с водой.",
-
   "power.origins.tailwind.name": "Попутный Ветер",
   "power.origins.tailwind.description": "Ты немного быстрее идешь пешком, чем другие.",
-
   "power.origins.slow_falling.name": "Легкий Вес",
   "power.origins.slow_falling.description": "Ты падаешь на землю так же мягко, как перышко, если только не крадешься.",
-
   "power.origins.vegetarian.name": "Вегетарианец",
   "power.origins.vegetarian.description": "Ты не можешь есть мясо.",
-  
   "power.origins.fresh_air.name": "Свежий Воздух",
   "power.origins.fresh_air.description": "Во время сна твоя кровать должна находиться на высоте не менее 86 блоков, чтобы ты мог дышать свежим воздухом.",
-
   "power.origins.phasing.name": "Этапность",
   "power.origins.phasing.description": "Будучи фантомизированным, ты можешь пройти сквозь твердый материал, за исключением обсидиана.",
-
   "power.origins.invisibility.name": "Невидимость",
   "power.origins.invisibility.description": "Во время фантомизации, ты невидим.",
-
   "power.origins.hunger_over_time.name": "Быстрый Метаболизм",
   "power.origins.hunger_over_time.description": "Во время фантомизации ты быстро голодаешь.",
-
   "power.origins.burn_in_daylight.name": "Фотоаллергия",
   "power.origins.burn_in_daylight.description": "Ты начинаешь гореть при дневном свете, если ты не невидим.",
-
   "power.origins.fall_immunity.name": "Акробатика",
   "power.origins.fall_immunity.description": "Ты никогда не получаешь урон от падения, независимо от того, с какой высоты ты падаешь.",
-
   "power.origins.sprint_jump.name": "Сильные Лодыжки",
   "power.origins.sprint_jump.description": "Ты можешь прыгать выше, подпрыгивая во время спринта.",
-
   "power.origins.nine_lives.name": "У Кошки Девять Жизней",
   "power.origins.nine_lives.description": "У тебя на 1 сердце меньше чем у людей.",
-
   "power.origins.cat_vision.name": "Ноктурнал",
   "power.origins.cat_vision.description": "Ты можешь немного видеть в темноте, когда не находишься в воде.",
-
   "power.origins.weak_arms.name": "Слабые Руки",
   "power.origins.weak_arms.description": "Когда ты не находишься под действием зелья силы, ты можешь добывать природный камень только в том случае, если рядом с ним есть не более 2 других природных каменных блоков.",
-
   "power.origins.scare_creepers.name": "Кошачья Внешность",
   "power.origins.scare_creepers.description": "Криперы боятся тебя и взорвутся только в том случае, если ты нападешь на них первыми.",
-
   "power.origins.launch_into_air.name": "Дар Крыльев",
   "power.origins.launch_into_air.description": "Каждые 30 секунд ты можешь подниматься на расстояние до 20 блоков в воздух.",
-
   "power.origins.elytra.name": "Крылатый",
   "power.origins.elytra.description": "У тебя есть крылья Элитр без необходимости их надевать.",
-
   "power.origins.light_armor.name": "Нужда в Мобильности",
   "power.origins.light_armor.description": "Ты не можешь носить тяжелую броню (броня с более высокими значениями защиты, чем кольчуга).",
-
   "power.origins.claustrophobia.name": "Клаустрафобия",
   "power.origins.claustrophobia.description": "Пребывание где-то с низким потолком слишком долго - ослабит тебя и сделает медленнее.",
-
   "power.origins.more_kinetic_damage.name": "Хрустальные Кости",
   "power.origins.more_kinetic_damage.description": "Ты получаешь больше урона от падения и/или полета в блоки.",
-
   "power.origins.aerial_combatant.name": "Воздушный Боец",
   "power.origins.aerial_combatant.description": "Ты наносишь значительно больше урона, находясь в полете на Элитрах.",
-
   "power.origins.throw_ender_pearl.name": "Телепортация",
   "power.origins.throw_ender_pearl.description": "Всякий раз, когда ты хочешь, ты можешь бросить жемчужину Эндера, которая не наносит никакого урона, позволяя тебе телепортироваться.",
-
   "power.origins.pumpkin_hate.name": "Боязнь Тыкв",
   "power.origins.pumpkin_hate.description": "Ты боишься тыкв. По понятной причине.",
-
   "power.origins.extra_reach.name": "Длинное Тело",
   "power.origins.extra_reach.description": "Вы можете дотянуться до далеко стоящих блоков и существ.",
-
   "power.origins.shulker_inventory.name": "Хранитель",
   "power.origins.shulker_inventory.description": "У вас есть доступ к дополнительным 9 ячейкам инвентаря, в которых хранятся предметы после смерти.",
-
   "power.origins.natural_armor.name": "Прочная кожа",
   "power.origins.natural_armor.description": "Даже без брони, ваша кожа обеспечивает естественную защиту.",
-
   "power.origins.more_exhaustion.name": "Большой аппетит",
   "power.origins.more_exhaustion.description": "Вы истощаетесь намного быстрее, чем другие, поэтому вам нужно есть больше.",
-
   "power.origins.no_shield.name": "Громоздкий",
   "power.origins.no_shield.description": "Из-за сложения рук, что присуще каждому Шалку, вы не можете держать щит вертикально.",
-
   "power.origins.strong_arms.name": "Сильные руки",
   "power.origins.strong_arms.description": "Вы достаточно сильны, чтобы разбивать природные камни без кирки.",
-
   "power.origins.translucent.name": "Полупрозрачный",
   "power.origins.translucent.description": "Ваша кожа полупрозрачная.",
-  
   "power.origins.end_spawn.name": "Житель Края",
   "power.origins.end_spawn.description": "Твои приключения начинаются в Крае.",
-
   "power.origins.master_of_webs.name": "Мастер паутин",
   "power.origins.master_of_webs.description": "Ты отлично ориентируешься в паутине и умеешь по ней лазить. Когда ты бьёшь врага вблизи, он на время застревает в паутине. Ты можешь почувствовать, когда не членистоногие существа застревают в паутине. Ты можешь создавать паутину из нитки.",
-  
   "power.origins.lay_eggs.name": "Яйценосный",
   "power.origins.lay_eggs.description": "Каждый раз, когда ты просыпаешся утром, ты откладываешь яйцо.",
-
   "power.origins.courier_reduced_health.name": "Пониженное Здоровье",
   "power.origins.courier_reduced_health.description": "У вас на 2 сердца меньше, чем у обычных людей.",
-
   "power.origins.courier_speed_boost.name": "Быстрое Передвижение",
   "power.origins.courier_speed_boost.description": "Вы двигаетесь на 20% быстрее обычных людей.",
-
   "power.origins.blacksmith_reduced_speed.name": "Тяжелые Шаги",
   "power.origins.blacksmith_reduced_speed.description": "Вы двигаетесь на 10% медленнее из-за тяжелых инструментов и материалов.",
-
   "power.origins.warrior_increased_hunger.name": "Повышенный Аппетит",
   "power.origins.warrior_increased_hunger.description": "Ваши интенсивные тренировки заставляют вас потреблять еду в два раза быстрее.",
-
   "power.origins.cook_reduced_damage.name": "Крепкая Кожа",
   "power.origins.cook_reduced_damage.description": "Ваш опыт работы с горячими плитами и острыми ножами делает вас более устойчивым к урону.",
-
   "power.origins.warrior_double_damage.name": "Боевая Подготовка",
   "power.origins.warrior_double_damage.description": "Ваша боевая подготовка позволяет наносить двойной урон в бою.",
-
   "power.origins.miner_explosion_vulnerability.name": "Уязвимость к Взрывам",
   "power.origins.miner_explosion_vulnerability.description": "Ваша работа с нестабильными материалами делает вас более уязвимым к взрывам.",
-
   "power.origins.miner_night_vision.name": "Зрение Шахтера",
   "power.origins.miner_night_vision.description": "Нажмите основную клавишу (по умолчанию G), чтобы переключить ночное зрение для работы в темных шахтах.",
-
   "power.origins.brewer_enhanced_potions.name": "Улучшенное Зельеварение",
   "power.origins.brewer_enhanced_potions.description": "Ваши зелья действуют в два раза дольше обычного.",
-
   "power.origins.brewer_reduced_drops.name": "Сниженная Добыча с Мобов",
   "power.origins.brewer_reduced_drops.description": "Мобы выбрасывают предметы на 50% реже при убийстве вами.",
-
   "power.origins.cook_enhanced_food.name": "Мастер-Повар",
   "power.origins.cook_enhanced_food.description": "Еда, которую вы готовите, обеспечивает на 50% больше питания и насыщения.",
-
   "power.origins.cook_fertilize.name": "Зеленый Палец",
   "power.origins.cook_fertilize.description": "Нажмите основную клавишу (по умолчанию G), чтобы удобрить все растения в радиусе 10 блоков, потратив 1 сердце здоровья.",
-
   "power.origins.blacksmith_instant_repair.name": "Мгновенный Ремонт",
   "power.origins.blacksmith_instant_repair.description": "Нажмите вторичную клавишу, чтобы мгновенно отремонтировать все предметы в инвентаре на 50% прочности (перезарядка 5 минут).",
-
   "power.origins.blacksmith_hot_strike.name": "Раскалённый Удар",
   "power.origins.blacksmith_hot_strike.description": "Нажмите основную клавишу (по умолчанию G), чтобы подготовить раскалённый удар. Следующая атака поджигает цель на 5 секунд (перезарядка 30 секунд).",
-
   "category.origins.skills": "Навыки Origins",
   "key.origins.activate_active_skill": "Активировать навык (K)",
   "key.origins.open_skill_selection": "Выбор навыка (L)",
   "key.origins.activate_global_skill": "Глобальный навык (G)",
-
   "power.origins.blacksmith_quality_crafting.name": "Качественный Крафт",
   "power.origins.blacksmith_quality_crafting.description": "Ваши созданные инструменты и броня имеют различное качество: Плохое (10%), Обычное (50%), Хорошее (25%) или Легендарное (5%).",
-
   "category.origins": "Origins",
   "key.origins.primary_active": "Активная сила (Главная)",
   "key.origins.secondary_active": "Активная сила (Второстепенная)",
   "key.origins.view_origin": "Просмотр происхождения",
   "key.origins.view_progression": "Просмотр прогрессии",
-
   "text.autoconfig.origins.title": "Настройка Origins",
   "text.autoconfig.origins.option.xOffset": "Позиция полосы восстановления по оси X",
   "text.autoconfig.origins.option.yOffset": "Позиция полосы восстановления по оси Y",
   "text.autoconfig.origins.option.phantomizedOverlayStrength": "Степень наложения фантомизации",
-
   "item.origins.orb_of_origin": "Сфера происхождения",
-
   "enchantment.origins.water_protection": "Защита от воды",
-
   "container.shulker_inventory_power": "Шалкеровый инвентарь",
-
   "origins.gui.select": "Выбрать",
   "origins.gui.close": "Закрыть",
   "origins.gui.choose": "Выберите",
@@ -265,25 +182,20 @@
   "origins.gui.impact.medium": "Среднее",
   "origins.gui.impact.high": "Высокое",
   "origins.gui.version_mismatch": "На это сервере установлена другая версия Origins (v%1$s), которая несовместима с той, что у вас (v%2$s).",
-  
   "origin.origins.random.name": "Случайный",
   "origin.origins.random.description": "Вам будет назначен один из следующих:",
-
   "layer.origins.origin.name": "Происхождение",
   "origin.origins.empty.name": "Отсутствует",
   "origin.origins.empty.description": "У вас нет происхождения.",
-
   "death.attack.no_water_for_gills": "%1$s не успел погрузиться в воду.",
   "death.attack.no_water_for_gills.player": "%1$s не успел погрузиться в воду из-за боя с %2$s.",
   "death.attack.hurt_by_water": "%1$s принимал ванну слишком долго.",
   "death.attack.hurt_by_water.player": "%1$s был утоплен под воду %2$s.",
   "death.attack.genericDamageOverTime": "%1$s умер от временного эффекта урона.",
   "death.attack.genericDamageOverTime.player": "%1$s умер от временного эффекта урона во время боя с %2$s.",
-
   "commands.origin.origin_not_found": "Неизвестное происхождение: %s",
   "commands.origin.set.success.single": "Выбрать происхождение %s в слое %s к %s.",
   "commands.origin.set.success.multiple": "Выбрать происхождение %s целям в слое %s к %s.",
-  
   "origins.avian_sleep_fail": "Тебе нужен свежий воздух для сна.",
   "power.origins.phantomize.name": "Призрачная форма",
   "power.origins.phantomize.description": "Вы можете переключаться между человеческой и формой фантома по желанию, но только пока вы достаточно сыты.",
@@ -308,7 +220,6 @@
   "commands.origin.random.not_allowed": "The layer %1$s does not allow for random origins!",
   "commands.origin.random.success.multiple": "Randomly assigned an origin to %1$s targets in layer %2$s",
   "commands.origin.random.success.single": "Randomly assigned the origin %2$s to %1$s in layer %3$s",
-
   "screen.origins.skill_tree": "Дерево навыков",
   "screen.origins.progression": "Прогрессия происхождения",
   "gui.origins.skill_tree": "Дерево навыков",
@@ -337,51 +248,107 @@
   "gui.origins.profession.human": "👤 Человек",
   "screen.origins.levelz_skill_tree": "Навыки (LevelZ)",
   "button.origins.skills": "Навыки",
-  "screen.origins.levelz_skill_screen": "Навыки",
   "gui.origins.player_level": "Уровень: %d",
-  "gui.origins.skill_points": "Очки навыков: %d",
   "gui.origins.player_experience": "Опыт: %d / %d",
   "gui.origins.skill_tree_title": "Дерево навыков",
   "gui.back": "Назад",
   "skill.origins.energy_capacity.name": "Емкость энергии",
   "skill.origins.energy_capacity.description": "Увеличивает максимальный запас энергии",
   "skill.origins.energy_capacity.bonus": "+%d к максимальной энергии",
-  
   "skill.origins.energy_regen.name": "Восстановление энергии",
   "skill.origins.energy_regen.description": "Ускоряет восстановление энергии",
   "skill.origins.energy_regen.bonus": "+%d%% к скорости восстановления",
-  
   "skill.origins.health.name": "Здоровье",
   "skill.origins.health.description": "Увеличивает максимальное здоровье",
   "skill.origins.health.bonus": "+%d к здоровью",
-  
   "skill.origins.strength.name": "Сила",
   "skill.origins.strength.description": "Увеличивает наносимый урон",
   "skill.origins.strength.bonus": "+%s к урону",
-  
   "skill.origins.agility.name": "Ловкость",
   "skill.origins.agility.description": "Увеличивает скорость передвижения",
   "skill.origins.agility.bonus": "+%s к скорости",
-  
   "skill.origins.defense.name": "Защита",
   "skill.origins.defense.description": "Увеличивает броню",
   "skill.origins.defense.bonus": "+%s к броне",
-  
   "skill.origins.level": "Уровень: %d/%d",
-  "gui.origins.skill_tree": "Дерево навыков",
-  "screen.origins.levelz_skill_screen": "Навыки",
-  "gui.origins.level": "Уровень: %d",
-  "gui.origins.skill_points": "Очки навыков: %d",
-  "gui.origins.experience": "Опыт: %d/%d",
-  "gui.origins.profession.warrior": "Воин",
-  "gui.origins.profession.cook": "Повар",
-  "gui.origins.profession.miner": "Шахтер",
-  "gui.origins.profession.courier": "Курьер",
-  "gui.origins.profession.brewer": "Пивовар",
-  "gui.origins.profession.blacksmith": "Кузнец",
-  
   "message.origins.energy.max_upgraded": "Максимальная энергия увеличена с %d до %d (+%d)",
   "message.origins.energy.max_limit_reached": "Достигнут максимальный лимит энергии (%d)",
   "message.origins.energy.regen_upgraded": "Скорость восстановления энергии увеличена с %d до %d/сек (+%d)",
-  "message.origins.energy.regen_limit_reached": "Достигнут максимальный лимит восстановления энергии (%d/сек)"
+  "message.origins.energy.regen_limit_reached": "Достигнут максимальный лимит восстановления энергии (%d/сек)",
+  "block.origins.bounty_board": "Доска объявлений",
+  "item.origins.bounty": "Заказ",
+  "item.origins.decree": "Распоряжение",
+  "item.origins.skill_point_token": "Жетон очков навыков",
+  "item.origins.skill_point_token_tier1": "Жетон очков навыков (Уровень 1)",
+  "item.origins.skill_point_token_tier2": "Жетон очков навыков (Уровень 2)",
+  "item.origins.skill_point_token_tier3": "Жетон очков навыков (Уровень 3)",
+  "quest.origins.bounty": "Заказ",
+  "quest.origins.decree": "Распоряжение",
+  "quest.origins.decree.invalid": "Некорректное распоряжение",
+  "quest.origins.decree.notset": "Принесите к доске объявлений!",
+  "quest.origins.bounty.expired": "Срок этого заказа истек.",
+  "quest.origins.bounty.turnin": "Получите награду, щелкнув ПКМ на доске объявлений.",
+  "quest.origins.tooltip.time": "Время до завершения",
+  "quest.origins.tooltip.required": "Требуется",
+  "quest.origins.tooltip.rewards": "Вознаграждение",
+  "quest.origins.tooltip.expired": "Истекший",
+  "quest.origins.tooltip.requirements": "Требования не выполнены",
+  "quest.origins.rarity.common": "Простой",
+  "quest.origins.rarity.uncommon": "Необычный",
+  "quest.origins.rarity.rare": "Редкий",
+  "quest.origins.rarity.epic": "Эпический",
+  "quest.origins.objective.type.collect": "Собрать",
+  "quest.origins.objective.type.kill": "Убить",
+  "quest.origins.objective.type.craft": "Создать",
+  "quest.origins.objective.collect": "Собрать: %3$s (%1$d/%2$d)",
+  "quest.origins.objective.kill": "Убить: %3$s (%1$d/%2$d)",
+  "quest.origins.objective.craft": "Создать: %3$s (%1$d/%2$d)",
+  "quest.origins.reward.skill_point_token": "%1$s + %2$d опыта",
+  "quest.origins.reward.experience": "%d опыта",
+  "quest.origins.reward.item": "Предмет",
+  "quest.origins.reward.received": "Получена награда: %1$s",
+  "quest.origins.warrior_bones_1.title": "Сбор костей",
+  "quest.origins.warrior_bones_1.description": "Соберите кости для тренировки боевых навыков",
+  "quest.origins.warrior_zombie_kill_1.title": "Истребление зомби",
+  "quest.origins.warrior_zombie_kill_1.description": "Убейте зомби для получения боевого опыта",
+  "quest.origins.warrior_skeleton_kill_2.title": "Охота на скелетов",
+  "quest.origins.warrior_skeleton_kill_2.description": "Уничтожьте скелетов для улучшения навыков стрельбы",
+  "quest.origins.warrior_gunpowder_2.title": "Сбор пороха",
+  "quest.origins.warrior_gunpowder_2.description": "Соберите порох для создания взрывчатки",
+  "quest.origins.warrior_wither_skeleton_3.title": "Испытание Незера",
+  "quest.origins.warrior_wither_skeleton_3.description": "Победите скелетов-иссушителей в Незере",
+  "quest.origins.warrior_diamond_sword_3.title": "Мастер оружейник",
+  "quest.origins.warrior_diamond_sword_3.description": "Создайте алмазный меч для истинного воина",
+  "quest.origins.miner_coal_1.title": "Сбор угля",
+  "quest.origins.miner_coal_1.description": "Соберите уголь для топлива в шахтах",
+  "quest.origins.miner_iron_2.title": "Железная руда",
+  "quest.origins.miner_iron_2.description": "Добудьте железные слитки для инструментов",
+  "quest.origins.miner_diamond_3.title": "Алмазная лихорадка",
+  "quest.origins.miner_diamond_3.description": "Найдите драгоценные алмазы в глубинах",
+  "quest.origins.blacksmith_iron_sword_1.title": "Первый клинок",
+  "quest.origins.blacksmith_iron_sword_1.description": "Выкуйте железный меч для начинающего воина",
+  "quest.origins.blacksmith_diamond_pickaxe_2.title": "Алмазный инструмент",
+  "quest.origins.blacksmith_diamond_pickaxe_2.description": "Создайте алмазную кирку высшего качества",
+  "quest.origins.blacksmith_netherite_ingot_3.title": "Незеритовое мастерство",
+  "quest.origins.blacksmith_netherite_ingot_3.description": "Получите редчайший незеритовый слиток",
+  "quest.origins.courier_leather_boots_1.title": "Быстрые ноги",
+  "quest.origins.courier_leather_boots_1.description": "Создайте кожаные ботинки для путешествий",
+  "quest.origins.courier_map_2.title": "Картограф",
+  "quest.origins.courier_map_2.description": "Создайте карты для навигации",
+  "quest.origins.courier_compass_3.title": "Навигатор",
+  "quest.origins.courier_compass_3.description": "Создайте компасы для точной навигации",
+  "quest.origins.brewer_nether_wart_1.title": "Адский нарост",
+  "quest.origins.brewer_nether_wart_1.description": "Соберите адский нарост для зельеварения",
+  "quest.origins.brewer_blaze_powder_2.title": "Порошок блейза",
+  "quest.origins.brewer_blaze_powder_2.description": "Добудьте порошок блейза для мощных зелий",
+  "quest.origins.brewer_ghast_tear_3.title": "Слезы гаста",
+  "quest.origins.brewer_ghast_tear_3.description": "Получите слезы гаста для регенерирующих зелий",
+  "gui.origins.bounty_board.title": "Доска объявлений",
+  "gui.origins.bounty_board.take": "Взять заказ",
+  "gui.origins.bounty_board.complete": "Завершить заказ",
+  "gui.origins.bounty_board.no_quests": "Нет доступных заказов",
+  "gui.origins.bounty_board.quest_completed": "Заказ выполнен!",
+  "gui.origins.bounty_board.reward_received": "Получена награда: %s очков навыков",
+  "advancement.origins.first_quest.title": "Первый заказ",
+  "advancement.origins.first_quest.description": "Выполните свой первый заказ с доски объявлений"
 }

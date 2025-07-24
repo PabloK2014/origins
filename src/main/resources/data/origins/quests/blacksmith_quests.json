@@ -1,0 +1,58 @@
+{
+  "quests": [
+    {
+      "id": "blacksmith_iron_sword_1",
+      "profession": "blacksmith",
+      "level": 1,
+      "title": "quest.origins.blacksmith_iron_sword_1.title",
+      "description": "quest.origins.blacksmith_iron_sword_1.description",
+      "objective": {
+        "type": "craft",
+        "item": "minecraft:iron_sword",
+        "amount": 1
+      },
+      "timeLimit": 1200,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "blacksmith_diamond_pickaxe_2",
+      "profession": "blacksmith",
+      "level": 2,
+      "title": "quest.origins.blacksmith_diamond_pickaxe_2.title",
+      "description": "quest.origins.blacksmith_diamond_pickaxe_2.description",
+      "objective": {
+        "type": "craft",
+        "item": "minecraft:diamond_pickaxe",
+        "amount": 1
+      },
+      "timeLimit": 1800,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "blacksmith_netherite_ingot_3",
+      "profession": "blacksmith",
+      "level": 3,
+      "title": "quest.origins.blacksmith_netherite_ingot_3.title",
+      "description": "quest.origins.blacksmith_netherite_ingot_3.description",
+      "objective": {
+        "type": "collect",
+        "item": "minecraft:netherite_ingot",
+        "amount": 1
+      },
+      "timeLimit": 2400,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "display": {
+    "icon": {
+      "item": "origins:bounty_board"
+    },
+    "title": {
+      "translate": "advancement.origins.first_quest.title"
+    },
+    "description": {
+      "translate": "advancement.origins.first_quest.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "minecraft:story/root",
+  "criteria": {
+    "first_quest": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

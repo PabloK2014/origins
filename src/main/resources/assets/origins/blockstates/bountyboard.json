@@ -1,0 +1,5 @@
+{
+  "variants": {
+    "": { "model": "origins:block/bounty_board" }
+  }
+}

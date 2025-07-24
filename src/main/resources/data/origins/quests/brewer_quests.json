@@ -1,0 +1,58 @@
+{
+  "quests": [
+    {
+      "id": "brewer_nether_wart_1",
+      "profession": "brewer",
+      "level": 1,
+      "title": "quest.origins.brewer_nether_wart_1.title",
+      "description": "quest.origins.brewer_nether_wart_1.description",
+      "objective": {
+        "type": "collect",
+        "item": "minecraft:nether_wart",
+        "amount": 10
+      },
+      "timeLimit": 1200,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "brewer_blaze_powder_2",
+      "profession": "brewer",
+      "level": 2,
+      "title": "quest.origins.brewer_blaze_powder_2.title",
+      "description": "quest.origins.brewer_blaze_powder_2.description",
+      "objective": {
+        "type": "collect",
+        "item": "minecraft:blaze_powder",
+        "amount": 5
+      },
+      "timeLimit": 1800,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "brewer_ghast_tear_3",
+      "profession": "brewer",
+      "level": 3,
+      "title": "quest.origins.brewer_ghast_tear_3.title",
+      "description": "quest.origins.brewer_ghast_tear_3.description",
+      "objective": {
+        "type": "collect",
+        "item": "minecraft:ghast_tear",
+        "amount": 3
+      },
+      "timeLimit": 2400,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    }
+  ]
+}

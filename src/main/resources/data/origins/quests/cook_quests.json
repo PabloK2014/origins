@@ -1,0 +1,112 @@
+{
+  "quests": [
+    {
+      "id": "cook_wheat_1",
+      "playerClass": "origins:cook",
+      "level": 1,
+      "title": "Сбор пшеницы",
+      "description": "Соберите пшеницу для приготовления хлеба",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:wheat",
+        "amount": 20
+      },
+      "timeLimit": 25,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "cook_bread_1",
+      "playerClass": "origins:cook",
+      "level": 1,
+      "title": "Выпечка хлеба",
+      "description": "Испеките хлеб для голодных жителей",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:bread",
+        "amount": 10
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "cook_cake_2",
+      "playerClass": "origins:cook",
+      "level": 2,
+      "title": "Праздничный торт",
+      "description": "Приготовьте торт для особого случая",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:cake",
+        "amount": 3
+      },
+      "timeLimit": 40,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "cook_milk_2",
+      "playerClass": "origins:cook",
+      "level": 2,
+      "title": "Молочная ферма",
+      "description": "Соберите молоко для приготовления блюд",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:milk_bucket",
+        "amount": 5
+      },
+      "timeLimit": 30,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "cook_golden_apple_3",
+      "playerClass": "origins:cook",
+      "level": 3,
+      "title": "Золотое яблоко",
+      "description": "Создайте золотое яблоко - пищу богов",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:golden_apple",
+        "amount": 2
+      },
+      "timeLimit": 50,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    },
+    {
+      "id": "cook_mushroom_stew_3",
+      "playerClass": "origins:cook",
+      "level": 3,
+      "title": "Грибной суп мастера",
+      "description": "Приготовьте грибной суп высшего качества",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:mushroom_stew",
+        "amount": 8
+      },
+      "timeLimit": 45,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    }
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "quests": [
+    {
+      "id": "warrior_bones_1",
+      "playerClass": "origins:warrior",
+      "level": 1,
+      "title": "Сбор костей",
+      "description": "Соберите кости для тренировки боевых навыков",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:bone",
+        "amount": 10
+      },
+      "timeLimit": 30,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "warrior_zombie_kill_1",
+      "playerClass": "origins:warrior",
+      "level": 1,
+      "title": "Истребление зомби",
+      "description": "Убейте зомби для получения боевого опыта",
+      "objective": {
+        "type": "kill",
+        "target": "minecraft:zombie",
+        "amount": 5
+      },
+      "timeLimit": 25,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "warrior_skeleton_kill_2",
+      "playerClass": "origins:warrior",
+      "level": 2,
+      "title": "Охота на скелетов",
+      "description": "Уничтожьте скелетов для улучшения навыков стрельбы",
+      "objective": {
+        "type": "kill",
+        "target": "minecraft:skeleton",
+        "amount": 8
+      },
+      "timeLimit": 40,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "warrior_gunpowder_2",
+      "playerClass": "origins:warrior",
+      "level": 2,
+      "title": "Сбор пороха",
+      "description": "Соберите порох для создания взрывчатки",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:gunpowder",
+        "amount": 15
+      },
+      "timeLimit": 35,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "warrior_wither_skeleton_3",
+      "playerClass": "origins:warrior",
+      "level": 3,
+      "title": "Испытание Незера",
+      "description": "Победите скелетов-иссушителей в Незере",
+      "objective": {
+        "type": "kill",
+        "target": "minecraft:wither_skeleton",
+        "amount": 3
+      },
+      "timeLimit": 60,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    },
+    {
+      "id": "warrior_diamond_sword_3",
+      "playerClass": "origins:warrior",
+      "level": 3,
+      "title": "Мастер оружейник",
+      "description": "Создайте алмазный меч для истинного воина",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:diamond_sword",
+        "amount": 1
+      },
+      "timeLimit": 45,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    }
+  ]
+}

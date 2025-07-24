@@ -92,6 +92,12 @@ public class Origins implements ModInitializer, OrderedResourceListenerInitializ
 		ModLoot.registerLootTables();
 		Origin.init();
 		
+		// Регистрируем квестовую систему
+		io.github.apace100.origins.quest.QuestRegistry.register();
+		
+		// Регистрируем пакеты квестов
+		io.github.apace100.origins.networking.QuestPackets.registerServerPackets();
+		
 		// Инициализируем реестр профессий
 		io.github.apace100.origins.profession.ProfessionRegistry.init();
 		

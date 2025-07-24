@@ -1,0 +1,58 @@
+{
+  "quests": [
+    {
+      "id": "courier_leather_boots_1",
+      "profession": "courier",
+      "level": 1,
+      "title": "quest.origins.courier_leather_boots_1.title",
+      "description": "quest.origins.courier_leather_boots_1.description",
+      "objective": {
+        "type": "craft",
+        "item": "minecraft:leather_boots",
+        "amount": 1
+      },
+      "timeLimit": 1200,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "courier_map_2",
+      "profession": "courier",
+      "level": 2,
+      "title": "quest.origins.courier_map_2.title",
+      "description": "quest.origins.courier_map_2.description",
+      "objective": {
+        "type": "craft",
+        "item": "minecraft:map",
+        "amount": 3
+      },
+      "timeLimit": 1800,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "courier_compass_3",
+      "profession": "courier",
+      "level": 3,
+      "title": "quest.origins.courier_compass_3.title",
+      "description": "quest.origins.courier_compass_3.description",
+      "objective": {
+        "type": "craft",
+        "item": "minecraft:compass",
+        "amount": 2
+      },
+      "timeLimit": 2400,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    }
+  ]
+}

@@ -186,9 +186,11 @@ public class BlacksmithSkillHandler {
         
         String skillId = "instant_repair";
         // Стоимость энергии зависит от уровня навыка (уменьшается с ростом уровня)
-        int energyCost = Math.max(40, 80 - (skillLevel - 1) * 10);
+        int energyCost = Math.max(INSTANT_REPAIR_MIN_ENERGY_COST, 
+            INSTANT_REPAIR_BASE_ENERGY_COST - (skillLevel - 1) * INSTANT_REPAIR_ENERGY_REDUCTION_PER_LEVEL);
         // Кулдаун также уменьшается с уровнем навыка
-        int cooldownTicks = Math.max(3000, 6000 - (skillLevel - 1) * 600); // от 5 минут до 2.5 минут
+        int cooldownTicks = Math.max(INSTANT_REPAIR_MIN_COOLDOWN, 
+            INSTANT_REPAIR_BASE_COOLDOWN - (skillLevel - 1) * INSTANT_REPAIR_COOLDOWN_REDUCTION_PER_LEVEL);
         
         // Проверяем кулдаун
         if (skillComponent.isSkillOnCooldown(skillId)) {
@@ -229,7 +231,7 @@ public class BlacksmithSkillHandler {
             if (!stack.isEmpty() && stack.isDamaged()) {
                 int maxDamage = stack.getMaxDamage();
                 int currentDamage = stack.getDamage();
-                int repairAmount = (int) (maxDamage * 0.5f); // 50% прочности
+                int repairAmount = (int) (maxDamage * INSTANT_REPAIR_PERCENTAGE);
                 
                 int newDamage = Math.max(0, currentDamage - repairAmount);
                 stack.setDamage(newDamage);

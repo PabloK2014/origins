@@ -2,8 +2,10 @@ package io.github.apace100.origins.registry;
 
 import io.github.apace100.origins.Origins;
 import io.github.apace100.origins.content.TemporaryCobwebBlock;
+import io.github.apace100.origins.quest.BountyBoard;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.MapColor;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
@@ -15,8 +17,10 @@ public class ModBlocks {
 
     public static final Block TEMPORARY_COBWEB = new TemporaryCobwebBlock(FabricBlockSettings.create().mapColor(MapColor.WHITE_GRAY).solid().noCollision().requiresTool().strength(4.0F));
 
+
     public static void register() {
         register("temporary_cobweb", TEMPORARY_COBWEB, false);
+
     }
 
     private static void register(String blockName, Block block) {

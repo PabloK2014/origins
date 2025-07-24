@@ -1,0 +1,58 @@
+{
+  "quests": [
+    {
+      "id": "miner_coal_1",
+      "profession": "miner",
+      "level": 1,
+      "title": "quest.origins.miner_coal_1.title",
+      "description": "quest.origins.miner_coal_1.description",
+      "objective": {
+        "type": "collect",
+        "item": "minecraft:coal",
+        "amount": 32
+      },
+      "timeLimit": 1200,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "miner_iron_2",
+      "profession": "miner",
+      "level": 2,
+      "title": "quest.origins.miner_iron_2.title",
+      "description": "quest.origins.miner_iron_2.description",
+      "objective": {
+        "type": "collect",
+        "item": "minecraft:iron_ingot",
+        "amount": 16
+      },
+      "timeLimit": 1800,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "miner_diamond_3",
+      "profession": "miner",
+      "level": 3,
+      "title": "quest.origins.miner_diamond_3.title",
+      "description": "quest.origins.miner_diamond_3.description",
+      "objective": {
+        "type": "collect",
+        "item": "minecraft:diamond",
+        "amount": 5
+      },
+      "timeLimit": 2400,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    }
+  ]
+}

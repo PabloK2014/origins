@@ -1,15 +1,37 @@
 {
-    "type": "minecraft:crafting_shaped",
-    "pattern": [
-        "C"
-    ],
-    "key": {
-        "C": {
-            "item": "minecraft:cobblestone"
-        }
-    },
-    "result": {
-        "item": "origins:bounty_board",
-        "count": 1
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " # ",
+    " # ",
+    " # "
+  ],
+  "key": {
+    "#": {
+      "item": "minecraft:cobblestone"
     }
-} 
+  },
+  "result": {
+    "item": "origins:bounty_board",
+    "count": 1
+  }
+}
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "WWW",
+    "WPW",
+    "WWW"
+  ],
+  "key": {
+    "W": {
+      "item": "minecraft:oak_planks"
+    },
+    "P": {
+      "item": "minecraft:paper"
+    }
+  },
+  "result": {
+    "item": "origins:bounty_board",
+    "count": 1
+  }
+}
