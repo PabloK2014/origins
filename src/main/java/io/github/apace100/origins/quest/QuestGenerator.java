@@ -1,201 +1,310 @@
 package io.github.apace100.origins.quest;
 
-import net.minecraft.item.Item;
-import net.minecraft.item.Items;
-import net.minecraft.util.math.random.Random;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import io.github.apace100.origins.Origins;
+import net.minecraft.resource.Resource;
+import net.minecraft.resource.ResourceManager;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.Identifier;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 /**
- * Генератор случайных квестов для доски объявлений
+ * Загрузчик квестов из JSON файлов для системы досок объявлений.
+ * Читает квесты из папки data/origins/quests/
  */
 public class QuestGenerator {
+    private static final Gson GSON = new Gson();
+    private static final Map<String, List<Quest>> loadedQuests = new HashMap<>();
+    private static final Random random = new Random();
     
-    // Квесты для каждой профессии по уровням
-    private static final Map<String, Map<Integer, QuestTemplate[]>> QUEST_TEMPLATES = new HashMap<>();
-    
-    static {
-        initializeQuestTemplates();
-    }
-    
-    private static void initializeQuestTemplates() {
-        // Квесты для воина
-        Map<Integer, QuestTemplate[]> warriorQuests = new HashMap<>();
-        warriorQuests.put(1, new QuestTemplate[]{
-            new QuestTemplate(Items.BONE, 10),
-            new QuestTemplate(Items.ROTTEN_FLESH, 15),
-            new QuestTemplate(Items.STRING, 8)
-        });
-        warriorQuests.put(2, new QuestTemplate[]{
-            new QuestTemplate(Items.GUNPOWDER, 5),
-            new QuestTemplate(Items.SPIDER_EYE, 3),
-            new QuestTemplate(Items.ARROW, 32)
-        });
-        warriorQuests.put(3, new QuestTemplate[]{
-            new QuestTemplate(Items.WITHER_SKELETON_SKULL, 1),
-            new QuestTemplate(Items.DIAMOND_SWORD, 1),
-            new QuestTemplate(Items.ENCHANTED_BOOK, 2)
-        });
-        QUEST_TEMPLATES.put("warrior", warriorQuests);
+    /**
+     * Загружает все квесты из JSON файлов
+     */
+    public static void loadQuestsFromResources(ResourceManager resourceManager) {
+        loadedQuests.clear();
         
-        // Квесты для шахтера
-        Map<Integer, QuestTemplate[]> minerQuests = new HashMap<>();
-        minerQuests.put(1, new QuestTemplate[]{
-            new QuestTemplate(Items.COAL, 32),
-            new QuestTemplate(Items.COBBLESTONE, 64),
-            new QuestTemplate(Items.STONE, 32)
-        });
-        minerQuests.put(2, new QuestTemplate[]{
-            new QuestTemplate(Items.IRON_INGOT, 16),
-            new QuestTemplate(Items.GOLD_INGOT, 8),
-            new QuestTemplate(Items.REDSTONE, 32)
-        });
-        minerQuests.put(3, new QuestTemplate[]{
-            new QuestTemplate(Items.DIAMOND, 8),
-            new QuestTemplate(Items.EMERALD, 4),
-            new QuestTemplate(Items.ANCIENT_DEBRIS, 2)
-        });
-        QUEST_TEMPLATES.put("miner", minerQuests);
+        // Список файлов квестов для загрузки
+        String[] questFiles = {
+            "cook_quests.json",
+            "warrior_quests.json", 
+            "courier_quests.json",
+            "brewer_quests.json",
+            "blacksmith_quests.json",
+            "miner_quests.json"
+        };
         
-        // Квесты для кузнеца
-        Map<Integer, QuestTemplate[]> blacksmithQuests = new HashMap<>();
-        blacksmithQuests.put(1, new QuestTemplate[]{
-            new QuestTemplate(Items.IRON_SWORD, 1),
-            new QuestTemplate(Items.IRON_PICKAXE, 1),
-            new QuestTemplate(Items.IRON_INGOT, 8)
-        });
-        blacksmithQuests.put(2, new QuestTemplate[]{
-            new QuestTemplate(Items.DIAMOND_PICKAXE, 1),
-            new QuestTemplate(Items.DIAMOND_SWORD, 1),
-            new QuestTemplate(Items.ANVIL, 1)
-        });
-        blacksmithQuests.put(3, new QuestTemplate[]{
-            new QuestTemplate(Items.NETHERITE_INGOT, 1),
-            new QuestTemplate(Items.NETHERITE_SWORD, 1),
-            new QuestTemplate(Items.NETHERITE_PICKAXE, 1)
-        });
-        QUEST_TEMPLATES.put("blacksmith", blacksmithQuests);
+        for (String fileName : questFiles) {
+            loadQuestFile(resourceManager, fileName);
+        }
         
-        // Квесты для курьера
-        Map<Integer, QuestTemplate[]> courierQuests = new HashMap<>();
-        courierQuests.put(1, new QuestTemplate[]{
-            new QuestTemplate(Items.LEATHER_BOOTS, 1),
-            new QuestTemplate(Items.BREAD, 16),
-            new QuestTemplate(Items.PAPER, 8)
-        });
-        courierQuests.put(2, new QuestTemplate[]{
-            new QuestTemplate(Items.MAP, 3),
-            new QuestTemplate(Items.ENDER_PEARL, 4),
-            new QuestTemplate(Items.SADDLE, 1)
-        });
-        courierQuests.put(3, new QuestTemplate[]{
-            new QuestTemplate(Items.COMPASS, 2),
-            new QuestTemplate(Items.ELYTRA, 1),
-            new QuestTemplate(Items.FIREWORK_ROCKET, 16)
-        });
-        QUEST_TEMPLATES.put("courier", courierQuests);
-        
-        // Квесты для пивовара
-        Map<Integer, QuestTemplate[]> brewerQuests = new HashMap<>();
-        brewerQuests.put(1, new QuestTemplate[]{
-            new QuestTemplate(Items.NETHER_WART, 16),
-            new QuestTemplate(Items.GLASS_BOTTLE, 8),
-            new QuestTemplate(Items.SUGAR, 16)
-        });
-        brewerQuests.put(2, new QuestTemplate[]{
-            new QuestTemplate(Items.BLAZE_POWDER, 8),
-            new QuestTemplate(Items.SPIDER_EYE, 4),
-            new QuestTemplate(Items.MAGMA_CREAM, 4)
-        });
-        brewerQuests.put(3, new QuestTemplate[]{
-            new QuestTemplate(Items.GHAST_TEAR, 2),
-            new QuestTemplate(Items.DRAGON_BREATH, 1),
-            new QuestTemplate(Items.PHANTOM_MEMBRANE, 4)
-        });
-        QUEST_TEMPLATES.put("brewer", brewerQuests);
-        
-        // Квесты для повара
-        Map<Integer, QuestTemplate[]> cookQuests = new HashMap<>();
-        cookQuests.put(1, new QuestTemplate[]{
-            new QuestTemplate(Items.COOKED_BEEF, 16),
-            new QuestTemplate(Items.BREAD, 32),
-            new QuestTemplate(Items.COOKED_CHICKEN, 12)
-        });
-        cookQuests.put(2, new QuestTemplate[]{
-            new QuestTemplate(Items.CAKE, 3),
-            new QuestTemplate(Items.GOLDEN_CARROT, 8),
-            new QuestTemplate(Items.MUSHROOM_STEW, 6)
-        });
-        cookQuests.put(3, new QuestTemplate[]{
-            new QuestTemplate(Items.GOLDEN_APPLE, 4),
-            new QuestTemplate(Items.ENCHANTED_GOLDEN_APPLE, 1),
-            new QuestTemplate(Items.SUSPICIOUS_STEW, 8)
-        });
-        QUEST_TEMPLATES.put("cook", cookQuests);
+        Origins.LOGGER.info("Загружено квестов: " + getTotalQuestCount());
     }
     
     /**
-     * Генерирует случайный квест
+     * Загружает квесты из конкретного JSON файла
      */
-    public static BountyQuest generateRandomQuest() {
-        Random random = Random.create();
+    private static void loadQuestFile(ResourceManager resourceManager, String fileName) {
+        Identifier questFileId = new Identifier("origins", "quests/" + fileName);
         
-        // Выбираем случайную профессию
-        String[] professions = {"warrior", "miner", "blacksmith", "courier", "brewer", "cook"};
-        String profession = professions[random.nextInt(professions.length)];
-        
-        // Выбираем случайный уровень (1-3)
-        int level = 1 + random.nextInt(3);
-        
-        // Получаем шаблоны квестов для этой профессии и уровня
-        Map<Integer, QuestTemplate[]> professionQuests = QUEST_TEMPLATES.get(profession);
-        if (professionQuests == null) {
-            return null;
+        try {
+            Optional<Resource> resource = resourceManager.getResource(questFileId);
+            if (resource.isEmpty()) {
+                Origins.LOGGER.warn("Файл квестов не найден: " + fileName);
+                return;
+            }
+            
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(resource.get().getInputStream(), StandardCharsets.UTF_8))) {
+                
+                JsonObject jsonObject = GSON.fromJson(reader, JsonObject.class);
+                if (jsonObject == null || !jsonObject.has("quests")) {
+                    Origins.LOGGER.warn("Неверная структура файла квестов: " + fileName);
+                    return;
+                }
+                
+                JsonArray questsArray = jsonObject.getAsJsonArray("quests");
+                List<Quest> quests = new ArrayList<>();
+                
+                for (JsonElement questElement : questsArray) {
+                    try {
+                        Quest quest = parseQuestFromJson(questElement.getAsJsonObject());
+                        if (quest != null && quest.isValid()) {
+                            quests.add(quest);
+                        }
+                    } catch (Exception e) {
+                        Origins.LOGGER.error("Ошибка при парсинге квеста из " + fileName + ": " + e.getMessage());
+                    }
+                }
+                
+                // Группируем квесты по классам
+                for (Quest quest : quests) {
+                    String playerClass = normalizePlayerClass(quest.getPlayerClass());
+                    loadedQuests.computeIfAbsent(playerClass, k -> new ArrayList<>()).add(quest);
+                }
+                
+                Origins.LOGGER.info("Загружено " + quests.size() + " квестов из " + fileName);
+                
+            }
+        } catch (IOException e) {
+            Origins.LOGGER.error("Ошибка при чтении файла квестов " + fileName + ": " + e.getMessage());
         }
-        
-        QuestTemplate[] templates = professionQuests.get(level);
-        if (templates == null || templates.length == 0) {
-            return null;
-        }
-        
-        // Выбираем случайный шаблон
-        QuestTemplate template = templates[random.nextInt(templates.length)];
-        
-        // Создаем квест на основе шаблона
-        return new BountyQuest(profession, level, template.item, template.amount);
     }
     
     /**
-     * Генерирует квест для конкретной профессии и уровня
+     * Парсит квест из JSON объекта
      */
-    public static BountyQuest generateQuestForProfession(String profession, int level) {
-        Random random = Random.create();
-        
-        Map<Integer, QuestTemplate[]> professionQuests = QUEST_TEMPLATES.get(profession);
-        if (professionQuests == null) {
+    private static Quest parseQuestFromJson(JsonObject json) {
+        try {
+            String id = json.get("id").getAsString();
+            
+            // Поддерживаем как playerClass, так и profession для совместимости
+            String playerClass = "human";
+            if (json.has("playerClass")) {
+                playerClass = json.get("playerClass").getAsString();
+            } else if (json.has("profession")) {
+                playerClass = "origins:" + json.get("profession").getAsString();
+            }
+            
+            int level = json.has("level") ? json.get("level").getAsInt() : 1;
+            String title = json.has("title") ? json.get("title").getAsString() : "Безымянный квест";
+            String description = json.has("description") ? json.get("description").getAsString() : "Описание отсутствует";
+            int timeLimit = json.has("timeLimit") ? json.get("timeLimit").getAsInt() : 60;
+            
+            // Парсим цель квеста
+            QuestObjective objective = null;
+            if (json.has("objective")) {
+                JsonObject objJson = json.getAsJsonObject("objective");
+                String type = objJson.get("type").getAsString();
+                
+                // Поддерживаем как target, так и item для совместимости
+                String target = "";
+                if (objJson.has("target")) {
+                    target = objJson.get("target").getAsString();
+                } else if (objJson.has("item")) {
+                    target = objJson.get("item").getAsString();
+                }
+                
+                int amount = objJson.get("amount").getAsInt();
+                
+                QuestObjective.ObjectiveType objectiveType = switch (type.toLowerCase()) {
+                    case "collect" -> QuestObjective.ObjectiveType.COLLECT;
+                    case "kill" -> QuestObjective.ObjectiveType.KILL;
+                    case "craft" -> QuestObjective.ObjectiveType.CRAFT;
+                    default -> QuestObjective.ObjectiveType.COLLECT;
+                };
+                
+                objective = new QuestObjective(objectiveType, target, amount);
+            }
+            
+            // Парсим награду квеста
+            QuestReward reward = null;
+            if (json.has("reward")) {
+                JsonObject rewardJson = json.getAsJsonObject("reward");
+                String type = rewardJson.get("type").getAsString();
+                int tier = rewardJson.has("tier") ? rewardJson.get("tier").getAsInt() : 1;
+                int experience = rewardJson.has("experience") ? rewardJson.get("experience").getAsInt() : 500;
+                
+                QuestReward.RewardType rewardType = switch (type.toLowerCase()) {
+                    case "skill_point_token" -> QuestReward.RewardType.SKILL_POINT_TOKEN;
+                    case "experience" -> QuestReward.RewardType.EXPERIENCE;
+                    case "item" -> QuestReward.RewardType.ITEM;
+                    default -> QuestReward.RewardType.SKILL_POINT_TOKEN;
+                };
+                
+                reward = new QuestReward(rewardType, tier, experience);
+            }
+            
+            if (objective == null || reward == null) {
+                Origins.LOGGER.warn("Квест " + id + " имеет неполные данные");
+                return null;
+            }
+            
+            return new Quest(id, playerClass, level, title, description, objective, timeLimit, reward);
+            
+        } catch (Exception e) {
+            Origins.LOGGER.error("Ошибка при парсинге квеста: " + e.getMessage());
             return null;
         }
-        
-        QuestTemplate[] templates = professionQuests.get(level);
-        if (templates == null || templates.length == 0) {
-            return null;
-        }
-        
-        QuestTemplate template = templates[random.nextInt(templates.length)];
-        return new BountyQuest(profession, level, template.item, template.amount);
     }
     
     /**
-     * Шаблон квеста
+     * Нормализует название класса игрока
      */
-    private static class QuestTemplate {
-        final Item item;
-        final int amount;
-        
-        QuestTemplate(Item item, int amount) {
-            this.item = item;
-            this.amount = amount;
+    private static String normalizePlayerClass(String playerClass) {
+        if (playerClass.startsWith("origins:")) {
+            return playerClass.substring(8); // Убираем префикс "origins:"
         }
+        return playerClass;
+    }
+    
+    /**
+     * Получает случайные квесты для указанной профессии
+     */
+    public static List<Quest> getRandomQuestsForProfession(String profession, int count) {
+        List<Quest> availableQuests = loadedQuests.get(profession);
+        if (availableQuests == null || availableQuests.isEmpty()) {
+            Origins.LOGGER.warn("Нет квестов для профессии: " + profession);
+            return new ArrayList<>();
+        }
+        
+        List<Quest> result = new ArrayList<>();
+        List<Quest> questsCopy = new ArrayList<>(availableQuests);
+        Collections.shuffle(questsCopy, random);
+        
+        for (int i = 0; i < Math.min(count, questsCopy.size()); i++) {
+            // Создаем свежую копию квеста с сброшенным прогрессом
+            result.add(questsCopy.get(i).createFreshCopy());
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Получает квесты определенного уровня для профессии
+     */
+    public static List<Quest> getQuestsByLevel(String profession, int level, int count) {
+        List<Quest> availableQuests = loadedQuests.get(profession);
+        if (availableQuests == null || availableQuests.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        List<Quest> levelQuests = availableQuests.stream()
+                .filter(quest -> quest.getLevel() == level)
+                .toList();
+        
+        if (levelQuests.isEmpty()) {
+            // Если нет квестов точного уровня, берем ближайшие
+            levelQuests = availableQuests.stream()
+                    .filter(quest -> Math.abs(quest.getLevel() - level) <= 1)
+                    .toList();
+        }
+        
+        List<Quest> result = new ArrayList<>(levelQuests);
+        Collections.shuffle(result, random);
+        
+        return result.stream()
+                .limit(count)
+                .map(Quest::createFreshCopy)
+                .toList();
+    }
+    
+    /**
+     * Получает все доступные профессии с квестами
+     */
+    public static Set<String> getAvailableProfessions() {
+        return loadedQuests.keySet();
+    }
+    
+    /**
+     * Проверяет, есть ли квесты для указанной профессии
+     */
+    public static boolean hasProfessionQuests(String profession) {
+        return loadedQuests.containsKey(profession) && !loadedQuests.get(profession).isEmpty();
+    }
+    
+    /**
+     * Получает общее количество загруженных квестов
+     */
+    public static int getTotalQuestCount() {
+        return loadedQuests.values().stream().mapToInt(List::size).sum();
+    }
+    
+    /**
+     * Получает количество квестов для конкретной профессии
+     */
+    public static int getQuestCountForProfession(String profession) {
+        List<Quest> quests = loadedQuests.get(profession);
+        return quests != null ? quests.size() : 0;
+    }
+    
+    /**
+     * Очищает загруженные квесты (для перезагрузки)
+     */
+    public static void clearLoadedQuests() {
+        loadedQuests.clear();
+    }
+    
+    /**
+     * Получает квест по ID
+     */
+    public static Quest getQuestById(String questId) {
+        for (List<Quest> quests : loadedQuests.values()) {
+            for (Quest quest : quests) {
+                if (quest.getId().equals(questId)) {
+                    return quest.createFreshCopy();
+                }
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Получает все квесты для профессии
+     */
+    public static List<Quest> getAllQuestsForProfession(String profession) {
+        List<Quest> quests = loadedQuests.get(profession);
+        if (quests == null) {
+            return new ArrayList<>();
+        }
+        
+        return quests.stream()
+                .map(Quest::createFreshCopy)
+                .toList();
+    }
+    
+    /**
+     * Генерирует случайный квест для указанной профессии и уровня (для совместимости)
+     */
+    public static Quest generateRandomQuest(String profession, int level) {
+        List<Quest> levelQuests = getQuestsByLevel(profession, level, 1);
+        return levelQuests.isEmpty() ? null : levelQuests.get(0);
     }
 }

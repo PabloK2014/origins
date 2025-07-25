@@ -350,5 +350,14 @@
   "gui.origins.bounty_board.quest_completed": "Заказ выполнен!",
   "gui.origins.bounty_board.reward_received": "Получена награда: %s очков навыков",
   "advancement.origins.first_quest.title": "Первый заказ",
-  "advancement.origins.first_quest.description": "Выполните свой первый заказ с доски объявлений"
+  "advancement.origins.first_quest.description": "Выполните свой первый заказ с доски объявлений",
+  
+  "gui.origins.bounty_board.title": "Доска объявлений",
+  "gui.origins.bounty_board.take": "Взять квест",
+  "gui.origins.bounty_board.complete": "Сдать квест",
+  "gui.origins.bounty_board.refresh": "Обновить",
+  "gui.origins.bounty_board.quest_accepted": "Квест принят!",
+  "gui.origins.bounty_board.quest_completed": "Квест выполнен!",
+  "gui.origins.bounty_board.no_quests": "Нет доступных квестов!",
+  "gui.origins.bounty_board.empty": "Пусто! Загляните позже!"
 }

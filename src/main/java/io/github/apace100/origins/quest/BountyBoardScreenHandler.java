@@ -19,38 +19,50 @@ public class BountyBoardScreenHandler extends ScreenHandler {
     private final Inventory inventory;
     private int selectedQuestIndex = -1;
 
-    // Конструктор для клиентской стороны (из пакета)
     public BountyBoardScreenHandler(int syncId, PlayerInventory playerInventory, PacketByteBuf buf) {
         this(syncId, playerInventory, (BountyBoardBlockEntity) playerInventory.player.getWorld().getBlockEntity(buf.readBlockPos()));
     }
 
-    // Конструктор для серверной стороны
     public BountyBoardScreenHandler(int syncId, PlayerInventory playerInventory, BountyBoardBlockEntity blockEntity) {
         super(QuestRegistry.BOUNTY_BOARD_SCREEN_HANDLER, syncId);
         this.blockEntity = blockEntity;
-        this.inventory = new SimpleInventory(9);
+        this.inventory = new SimpleInventory(24); // 21 слот для квестов + 3 для декретов
         setupSlots(playerInventory);
     }
 
     private void setupSlots(PlayerInventory playerInventory) {
-        // Добавляем слоты для инвентаря игрока
-        for (int m = 0; m < 3; ++m) {
-            for (int l = 0; l < 9; ++l) {
-                this.addSlot(new Slot(playerInventory, l + m * 9 + 9, 8 + l * 18, 84 + m * 18));
+        // Слоты для квестов (3x7 сетка)
+        int bountySlotSize = 18;
+        int adjustX = 173;
+        int adjustY = 0;
+        for (int j = 0; j < 3; j++) {
+            for (int k = 0; k < 7; k++) {
+                addSlot(new BountySlot(inventory, k + j * 7, 8 + k * bountySlotSize + adjustX, 18 + j * bountySlotSize + adjustY));
             }
         }
-        // Добавляем слоты хотбара
+
+        // Слоты для декретов (3 слота справа)
+        for (int j = 0; j < 3; j++) {
+            addSlot(new DecreeSlot(inventory, 21 + j, 317, 18 + j * 18));
+        }
+
+        // Слоты инвентаря игрока (по умолчанию)
+        for (int m = 0; m < 3; ++m) {
+            for (int l = 0; l < 9; ++l) {
+                this.addSlot(new Slot(playerInventory, l + m * 9 + 9, 181 + l * 18, 84 + m * 18));
+            }
+        }
         for (int m = 0; m < 9; ++m) {
-            this.addSlot(new Slot(playerInventory, m, 8 + m * 18, 142));
+            this.addSlot(new Slot(playerInventory, m, 181 + m * 18, 142));
         }
     }
 
     @Override
     public boolean canUse(PlayerEntity player) {
-        return blockEntity == null || player.squaredDistanceTo(
-            blockEntity.getPos().getX() + 0.5,
-            blockEntity.getPos().getY() + 0.5,
-            blockEntity.getPos().getZ() + 0.5
+        return blockEntity != null && player.squaredDistanceTo(
+                blockEntity.getPos().getX() + 0.5,
+                blockEntity.getPos().getY() + 0.5,
+                blockEntity.getPos().getZ() + 0.5
         ) <= 64.0;
     }
 
@@ -61,11 +73,11 @@ public class BountyBoardScreenHandler extends ScreenHandler {
         if (slot2 != null && slot2.hasStack()) {
             ItemStack itemStack2 = slot2.getStack();
             itemStack = itemStack2.copy();
-            if (slot < this.inventory.size()) {
-                if (!this.insertItem(itemStack2, this.inventory.size(), this.slots.size(), true)) {
+            if (slot < inventory.size()) {
+                if (!this.insertItem(itemStack2, inventory.size(), this.slots.size(), true)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (!this.insertItem(itemStack2, 0, this.inventory.size(), false)) {
+            } else if (!this.insertItem(itemStack2, 0, inventory.size(), false)) {
                 return ItemStack.EMPTY;
             }
 
@@ -75,11 +87,10 @@ public class BountyBoardScreenHandler extends ScreenHandler {
                 slot2.markDirty();
             }
         }
-
         return itemStack;
     }
 
-    public List<BountyQuest> getAvailableQuests() {
+    public List<Quest> getAvailableQuests() {
         return blockEntity != null ? blockEntity.getAvailableQuests() : List.of();
     }
 
@@ -91,76 +102,101 @@ public class BountyBoardScreenHandler extends ScreenHandler {
         this.selectedQuestIndex = index;
     }
 
-    public BountyQuest getSelectedQuest() {
+    public Quest getSelectedQuest() {
         if (blockEntity == null || selectedQuestIndex < 0 || selectedQuestIndex >= blockEntity.getAvailableQuests().size()) {
             return null;
         }
         return blockEntity.getAvailableQuests().get(selectedQuestIndex);
     }
+    
+    public Quest getQuest(int index) {
+        if (blockEntity == null || index < 0 || index >= blockEntity.getAvailableQuests().size()) {
+            return null;
+        }
+        return blockEntity.getAvailableQuests().get(index);
+    }
 
-    public void acceptQuest(int index) {
-        if (blockEntity != null && index >= 0 && index < blockEntity.getAvailableQuests().size()) {
-            BountyQuest quest = blockEntity.getAvailableQuests().get(index);
-            // Проверяем, подходит ли квест для класса игрока
-            if (quest.getProfession().equals(getCurrentPlayerClass())) {
-                // Здесь будет логика принятия квеста
-                // TODO: Реализовать систему активных квестов
-            }
+    public void acceptQuest(Quest quest) {
+        if (quest != null && quest.getPlayerClass().equals(getCurrentPlayerClass())) {
+            // Логика принятия квеста (можно добавить сохранение в будущем)
         }
     }
 
-    public void completeQuest(BountyQuest quest, ServerPlayerEntity player) {
-        if (quest == null) {
-            return;
-        }
+    public void completeQuest(Quest quest, PlayerEntity player) {
+        if (quest == null) return;
 
-        // Проверяем, есть ли у игрока необходимые предметы в инвентаре
         if (hasRequiredItems(player, quest)) {
-            // Забираем предметы из инвентаря
             removeRequiredItems(player, quest);
-            
-            // Выдаем награду
             giveQuestReward(quest, player);
-            
-            // Удаляем квест с доски
             if (blockEntity != null) {
                 blockEntity.removeQuest(quest);
             }
-            
-            // Отправляем сообщение об успешном выполнении
-            player.sendMessage(
-                Text.translatable("gui.origins.bounty_board.quest_completed"),
-                false
-            );
+            player.sendMessage(Text.translatable("gui.origins.bounty_board.quest_completed"), false);
         } else {
-            // Отправляем сообщение о недостатке предметов
-            player.sendMessage(
-                Text.literal("У вас недостаточно предметов для выполнения этого задания!"),
-                false
-            );
+            player.sendMessage(Text.literal("У вас недостаточно предметов!"), false);
         }
     }
     
-    private boolean hasRequiredItems(ServerPlayerEntity player, BountyQuest quest) {
+    public void refreshQuests() {
+        if (blockEntity != null) {
+            blockEntity.refreshQuests();
+        }
+    }
+    
+    public BountyBoardBlockEntity getBlockEntity() {
+        return blockEntity;
+    }
+
+    private boolean hasRequiredItems(PlayerEntity player, Quest quest) {
+        // Проверяем выполнение всех целей квеста
+        for (QuestObjective objective : quest.getObjectives()) {
+            if (!isObjectiveCompleted(player, objective)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    private boolean isObjectiveCompleted(PlayerEntity player, QuestObjective objective) {
+        switch (objective.getType()) {
+            case COLLECT:
+                return hasItemInInventory(player, objective.getTarget(), objective.getAmount());
+            case KILL:
+                // Для убийства мобов нужна отдельная система отслеживания
+                return objective.isCompleted();
+            case CRAFT:
+                // Для крафта также нужна отдельная система
+                return objective.isCompleted();
+            default:
+                return false;
+        }
+    }
+    
+    private boolean hasItemInInventory(PlayerEntity player, String itemId, int amount) {
         int foundAmount = 0;
         for (int i = 0; i < player.getInventory().size(); i++) {
             ItemStack stack = player.getInventory().getStack(i);
-            if (stack.getItem() == quest.getRequiredItem()) {
+            if (stack.getItem().toString().equals(itemId)) {
                 foundAmount += stack.getCount();
-                if (foundAmount >= quest.getRequiredAmount()) {
-                    return true;
-                }
+                if (foundAmount >= amount) return true;
             }
         }
         return false;
     }
+
+    private void removeRequiredItems(PlayerEntity player, Quest quest) {
+        for (QuestObjective objective : quest.getObjectives()) {
+            if (objective.getType().equals("collect")) {
+                removeItemFromInventory(player, objective.getTarget(), objective.getAmount());
+            }
+        }
+    }
     
-    private void removeRequiredItems(ServerPlayerEntity player, BountyQuest quest) {
-        int remainingToRemove = quest.getRequiredAmount();
-        
+    private void removeItemFromInventory(PlayerEntity player, String itemId, int amount) {
+        int remainingToRemove = amount;
         for (int i = 0; i < player.getInventory().size() && remainingToRemove > 0; i++) {
             ItemStack stack = player.getInventory().getStack(i);
-            if (stack.getItem() == quest.getRequiredItem()) {
+            if (stack.getItem().toString().equals(itemId)) {
                 int toRemove = Math.min(remainingToRemove, stack.getCount());
                 stack.decrement(toRemove);
                 remainingToRemove -= toRemove;
@@ -168,64 +204,42 @@ public class BountyBoardScreenHandler extends ScreenHandler {
         }
     }
 
-    private void giveQuestReward(BountyQuest quest, ServerPlayerEntity player) {
-        // Создаем соответствующий SkillPointToken
-        ItemStack reward;
-        switch (quest.getLevel()) {
-            case 1:
-                reward = new ItemStack(QuestRegistry.SKILL_POINT_TOKEN_TIER1);
-                break;
-            case 2:
-                reward = new ItemStack(QuestRegistry.SKILL_POINT_TOKEN_TIER2);
-                break;
-            case 3:
-                reward = new ItemStack(QuestRegistry.SKILL_POINT_TOKEN_TIER3);
-                break;
-            default:
-                reward = new ItemStack(QuestRegistry.SKILL_POINT_TOKEN_TIER1);
-        }
+    private void giveQuestReward(Quest quest, PlayerEntity player) {
+        for (QuestReward reward : quest.getRewards()) {
+            ItemStack rewardStack = switch (reward.getTier()) {
+                case 1 -> new ItemStack(QuestRegistry.SKILL_POINT_TOKEN_TIER1);
+                case 2 -> new ItemStack(QuestRegistry.SKILL_POINT_TOKEN_TIER2);
+                case 3 -> new ItemStack(QuestRegistry.SKILL_POINT_TOKEN_TIER3);
+                default -> new ItemStack(QuestRegistry.SKILL_POINT_TOKEN_TIER1);
+            };
 
-        // Пытаемся добавить в инвентарь
-        if (!player.getInventory().insertStack(reward)) {
-            // Если инвентарь полный, дропаем рядом с игроком
-            player.dropItem(reward, false);
+            if (!player.getInventory().insertStack(rewardStack)) {
+                player.dropItem(rewardStack, false);
+            }
         }
-
-        // Отправляем сообщение игроку
-        player.sendMessage(
-            net.minecraft.text.Text.translatable("gui.origins.bounty_board.reward_received", quest.getRewardExp()),
-            false
-        );
+        player.sendMessage(Text.translatable("gui.origins.bounty_board.reward_received"), false);
     }
 
     private String getCurrentPlayerClass() {
-        // Получаем текущий класс игрока из компонента Origins
         if (blockEntity != null && blockEntity.getWorld() != null) {
-            // Ищем ближайшего игрока
-            net.minecraft.entity.player.PlayerEntity nearestPlayer = blockEntity.getWorld().getClosestPlayer(
-                blockEntity.getPos().getX(), blockEntity.getPos().getY(), blockEntity.getPos().getZ(), 10.0, false);
-            
+            PlayerEntity nearestPlayer = blockEntity.getWorld().getClosestPlayer(
+                    blockEntity.getPos().getX(), blockEntity.getPos().getY(), blockEntity.getPos().getZ(), 10.0, false);
             if (nearestPlayer instanceof ServerPlayerEntity serverPlayer) {
                 return getPlayerOriginClass(serverPlayer);
             }
         }
-        return "human"; // По умолчанию
+        return "human";
     }
-    
+
     private String getPlayerOriginClass(ServerPlayerEntity player) {
         try {
-            // Проверяем по компоненту Origins
-            io.github.apace100.origins.component.OriginComponent originComponent = 
-                io.github.apace100.origins.registry.ModComponents.ORIGIN.get(player);
-            
+            var originComponent = io.github.apace100.origins.registry.ModComponents.ORIGIN.get(player);
             if (originComponent != null) {
                 var origin = originComponent.getOrigin(
-                    io.github.apace100.origins.origin.OriginLayers.getLayer(
-                        io.github.apace100.origins.Origins.identifier("origin")));
-                
+                        io.github.apace100.origins.origin.OriginLayers.getLayer(
+                                io.github.apace100.origins.Origins.identifier("origin")));
                 if (origin != null) {
                     String originId = origin.getIdentifier().toString();
-                    // Преобразуем ID происхождения в класс
                     return switch (originId) {
                         case "origins:warrior" -> "warrior";
                         case "origins:miner" -> "miner";
@@ -240,7 +254,29 @@ public class BountyBoardScreenHandler extends ScreenHandler {
         } catch (Exception e) {
             io.github.apace100.origins.Origins.LOGGER.error("Ошибка при получении класса игрока: " + e.getMessage());
         }
-        
         return "human";
+    }
+
+    // Кастомные слоты
+    private static class BountySlot extends Slot {
+        public BountySlot(Inventory inventory, int index, int x, int y) {
+            super(inventory, index, x, y);
+        }
+
+        @Override
+        public boolean canInsert(ItemStack stack) {
+            return false; // Нельзя вставлять предметы в слоты квестов
+        }
+    }
+
+    private static class DecreeSlot extends Slot {
+        public DecreeSlot(Inventory inventory, int index, int x, int y) {
+            super(inventory, index, x, y);
+        }
+
+        @Override
+        public boolean canInsert(ItemStack stack) {
+            return false; // Пока без декретов, можно доработать позже
+        }
     }
 }

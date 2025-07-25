@@ -39,6 +39,15 @@ public class Quest {
     public int getTimeLimit() { return timeLimit; }
     public QuestReward getReward() { return reward; }
     
+    // Методы для совместимости с интерфейсом (возвращают списки с одним элементом)
+    public java.util.List<QuestObjective> getObjectives() { 
+        return java.util.Collections.singletonList(objective); 
+    }
+    
+    public java.util.List<QuestReward> getRewards() { 
+        return java.util.Collections.singletonList(reward); 
+    }
+    
     public Text getDisplayName() {
         return Text.translatable("quest.origins." + id + ".title").formatted(getRarity().getColor());
     }
