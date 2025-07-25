@@ -35,6 +35,8 @@ public class BountyBoardBlockEntity extends BlockEntity implements ExtendedScree
 
     public BountyBoardBlockEntity(BlockPos pos, BlockState state) {
         super(QuestRegistry.BOUNTY_BOARD_BLOCK_ENTITY, pos, state);
+        // Генерируем квесты при создании блока
+        generateRandomQuests();
     }
 
     @Override
@@ -92,16 +94,96 @@ public class BountyBoardBlockEntity extends BlockEntity implements ExtendedScree
     }
     
     private void generateRandomQuests() {
-        // Генерируем 4 случайных квеста для разных профессий
-        String[] professions = {"warrior", "cook", "courier", "brewer", "blacksmith", "miner"};
-        for (int i = 0; i < 4; i++) {
-            String profession = professions[i % professions.length];
-            int level = (i / professions.length) + 1; // Уровень от 1 до 2
-            Quest quest = QuestGenerator.generateRandomQuest(profession, level);
-            if (quest != null) {
-                availableQuests.add(quest);
+        // Очищаем старые квесты
+        availableQuests.clear();
+        
+        // Всегда создаем тестовые квесты для стабильной работы
+        createTestQuests();
+        System.out.println("Создано тестовых квестов: " + availableQuests.size());
+        
+        // Пытаемся дополнительно загрузить квесты из JSON файлов
+        if (world != null && !world.isClient && world.getServer() != null) {
+            try {
+                System.out.println("Попытка загрузки квестов из JSON...");
+                QuestGenerator.loadQuestsFromResources(world.getServer().getResourceManager());
+                
+                // Проверяем, сколько квестов загрузилось
+                int totalJsonQuests = QuestGenerator.getTotalQuestCount();
+                System.out.println("Загружено квестов из JSON: " + totalJsonQuests);
+                
+                if (totalJsonQuests > 0) {
+                    // Добавляем квесты из JSON (если загрузились)
+                    String[] professions = {"warrior", "cook", "courier", "brewer", "blacksmith", "miner"};
+                    for (String profession : professions) {
+                        List<Quest> professionQuests = QuestGenerator.getRandomQuestsForProfession(profession, 1);
+                        if (!professionQuests.isEmpty()) {
+                            availableQuests.addAll(professionQuests);
+                            System.out.println("Добавлено " + professionQuests.size() + " квестов для " + profession);
+                        }
+                    }
+                } else {
+                    System.out.println("JSON квесты не загрузились, используем только тестовые");
+                }
+                
+                System.out.println("Общее количество квестов: " + availableQuests.size());
+            } catch (Exception e) {
+                System.out.println("Ошибка загрузки JSON квестов: " + e.getMessage());
+                e.printStackTrace();
             }
         }
+    }
+    
+    /**
+     * Создает тестовые квесты для всех классов
+     */
+    private void createTestQuests() {
+        // Воин - 2 квеста
+        availableQuests.add(new Quest("test_warrior_1", "warrior", 1, "Сбор костей", "Соберите кости для тренировки", 
+            new QuestObjective(QuestObjective.ObjectiveType.COLLECT, "minecraft:bone", 8), 30, 
+            new QuestReward(QuestReward.RewardType.SKILL_POINT_TOKEN, 1, 400)));
+        availableQuests.add(new Quest("test_warrior_2", "warrior", 1, "Охота на зомби", "Убейте зомби для получения опыта", 
+            new QuestObjective(QuestObjective.ObjectiveType.COLLECT, "minecraft:rotten_flesh", 5), 25, 
+            new QuestReward(QuestReward.RewardType.SKILL_POINT_TOKEN, 1, 350)));
+            
+        // Повар - 2 квеста
+        availableQuests.add(new Quest("test_cook_1", "cook", 1, "Сбор пшеницы", "Соберите пшеницу для хлеба", 
+            new QuestObjective(QuestObjective.ObjectiveType.COLLECT, "minecraft:wheat", 10), 20, 
+            new QuestReward(QuestReward.RewardType.SKILL_POINT_TOKEN, 1, 300)));
+        availableQuests.add(new Quest("test_cook_2", "cook", 1, "Выпечка хлеба", "Испеките хлеб для жителей", 
+            new QuestObjective(QuestObjective.ObjectiveType.CRAFT, "minecraft:bread", 5), 25, 
+            new QuestReward(QuestReward.RewardType.SKILL_POINT_TOKEN, 1, 400)));
+            
+        // Шахтер - 2 квеста
+        availableQuests.add(new Quest("test_miner_1", "miner", 1, "Добыча угля", "Добудьте уголь в шахтах", 
+            new QuestObjective(QuestObjective.ObjectiveType.COLLECT, "minecraft:coal", 16), 30, 
+            new QuestReward(QuestReward.RewardType.SKILL_POINT_TOKEN, 1, 350)));
+        availableQuests.add(new Quest("test_miner_2", "miner", 1, "Железная руда", "Добудьте железную руду", 
+            new QuestObjective(QuestObjective.ObjectiveType.COLLECT, "minecraft:raw_iron", 6), 35, 
+            new QuestReward(QuestReward.RewardType.SKILL_POINT_TOKEN, 1, 500)));
+            
+        // Кузнец - 2 квеста
+        availableQuests.add(new Quest("test_blacksmith_1", "blacksmith", 1, "Железные слитки", "Выплавите железные слитки", 
+            new QuestObjective(QuestObjective.ObjectiveType.COLLECT, "minecraft:iron_ingot", 8), 25, 
+            new QuestReward(QuestReward.RewardType.SKILL_POINT_TOKEN, 1, 400)));
+        availableQuests.add(new Quest("test_blacksmith_2", "blacksmith", 1, "Железные инструменты", "Создайте железную кирку", 
+            new QuestObjective(QuestObjective.ObjectiveType.CRAFT, "minecraft:iron_pickaxe", 1), 30, 
+            new QuestReward(QuestReward.RewardType.SKILL_POINT_TOKEN, 1, 450)));
+            
+        // Курьер - 2 квеста
+        availableQuests.add(new Quest("test_courier_1", "courier", 1, "Быстрые ноги", "Создайте кожаные ботинки", 
+            new QuestObjective(QuestObjective.ObjectiveType.CRAFT, "minecraft:leather_boots", 1), 20, 
+            new QuestReward(QuestReward.RewardType.SKILL_POINT_TOKEN, 1, 300)));
+        availableQuests.add(new Quest("test_courier_2", "courier", 1, "Навигация", "Создайте компас", 
+            new QuestObjective(QuestObjective.ObjectiveType.CRAFT, "minecraft:compass", 1), 25, 
+            new QuestReward(QuestReward.RewardType.SKILL_POINT_TOKEN, 1, 400)));
+            
+        // Пивовар - 2 квеста
+        availableQuests.add(new Quest("test_brewer_1", "brewer", 1, "Адский нарост", "Соберите адский нарост", 
+            new QuestObjective(QuestObjective.ObjectiveType.COLLECT, "minecraft:nether_wart", 8), 40, 
+            new QuestReward(QuestReward.RewardType.SKILL_POINT_TOKEN, 1, 500)));
+        availableQuests.add(new Quest("test_brewer_2", "brewer", 1, "Варочная стойка", "Создайте варочную стойку", 
+            new QuestObjective(QuestObjective.ObjectiveType.CRAFT, "minecraft:brewing_stand", 1), 30, 
+            new QuestReward(QuestReward.RewardType.SKILL_POINT_TOKEN, 1, 450)));
     }
 
     public Set<Integer> maskFor(PlayerEntity player) {

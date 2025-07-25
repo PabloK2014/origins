@@ -61,6 +61,8 @@ public class QuestGenerator {
                 return;
             }
             
+            Origins.LOGGER.info("Загружаем файл квестов: " + fileName);
+            
             try (BufferedReader reader = new BufferedReader(
                     new InputStreamReader(resource.get().getInputStream(), StandardCharsets.UTF_8))) {
                 

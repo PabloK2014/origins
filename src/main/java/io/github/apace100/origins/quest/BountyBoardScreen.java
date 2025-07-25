@@ -3,8 +3,6 @@ package io.github.apace100.origins.quest;
 import io.github.apace100.origins.Origins;
 import io.github.apace100.origins.quest.gui.SpriteHelper;
 import io.github.apace100.origins.quest.gui.QuestButton;
-import io.github.apace100.origins.skill.PlayerSkillComponent;
-import io.github.apace100.origins.registry.ModComponents;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -54,9 +52,6 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
         int titleX = (backgroundWidth - textRenderer.getWidth(titleText)) / 2 - 53;
         context.drawText(textRenderer, titleText, titleX, 6, 0xEADAB5, false);
 
-        // Полоска прогресса игрока
-        drawPlayerProgressBar(context);
-
         // Список квестов
         if (toggledOut) {
             drawQuestList(context, mouseX, mouseY);
@@ -68,8 +63,6 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
             }
         }
 
-        // Инвентарь игрока
-        context.drawText(textRenderer, playerInventoryTitle, 8, playerInventoryTitleY, 0x404040, false);
     }
 
     @Override
@@ -82,92 +75,9 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
         if (toggledOut) {
             renderQuestTooltips(context, mouseX, mouseY);
         }
-        
-        // Отрисовка подсказки для полосы прогресса
-        renderProgressBarTooltip(context, mouseX, mouseY);
     }
     
-    /**
-     * Отрисовка полосы прогресса игрока
-     */
-    private void drawPlayerProgressBar(DrawContext context) {
-        if (client == null || client.player == null) return;
-        
-        PlayerSkillComponent skillComponent = PlayerSkillComponent.KEY.get(client.player);
-        int playerLevel = skillComponent.getPlayerLevel();
-        float progress = 0.5f; // Заглушка для прогресса
-        
-        int barX = bgOffset;
-        int barY = 75;
-        
-        // Отрисовка полосы прогресса
-        SpriteHelper.drawProgressBar(context, barX, barY, progress);
-        
-        // Отрисовка текста уровня
-        String levelText = String.valueOf(playerLevel);
-        int textX = barX + 51 - textRenderer.getWidth(levelText) / 2;
-        context.drawText(textRenderer, levelText, textX, barY - 10, getRarityColor(playerLevel), false);
-    }
-    
-    /**
-     * Отрисовка подсказки для полосы прогресса
-     */
-    private void renderProgressBarTooltip(DrawContext context, int mouseX, int mouseY) {
-        if (client == null || client.player == null) return;
-        
-        int x = (width - backgroundWidth) / 2;
-        int y = (height - backgroundHeight) / 2;
-        int barX = x + bgOffset;
-        int barY = y + 75;
-        
-        // Проверяем, наведена ли мышь на полосу прогресса
-        if (mouseX >= barX - 28 && mouseX < barX + 102 + 28 && 
-            mouseY >= barY - 10 && mouseY < barY + 15) {
-            
-            PlayerSkillComponent skillComponent = PlayerSkillComponent.KEY.get(client.player);
-            int playerLevel = skillComponent.getPlayerLevel();
-            float progress = 0.5f; // Заглушка для прогресса
-            int currentExp = 0; // Заглушка для опыта
-            int expForNextLevel = 1000; // Заглушка для опыта до следующего уровня
-            
-            List<Text> tooltip = new ArrayList<>();
-            
-            // Заголовок
-            tooltip.add(Text.literal("Прогресс персонажа").formatted(Formatting.YELLOW));
-            
-            // Текущий уровень
-            tooltip.add(Text.literal("Уровень: " + playerLevel)
-                    .formatted(getFormattingForLevel(playerLevel)));
-            
-            // Прогресс до следующего уровня
-            int progressPercent = (int)(progress * 100);
-            tooltip.add(Text.literal("Прогресс: " + progressPercent + "%")
-                    .formatted(Formatting.GREEN));
-            
-            // Опыт
-            tooltip.add(Text.literal("Опыт: " + currentExp + " / " + expForNextLevel)
-                    .formatted(Formatting.AQUA));
-            
-            // Класс игрока
-            String playerClass = QuestIntegration.getPlayerClass(client.player);
-            String localizedClass = QuestIntegration.getLocalizedClassName(playerClass);
-            tooltip.add(Text.literal("Класс: " + localizedClass)
-                    .formatted(Formatting.GOLD));
-            
-            context.drawTooltip(textRenderer, tooltip, mouseX, mouseY);
-        }
-    }
-    
-    /**
-     * Получает форматирование для уровня
-     */
-    private Formatting getFormattingForLevel(int level) {
-        if (level <= 10) return Formatting.WHITE;
-        else if (level <= 20) return Formatting.GREEN;
-        else if (level <= 30) return Formatting.YELLOW;
-        else if (level <= 40) return Formatting.GOLD;
-        else return Formatting.RED;
-    }
+
     
     /**
      * Отрисовка списка квестов
@@ -246,42 +156,12 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
         return validQuests;
     }
     
-    /**
-     * Получает цвет для отображения уровня
-     */
-    private int getRarityColor(int level) {
-        if (level <= 10) return 0xFFFFFF;      // Белый
-        else if (level <= 20) return 0x00FF00; // Зеленый
-        else if (level <= 30) return 0xFFD700; // Золотой
-        else if (level <= 40) return 0xFF8C00; // Оранжевый
-        else return 0xFF0000;                   // Красный
-    }
+
 
     @Override
     protected void init() {
         super.init();
         titleY = 6;
-
-        int x = (width - backgroundWidth) / 2;
-        int y = (height - backgroundHeight) / 2;
-
-        // Кнопка "Взять квест"
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.translatable("gui.origins.bounty_board.take"),
-                button -> takeQuest()
-        ).dimensions(x + 8, y + 130, 70, 20).build());
-
-        // Кнопка "Сдать квест"
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.translatable("gui.origins.bounty_board.complete"),
-                button -> completeQuest()
-        ).dimensions(x + 88, y + 130, 80, 20).build());
-        
-        // Кнопка "Обновить список"
-        this.addDrawableChild(ButtonWidget.builder(
-                Text.translatable("gui.origins.bounty_board.refresh"),
-                button -> refreshQuests()
-        ).dimensions(x + 178, y + 130, 80, 20).build());
     }
 
     @Override
@@ -326,28 +206,65 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
         return super.mouseScrolled(mouseX, mouseY, delta);
     }
 
-    private void takeQuest() {
-        Quest selectedQuest = handler.getSelectedQuest();
-        if (selectedQuest != null && client != null && client.player != null) {
-            handler.acceptQuest(selectedQuest);
-            client.player.sendMessage(
-                    Text.translatable("gui.origins.bounty_board.quest_accepted"),
-                    true
-            );
-        }
-    }
 
-    private void completeQuest() {
-        Quest selectedQuest = handler.getSelectedQuest();
-        if (selectedQuest != null && client != null && client.player != null) {
-            handler.completeQuest(selectedQuest, client.player);
+    
+
+    
+    /**
+     * Получает текст цели квеста
+     */
+    private String getObjectiveText(QuestObjective objective) {
+        switch (objective.getType()) {
+            case COLLECT:
+                return "Собрать: " + getItemName(objective.getTarget()) + " x" + objective.getAmount();
+            case KILL:
+                return "Убить: " + getEntityName(objective.getTarget()) + " x" + objective.getAmount();
+            case CRAFT:
+                return "Создать: " + getItemName(objective.getTarget()) + " x" + objective.getAmount();
+            default:
+                return objective.getTarget() + " x" + objective.getAmount();
         }
     }
     
-    private void refreshQuests() {
-        if (handler != null) {
-            handler.refreshQuests();
+    /**
+     * Получает сокращенный текст цели квеста для билета
+     */
+    private String getShortObjectiveText(QuestObjective objective) {
+        String itemName = getItemName(objective.getTarget());
+        if (itemName.length() > 12) itemName = itemName.substring(0, 9) + "...";
+        
+        switch (objective.getType()) {
+            case COLLECT:
+                return itemName + " x" + objective.getAmount();
+            case KILL:
+                return "Убить x" + objective.getAmount();
+            case CRAFT:
+                return "Создать x" + objective.getAmount();
+            default:
+                return itemName + " x" + objective.getAmount();
         }
+    }
+    
+    /**
+     * Получает читаемое название предмета
+     */
+    private String getItemName(String itemId) {
+        String[] parts = itemId.replace("minecraft:", "").split("_");
+        StringBuilder name = new StringBuilder();
+        
+        for (String part : parts) {
+            if (name.length() > 0) name.append(" ");
+            name.append(part.substring(0, 1).toUpperCase()).append(part.substring(1));
+        }
+        
+        return name.toString();
+    }
+    
+    /**
+     * Получает читаемое название сущности
+     */
+    private String getEntityName(String entityId) {
+        return getItemName(entityId);
     }
     
     public BountyBoardScreenHandler getHandler() {
