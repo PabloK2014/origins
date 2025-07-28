@@ -13,9 +13,9 @@ public class Quest {
     private final int level;
     private final String title;
     private final String description;
-    private final QuestObjective objective;
+    private QuestObjective objective;
     private final int timeLimit; // в минутах
-    private final QuestReward reward;
+    private QuestReward reward;
     
     public Quest(String id, String playerClass, int level, String title, String description,
                 QuestObjective objective, int timeLimit, QuestReward reward) {
@@ -178,6 +178,20 @@ public class Quest {
         } else {
             return Text.literal(remainingMinutes + " мин").formatted(Formatting.GREEN);
         }
+    }
+    
+    /**
+     * Добавляет или заменяет цель квеста
+     */
+    public void addObjective(QuestObjective newObjective) {
+        this.objective = newObjective;
+    }
+    
+    /**
+     * Добавляет или заменяет награду квеста
+     */
+    public void addReward(QuestReward newReward) {
+        this.reward = newReward;
     }
     
     /**

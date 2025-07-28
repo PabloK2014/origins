@@ -359,5 +359,14 @@
   "gui.origins.bounty_board.quest_accepted": "Квест принят!",
   "gui.origins.bounty_board.quest_completed": "Квест выполнен!",
   "gui.origins.bounty_board.no_quests": "Нет доступных квестов!",
-  "gui.origins.bounty_board.empty": "Пусто! Загляните позже!"
+  "gui.origins.bounty_board.empty": "Пусто! Загляните позже!",
+  
+  "quest.origins.objective.unknown": "Неизвестная цель",
+  "quest.origins.accepted": "Квест принят: %s",
+  "quest.origins.completed": "Квест выполнен: %s",
+  
+  "item.origins.quest_ticket_common": "Билет квеста (Обычный)",
+  "item.origins.quest_ticket_uncommon": "Билет квеста (Необычный)",
+  "item.origins.quest_ticket_rare": "Билет квеста (Редкий)",
+  "item.origins.quest_ticket_epic": "Билет квеста (Эпический)"
 }

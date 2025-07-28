@@ -3,6 +3,7 @@ package io.github.apace100.origins.quest.gui;
 import io.github.apace100.origins.quest.Quest;
 import io.github.apace100.origins.quest.QuestObjective;
 import io.github.apace100.origins.quest.QuestReward;
+import io.github.apace100.origins.quest.QuestTooltipContent;
 import io.github.apace100.origins.quest.ActiveQuest;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
@@ -20,13 +21,24 @@ import java.util.List;
 public class QuestTooltipRenderer {
     
     /**
-     * Отрисовывает подсказку для квеста
+     * Отрисовывает подсказку для квеста с fallback поддержкой
      */
     public static void renderQuestTooltip(DrawContext context, Quest quest, int mouseX, int mouseY) {
-        if (quest == null) return;
-        
         TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
-        List<Text> tooltip = buildQuestTooltip(quest);
+        List<Text> tooltip;
+        
+        if (quest == null) {
+            // Fallback для null квеста
+            tooltip = new ArrayList<>();
+            tooltip.add(Text.literal("No quest data available").formatted(Formatting.RED));
+        } else {
+            tooltip = buildQuestTooltip(quest);
+            
+            // Fallback если tooltip пустой
+            if (tooltip.isEmpty()) {
+                tooltip.add(Text.literal("No quest information available").formatted(Formatting.GRAY));
+            }
+        }
         
         context.drawTooltip(textRenderer, tooltip, mouseX, mouseY);
     }
@@ -44,50 +56,78 @@ public class QuestTooltipRenderer {
     }
     
     /**
-     * Строит список текста для подсказки квеста
+     * Строит список текста для подсказки квеста с fallback поддержкой
      */
     private static List<Text> buildQuestTooltip(Quest quest) {
         List<Text> tooltip = new ArrayList<>();
         
-        // Заголовок квеста
-        tooltip.add(Text.literal(quest.getTitle()).formatted(Formatting.YELLOW, Formatting.BOLD));
+        if (quest == null) {
+            tooltip.add(Text.literal("No quest data").formatted(Formatting.RED));
+            return tooltip;
+        }
         
-        // Описание квеста
-        if (!quest.getDescription().isEmpty()) {
-            tooltip.add(Text.literal(quest.getDescription()).formatted(Formatting.GRAY));
+        // Заголовок квеста с fallback
+        String title = quest.getTitle();
+        if (title != null && !title.isEmpty()) {
+            tooltip.add(Text.literal(title).formatted(Formatting.YELLOW, Formatting.BOLD));
+        } else {
+            tooltip.add(Text.literal("Unnamed Quest").formatted(Formatting.GRAY, Formatting.BOLD));
+        }
+        
+        // Описание квеста с fallback
+        String description = quest.getDescription();
+        if (description != null && !description.isEmpty()) {
+            tooltip.add(Text.literal(description).formatted(Formatting.GRAY));
             tooltip.add(Text.empty()); // Пустая строка для разделения
         }
         
-        // Класс квеста
-        tooltip.add(Text.literal("Класс: " + getLocalizedClassName(quest.getPlayerClass()))
-                .formatted(Formatting.GOLD));
+        // Класс квеста с fallback
+        String playerClass = quest.getPlayerClass();
+        if (playerClass != null && !playerClass.isEmpty()) {
+            tooltip.add(Text.literal("Класс: " + getLocalizedClassName(playerClass))
+                    .formatted(Formatting.GOLD));
+        } else {
+            tooltip.add(Text.literal("Класс: Не указан").formatted(Formatting.GRAY));
+        }
         
-        // Уровень квеста
-        tooltip.add(Text.literal("Уровень: " + quest.getLevel())
-                .formatted(getLevelFormatting(quest.getLevel())));
+        // Уровень квеста с fallback
+        int level = quest.getLevel();
+        if (level > 0) {
+            tooltip.add(Text.literal("Уровень: " + level)
+                    .formatted(getLevelFormatting(level)));
+        } else {
+            tooltip.add(Text.literal("Уровень: Не указан").formatted(Formatting.GRAY));
+        }
         
-        // Время выполнения
-        if (quest.getTimeLimit() > 0) {
-            tooltip.add(Text.literal("Время: " + quest.getTimeLimit() + " мин")
+        // Время выполнения с fallback
+        int timeLimit = quest.getTimeLimit();
+        if (timeLimit > 0) {
+            tooltip.add(Text.literal("Время: " + timeLimit + " мин")
                     .formatted(Formatting.RED));
+        } else {
+            tooltip.add(Text.literal("Время: Без ограничений").formatted(Formatting.GREEN));
         }
         
         tooltip.add(Text.empty()); // Разделитель
         
-        // Цель квеста
+        // Цель квеста с fallback
         tooltip.add(Text.literal("Цель:").formatted(Formatting.AQUA, Formatting.UNDERLINE));
         QuestObjective objective = quest.getObjective();
         if (objective != null) {
             tooltip.add(buildObjectiveText(objective));
+        } else {
+            tooltip.add(Text.literal("• Цель не указана").formatted(Formatting.GRAY));
         }
         
         tooltip.add(Text.empty()); // Разделитель
         
-        // Награда квеста
+        // Награда квеста с fallback
         tooltip.add(Text.literal("Награда:").formatted(Formatting.GREEN, Formatting.UNDERLINE));
         QuestReward reward = quest.getReward();
         if (reward != null) {
             tooltip.add(buildRewardText(reward));
+        } else {
+            tooltip.add(Text.literal("• Награда не указана").formatted(Formatting.GRAY));
         }
         
         return tooltip;
@@ -134,56 +174,91 @@ public class QuestTooltipRenderer {
     }
     
     /**
-     * Строит текст для цели квеста
+     * Строит текст для цели квеста с fallback поддержкой
      */
     private static Text buildObjectiveText(QuestObjective objective) {
+        if (objective == null) {
+            return Text.literal("• Цель не указана").formatted(Formatting.GRAY);
+        }
+        
         String prefix = objective.isCompleted() ? "✓ " : "• ";
         Formatting color = objective.isCompleted() ? Formatting.GREEN : Formatting.WHITE;
         
+        String target = objective.getTarget();
+        if (target == null || target.isEmpty()) {
+            target = "Неизвестная цель";
+        }
+        
+        int amount = objective.getAmount();
+        if (amount <= 0) amount = 1;
+        
         String objectiveText;
-        switch (objective.getType()) {
-            case COLLECT:
-                objectiveText = "Собрать " + getItemName(objective.getTarget()) + " x" + objective.getAmount();
-                break;
-            case KILL:
-                objectiveText = "Убить " + getEntityName(objective.getTarget()) + " x" + objective.getAmount();
-                break;
-            case CRAFT:
-                objectiveText = "Создать " + getItemName(objective.getTarget()) + " x" + objective.getAmount();
-                break;
-            default:
-                objectiveText = objective.getTarget() + " x" + objective.getAmount();
-                break;
+        try {
+            switch (objective.getType()) {
+                case COLLECT:
+                    objectiveText = "Собрать " + getItemName(target) + " x" + amount;
+                    break;
+                case KILL:
+                    objectiveText = "Убить " + getEntityName(target) + " x" + amount;
+                    break;
+                case CRAFT:
+                    objectiveText = "Создать " + getItemName(target) + " x" + amount;
+                    break;
+                default:
+                    objectiveText = target + " x" + amount;
+                    break;
+            }
+        } catch (Exception e) {
+            // Fallback если что-то пошло не так
+            objectiveText = "Неизвестная цель x" + amount;
         }
         
         return Text.literal(prefix + objectiveText).formatted(color);
     }
     
     /**
-     * Строит текст для награды квеста
+     * Строит текст для награды квеста с fallback поддержкой
      */
     private static Text buildRewardText(QuestReward reward) {
+        if (reward == null) {
+            return Text.literal("• Награда не указана").formatted(Formatting.GRAY);
+        }
+        
         String rewardText;
-        if (reward.getType() == QuestReward.RewardType.SKILL_POINT_TOKEN) {
-            rewardText = "Токен опыта (" + reward.getExperience() + " опыта)";
-        } else {
+        try {
+            if (reward.getType() == QuestReward.RewardType.SKILL_POINT_TOKEN) {
+                int experience = reward.getExperience();
+                if (experience > 0) {
+                    rewardText = "Токен опыта (" + experience + " опыта)";
+                } else {
+                    rewardText = "Токен опыта";
+                }
+            } else {
+                rewardText = "Неизвестная награда";
+            }
+        } catch (Exception e) {
             rewardText = "Неизвестная награда";
         }
         
         Formatting color;
-        switch (reward.getTier()) {
-            case 1:
-                color = Formatting.WHITE;
-                break;
-            case 2:
-                color = Formatting.YELLOW;
-                break;
-            case 3:
-                color = Formatting.AQUA;
-                break;
-            default:
-                color = Formatting.GRAY;
-                break;
+        try {
+            int tier = reward.getTier();
+            switch (tier) {
+                case 1:
+                    color = Formatting.WHITE;
+                    break;
+                case 2:
+                    color = Formatting.YELLOW;
+                    break;
+                case 3:
+                    color = Formatting.AQUA;
+                    break;
+                default:
+                    color = Formatting.GRAY;
+                    break;
+            }
+        } catch (Exception e) {
+            color = Formatting.GRAY;
         }
         
         return Text.literal("• " + rewardText).formatted(color);

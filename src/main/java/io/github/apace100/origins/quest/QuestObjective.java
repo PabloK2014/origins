@@ -50,6 +50,16 @@ public class QuestObjective {
     }
     
     /**
+     * Устанавливает статус выполнения цели
+     */
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
+        if (completed && this.progress < this.amount) {
+            this.progress = this.amount;
+        }
+    }
+    
+    /**
      * Сбрасывает прогресс
      */
     public void resetProgress() {

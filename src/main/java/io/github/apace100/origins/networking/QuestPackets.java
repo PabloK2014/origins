@@ -39,7 +39,7 @@ public class QuestPackets {
                         if (player.currentScreenHandler instanceof BountyBoardScreenHandler bountyHandler) {
                             Quest quest = bountyHandler.getQuest(questIndex);
                             if (quest != null) {
-                                bountyHandler.acceptQuest(quest);
+                                bountyHandler.acceptQuest(quest, player);
                                 Origins.LOGGER.info("Игрок {} принял квест: {}", player.getName().getString(), quest.getId());
                             } else {
                                 Origins.LOGGER.warn("Квест с индексом {} не найден", questIndex);

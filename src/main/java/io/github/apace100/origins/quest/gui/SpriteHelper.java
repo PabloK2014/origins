@@ -171,4 +171,45 @@ public class SpriteHelper {
         int sliderY = y + (int)((height - SLIDER.height) * scrollProgress);
         drawVillagerSprite(context, x, sliderY, SLIDER);
     }
+    
+    /**
+     * Отрисовывает тень под элементом
+     */
+    public static void drawShadow(DrawContext context, int x, int y, int width, int height) {
+        // Простая тень - смещенный прямоугольник
+        context.fill(x, y, x + width, y + height, 0x80000000);
+    }
+    
+    /**
+     * Отрисовывает рамку вокруг области
+     */
+    public static void drawBorder(DrawContext context, int x, int y, int width, int height, int color) {
+        // Верхняя линия
+        context.fill(x, y, x + width, y + 1, color);
+        // Нижняя линия
+        context.fill(x, y + height - 1, x + width, y + height, color);
+        // Левая линия
+        context.fill(x, y, x + 1, y + height, color);
+        // Правая линия
+        context.fill(x + width - 1, y, x + width, y + height, color);
+    }
+    
+    /**
+     * Отрисовывает пунктирную рамку
+     */
+    public static void drawDashedBorder(DrawContext context, int x, int y, int width, int height, int color) {
+        // Верхняя и нижняя линии
+        for (int i = 0; i < width; i += 4) {
+            int segmentWidth = Math.min(2, width - i);
+            context.fill(x + i, y, x + i + segmentWidth, y + 1, color);
+            context.fill(x + i, y + height - 1, x + i + segmentWidth, y + height, color);
+        }
+        
+        // Левая и правая линии
+        for (int i = 0; i < height; i += 4) {
+            int segmentHeight = Math.min(2, height - i);
+            context.fill(x, y + i, x + 1, y + i + segmentHeight, color);
+            context.fill(x + width - 1, y + i, x + width, y + i + segmentHeight, color);
+        }
+    }
 }

@@ -27,6 +27,7 @@ public class QuestButton {
 
     private final BountyBoardScreen parent;
     private final int questIndex;
+    private Quest questData;
 
     public QuestButton(BountyBoardScreen parent, int questIndex) {
         this.parent = parent;
@@ -37,29 +38,61 @@ public class QuestButton {
      * Получает данные квеста для этой кнопки
      */
     public Quest getQuestData() {
+        if (questData != null) {
+            return questData;
+        }
         return parent.getHandler().getQuest(questIndex);
+    }
+    
+    /**
+     * Устанавливает данные квеста для этой кнопки
+     */
+    public void setQuestData(Quest quest) {
+        this.questData = quest;
+    }
+    
+    /**
+     * Получает квест (алиас для getQuestData для совместимости)
+     */
+    public Quest getQuest() {
+        return getQuestData();
     }
 
     /**
      * Проверяет, выбрана ли эта кнопка
      */
     public boolean isSelected() {
-        return parent.getHandler().getSelectedQuestIndex() == questIndex;
+        Quest currentQuest = getQuestData();
+        Quest selectedQuest = parent.getHandler().getSelectedQuest();
+        
+        if (currentQuest == null || selectedQuest == null) {
+            return false;
+        }
+        
+        // Сравниваем по ID квеста, а не по индексу
+        return currentQuest.getId().equals(selectedQuest.getId());
     }
 
     /**
      * Отрисовка кнопки квеста
      */
     public void render(DrawContext context, int x, int y, int mouseX, int mouseY, boolean hovered) {
+        render(context, x, y, mouseX, mouseY, hovered, false);
+    }
+    
+    /**
+     * Отрисовка кнопки квеста с поддержкой выбора
+     */
+    public void render(DrawContext context, int x, int y, int mouseX, int mouseY, boolean hovered, boolean selected) {
         Quest quest = getQuestData();
         if (quest == null) return;
 
         // Отрисовка фона кнопки
-        SpriteHelper.drawQuestButton(context, x, y, WIDTH, isSelected(), hovered);
+        SpriteHelper.drawQuestButton(context, x, y, WIDTH, selected, hovered);
 
         // Отрисовка названия квеста в центре
         String questTitle = quest.getTitle();
-        int textColor = isSelected() ? 0xFFFF00 : 0xFFFFFF; // Желтый если выбран, белый если нет
+        int textColor = selected ? 0xFFFF00 : (hovered ? 0xFFFFAA : 0xFFFFFF); // Желтый если выбран, светло-желтый при наведении, белый обычно
         int textX = x + 25; // Отступ слева для иконок целей
         int textY = y + (HEIGHT - 8) / 2; // Центрируем по вертикали
         context.drawText(MinecraftClient.getInstance().textRenderer, questTitle, textX, textY, textColor, false);

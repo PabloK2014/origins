@@ -16,8 +16,10 @@ import java.util.List;
 
 public class BountyBoardScreenHandler extends ScreenHandler {
     private final BountyBoardBlockEntity blockEntity;
+    private final QuestInventory questInventory;
     private final Inventory inventory;
-    private int selectedQuestIndex = -1;
+    private final QuestDragHandler dragHandler;
+    private final QuestMaskManager maskManager;
 
     public BountyBoardScreenHandler(int syncId, PlayerInventory playerInventory, PacketByteBuf buf) {
         this(syncId, playerInventory, (BountyBoardBlockEntity) playerInventory.player.getWorld().getBlockEntity(buf.readBlockPos()));
@@ -26,8 +28,12 @@ public class BountyBoardScreenHandler extends ScreenHandler {
     public BountyBoardScreenHandler(int syncId, PlayerInventory playerInventory, BountyBoardBlockEntity blockEntity) {
         super(QuestRegistry.BOUNTY_BOARD_SCREEN_HANDLER, syncId);
         this.blockEntity = blockEntity;
-        this.inventory = new SimpleInventory(24); // 21 слот для квестов + 3 для декретов
+        this.questInventory = new QuestInventory(22, blockEntity); // 21 слот для квестов + 1 для выбранного
+        this.inventory = new SimpleInventory(3); // 3 слота для декретов
+        this.dragHandler = new QuestDragHandler();
+        this.maskManager = new QuestMaskManager();
         setupSlots(playerInventory);
+        initializeQuestMasking();
     }
 
     private void setupSlots(PlayerInventory playerInventory) {
@@ -37,13 +43,16 @@ public class BountyBoardScreenHandler extends ScreenHandler {
         int adjustY = 0;
         for (int j = 0; j < 3; j++) {
             for (int k = 0; k < 7; k++) {
-                addSlot(new BountySlot(inventory, k + j * 7, 8 + k * bountySlotSize + adjustX, 18 + j * bountySlotSize + adjustY));
+                addSlot(new QuestSlot(questInventory, k + j * 7, 8 + k * bountySlotSize + adjustX, 18 + j * bountySlotSize + adjustY));
             }
         }
 
+        // Слот для выбранного квеста
+        addSlot(new SelectedQuestSlot(questInventory, 21, 50, 50));
+
         // Слоты для декретов (3 слота справа)
         for (int j = 0; j < 3; j++) {
-            addSlot(new DecreeSlot(inventory, 21 + j, 317, 18 + j * 18));
+            addSlot(new DecreeSlot(inventory, j, 317, 18 + j * 18));
         }
 
         // Слоты инвентаря игрока (по умолчанию)
@@ -65,60 +74,147 @@ public class BountyBoardScreenHandler extends ScreenHandler {
                 blockEntity.getPos().getZ() + 0.5
         ) <= 64.0;
     }
+    
+    @Override
+    public void onSlotClick(int slotIndex, int button, net.minecraft.screen.slot.SlotActionType actionType, PlayerEntity player) {
+        io.github.apace100.origins.Origins.LOGGER.info("BountyBoardScreenHandler.onSlotClick: slotIndex={}, button={}, actionType={}, player={}", 
+            slotIndex, button, actionType, player != null ? player.getName().getString() : "null");
+        
+        // Обработка кликов по квестам
+        if (slotIndex >= 0 && slotIndex < 21) { // Quest slots
+            io.github.apace100.origins.Origins.LOGGER.info("Клик по слоту квеста: {}", slotIndex);
+            
+            Slot slot = this.slots.get(slotIndex);
+            io.github.apace100.origins.Origins.LOGGER.info("Слот: {}, является QuestSlot: {}", 
+                slot.getClass().getSimpleName(), slot instanceof QuestSlot);
+            
+            if (slot instanceof QuestSlot questSlot && !questSlot.isMasked()) {
+                io.github.apace100.origins.Origins.LOGGER.info("QuestSlot не замаскирован");
+                
+                Quest quest = questInventory.getQuest(slotIndex);
+                io.github.apace100.origins.Origins.LOGGER.info("Квест в слоте: {}", 
+                    quest != null ? quest.getTitle() : "null");
+                
+                if (quest != null) {
+                    if (actionType == net.minecraft.screen.slot.SlotActionType.PICKUP) {
+                        io.github.apace100.origins.Origins.LOGGER.info("Действие PICKUP");
+                        
+                        if (button == 0) { // Left click - принимаем квест
+                            io.github.apace100.origins.Origins.LOGGER.info("Левый клик - попытка принять квест: {}", quest.getTitle());
+                            
+                            if (acceptQuest(quest, player)) {
+                                io.github.apace100.origins.Origins.LOGGER.info("Квест {} успешно принят", quest.getTitle());
+                                return; // Квест принят, не продолжаем обработку
+                            } else {
+                                io.github.apace100.origins.Origins.LOGGER.warn("Не удалось принять квест: {}", quest.getTitle());
+                            }
+                        } else if (button == 1) { // Right click - выбираем квест
+                            io.github.apace100.origins.Origins.LOGGER.info("Правый клик - выбираем квест: {}", quest.getTitle());
+                            setSelectedQuestIndex(slotIndex);
+                            return;
+                        }
+                    } else {
+                        io.github.apace100.origins.Origins.LOGGER.info("Действие не PICKUP: {}", actionType);
+                    }
+                } else {
+                    io.github.apace100.origins.Origins.LOGGER.warn("Квест в слоте {} равен null", slotIndex);
+                }
+            } else {
+                io.github.apace100.origins.Origins.LOGGER.warn("Слот {} не является QuestSlot или замаскирован", slotIndex);
+            }
+        } else if (slotIndex == 21) { // Selected quest slot
+            io.github.apace100.origins.Origins.LOGGER.info("Клик по слоту выбранного квеста");
+            if (isDragging()) {
+                finishDragging(slotIndex);
+                return;
+            }
+        } else {
+            io.github.apace100.origins.Origins.LOGGER.info("Клик по другому слоту: {}", slotIndex);
+        }
+        
+        // Отмена перетаскивания при клике в другие области
+        if (isDragging() && actionType == net.minecraft.screen.slot.SlotActionType.PICKUP) {
+            io.github.apace100.origins.Origins.LOGGER.info("Отмена перетаскивания");
+            cancelDragging();
+            return;
+        }
+        
+        io.github.apace100.origins.Origins.LOGGER.info("Передача клика в super.onSlotClick");
+        super.onSlotClick(slotIndex, button, actionType, player);
+    }
 
     @Override
     public ItemStack quickMove(PlayerEntity player, int slot) {
         ItemStack itemStack = ItemStack.EMPTY;
-        Slot slot2 = this.slots.get(slot);
-        if (slot2 != null && slot2.hasStack()) {
-            ItemStack itemStack2 = slot2.getStack();
+        Slot slotObj = this.slots.get(slot);
+        if (slotObj != null && slotObj.hasStack()) {
+            ItemStack itemStack2 = slotObj.getStack();
             itemStack = itemStack2.copy();
-            if (slot < inventory.size()) {
-                if (!this.insertItem(itemStack2, inventory.size(), this.slots.size(), true)) {
+            
+            // 21 quest slots + 1 selected quest slot + 3 decree slots = 25 total special slots
+            int specialSlotsCount = 25;
+            
+            // Обработка квестов через drag-and-drop
+            if (slot < 21 && QuestItem.isQuestStack(itemStack2)) {
+                // Попытка переместить квест в selected slot
+                Quest quest = QuestItem.getQuestFromStack(itemStack2);
+                if (quest != null && canPlaceQuestInSlot(quest, 21)) {
+                    acceptQuestViaDragDrop(quest);
                     return ItemStack.EMPTY;
                 }
-            } else if (!this.insertItem(itemStack2, 0, inventory.size(), false)) {
-                return ItemStack.EMPTY;
+            }
+            
+            if (slot < specialSlotsCount) {
+                // From special slots to player inventory
+                if (!this.insertItem(itemStack2, specialSlotsCount, this.slots.size(), true)) {
+                    return ItemStack.EMPTY;
+                }
+            } else {
+                // From player inventory to special slots (only decree slots can accept items)
+                if (!this.insertItem(itemStack2, 22, 25, false)) {
+                    return ItemStack.EMPTY;
+                }
             }
 
             if (itemStack2.isEmpty()) {
-                slot2.setStack(ItemStack.EMPTY);
+                slotObj.setStack(ItemStack.EMPTY);
             } else {
-                slot2.markDirty();
+                slotObj.markDirty();
             }
         }
         return itemStack;
     }
 
     public List<Quest> getAvailableQuests() {
-        return blockEntity != null ? blockEntity.getAvailableQuests() : List.of();
+        return questInventory.getAvailableQuests();
     }
 
     public int getSelectedQuestIndex() {
-        return selectedQuestIndex;
+        return questInventory.getSelectedIndex();
     }
 
     public void setSelectedQuestIndex(int index) {
-        this.selectedQuestIndex = index;
+        questInventory.selectQuest(index);
+        // Auto-sync selection state
+        syncQuestState();
     }
 
     public Quest getSelectedQuest() {
-        if (blockEntity == null || selectedQuestIndex < 0 || selectedQuestIndex >= blockEntity.getAvailableQuests().size()) {
-            return null;
-        }
-        return blockEntity.getAvailableQuests().get(selectedQuestIndex);
+        return questInventory.getSelectedQuest();
     }
     
     public Quest getQuest(int index) {
-        if (blockEntity == null || index < 0 || index >= blockEntity.getAvailableQuests().size()) {
-            return null;
-        }
-        return blockEntity.getAvailableQuests().get(index);
+        return questInventory.getQuest(index);
+    }
+    
+    public QuestInventory getQuestInventory() {
+        return questInventory;
     }
 
     public void acceptQuest(Quest quest) {
-        if (quest != null && quest.getPlayerClass().equals(getCurrentPlayerClass())) {
-            // Логика принятия квеста (можно добавить сохранение в будущем)
+        PlayerEntity player = getCurrentPlayer();
+        if (player != null) {
+            acceptQuest(quest, player);
         }
     }
 
@@ -141,10 +237,257 @@ public class BountyBoardScreenHandler extends ScreenHandler {
         if (blockEntity != null) {
             blockEntity.refreshQuests();
         }
+        questInventory.refreshQuests();
+        // Auto-sync after refresh
+        syncQuestState();
     }
     
     public BountyBoardBlockEntity getBlockEntity() {
         return blockEntity;
+    }
+    
+    /**
+     * Маскирует слот квеста
+     */
+    public void maskQuestSlot(int index) {
+        questInventory.maskSlot(index);
+    }
+    
+    /**
+     * Снимает маскировку со слота квеста
+     */
+    public void unmaskQuestSlot(int index) {
+        questInventory.unmaskSlot(index);
+    }
+    
+    /**
+     * Проверяет, замаскирован ли слот квеста
+     */
+    public boolean isQuestSlotMasked(int index) {
+        return questInventory.isSlotMasked(index);
+    }
+    
+    /**
+     * Маскирует похожие квесты при принятии квеста
+     */
+    public void maskSimilarQuests(Quest quest) {
+        questInventory.maskSimilarQuests(quest);
+    }
+    
+    /**
+     * Снимает маскировку с похожих квестов при отмене квеста
+     */
+    public void unmaskSimilarQuests(Quest quest) {
+        questInventory.unmaskSimilarQuests(quest);
+    }
+    
+    /**
+     * Получает список видимых квестов
+     */
+    public List<Quest> getVisibleQuests() {
+        return questInventory.getVisibleQuests();
+    }
+    
+    /**
+     * Инициализирует маскировку квестов на основе активных квестов игрока
+     */
+    private void initializeQuestMasking() {
+        // TODO: Получить UUID игрока и инициализировать маскировку
+        // Пока что оставляем пустым
+    }
+    
+    /**
+     * Получает обработчик drag-and-drop
+     */
+    public QuestDragHandler getDragHandler() {
+        return dragHandler;
+    }
+    
+    /**
+     * Получает менеджер маскировки квестов
+     */
+    public QuestMaskManager getMaskManager() {
+        return maskManager;
+    }
+    
+    /**
+     * Обрабатывает начало перетаскивания квеста
+     */
+    public boolean startDragging(int slotIndex, Quest quest) {
+        if (quest == null) return false;
+        return dragHandler.startDrag(quest, slotIndex, 0, 0); // Координаты мыши будут обновлены позже
+    }
+    
+    /**
+     * Обрабатывает завершение перетаскивания квеста
+     */
+    public boolean finishDragging(int targetSlotIndex) {
+        QuestDragHandler.DragResult result = dragHandler.completeDrag(0, 0, questInventory);
+        return result == QuestDragHandler.DragResult.SUCCESS;
+    }
+    
+    /**
+     * Отменяет текущее перетаскивание
+     */
+    public void cancelDragging() {
+        dragHandler.cancelDrag();
+    }
+    
+    /**
+     * Проверяет, происходит ли сейчас перетаскивание
+     */
+    public boolean isDragging() {
+        return dragHandler.isDragging();
+    }
+    
+    /**
+     * Получает квест, который сейчас перетаскивается
+     */
+    public Quest getDraggedQuest() {
+        return dragHandler.getDraggedQuest();
+    }
+    
+    /**
+     * Проверяет, может ли квест быть помещен в указанный слот
+     */
+    public boolean canPlaceQuestInSlot(Quest quest, int slotIndex) {
+        if (slotIndex == 21) { // SelectedQuestSlot
+            return quest != null && quest.getPlayerClass().equals(getCurrentPlayerClass());
+        }
+        return false; // Обычные слоты квестов не принимают перетаскиваемые квесты
+    }
+    
+    /**
+     * Принимает квест (основной метод)
+     */
+    public boolean acceptQuest(Quest quest, PlayerEntity player) {
+        io.github.apace100.origins.Origins.LOGGER.info("BountyBoardScreenHandler.acceptQuest: quest={}, player={}", 
+            quest != null ? quest.getTitle() : "null", 
+            player != null ? player.getName().getString() : "null");
+        
+        if (quest == null || player == null) {
+            io.github.apace100.origins.Origins.LOGGER.warn("Квест или игрок равен null");
+            return false;
+        }
+        
+        try {
+            io.github.apace100.origins.Origins.LOGGER.info("Получаем QuestTicketAcceptanceHandler");
+            // Используем QuestTicketAcceptanceHandler для принятия квеста
+            QuestTicketAcceptanceHandler acceptanceHandler = QuestTicketAcceptanceHandler.getInstance();
+            
+            io.github.apace100.origins.Origins.LOGGER.info("Вызываем acceptQuestFromBoard с blockEntity: {}", 
+                blockEntity != null ? blockEntity.getPos() : "null");
+            
+            boolean result = acceptanceHandler.acceptQuestFromBoard(player, quest, blockEntity);
+            
+            io.github.apace100.origins.Origins.LOGGER.info("Результат принятия квеста: {}", result);
+            return result;
+        } catch (Exception e) {
+            io.github.apace100.origins.Origins.LOGGER.error("Ошибка при принятии квеста в ScreenHandler: {}", e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    /**
+     * Обрабатывает принятие квеста через drag-and-drop
+     */
+    public void acceptQuestViaDragDrop(Quest quest) {
+        if (quest != null && canAcceptQuest(quest)) {
+            PlayerEntity player = getCurrentPlayer();
+            if (player != null) {
+                acceptQuest(quest, player);
+            }
+            // TODO: Получить UUID игрока и замаскировать похожие квесты
+            // QuestMaskManager.maskSimilarQuests(playerUUID, quest, questInventory.getAvailableQuests());
+            // Синхронизация с клиентом будет добавлена позже
+        }
+    }
+    
+    /**
+     * Проверяет, может ли игрок принять квест
+     */
+    private boolean canAcceptQuest(Quest quest) {
+        if (quest == null) return false;
+        
+        // Проверяем класс игрока
+        if (!quest.getPlayerClass().equals(getCurrentPlayerClass())) {
+            return false;
+        }
+        
+        // Проверяем, не принят ли уже этот квест
+        // TODO: Добавить проверку активных квестов игрока
+        
+        return true;
+    }
+    
+    /**
+     * Обновляет состояние drag-and-drop
+     */
+    public void updateDragState(double mouseX, double mouseY) {
+        dragHandler.updateDrag((int)mouseX, (int)mouseY);
+    }
+    
+    /**
+     * Синхронизирует состояние квестов с клиентом
+     */
+    public void syncQuestState() {
+        PlayerEntity player = getCurrentPlayer();
+        if (player instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
+            syncQuestState(serverPlayer);
+        }
+        questInventory.markDirty();
+    }
+    
+    /**
+     * Синхронизирует состояние квестов с конкретным игроком
+     */
+    public void syncQuestState(net.minecraft.server.network.ServerPlayerEntity player) {
+        try {
+            // Send quest list update
+            QuestSyncPacket questPacket = QuestSyncPacket.create(getAvailableQuests());
+            net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
+                player, 
+                QuestSyncPacket.ID, 
+                questPacket.toPacketByteBuf()
+            );
+            
+            // Send selection state update
+            SelectionSyncPacket selectionPacket = SelectionSyncPacket.create(
+                getSelectedQuestIndex(), 
+                getSelectedQuest() != null ? getSelectedQuest().getId() : null
+            );
+            net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
+                player, 
+                SelectionSyncPacket.ID, 
+                selectionPacket.toPacketByteBuf()
+            );
+            
+            // Send mask state update
+            MaskSyncPacket maskPacket = MaskSyncPacket.create(questInventory.getMaskedSlots());
+            net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
+                player, 
+                MaskSyncPacket.ID, 
+                maskPacket.toPacketByteBuf()
+            );
+            
+            io.github.apace100.origins.Origins.LOGGER.info("Quest state synchronized for player {}", player.getName().getString());
+            
+        } catch (Exception e) {
+            io.github.apace100.origins.Origins.LOGGER.error("Failed to sync quest state: {}", e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    @Override
+    public void onClosed(PlayerEntity player) {
+        super.onClosed(player);
+        // Отменяем любое активное перетаскивание при закрытии экрана
+        if (isDragging()) {
+            cancelDragging();
+        }
+        // TODO: Сохранить состояние маскировки
+        // maskManager.savePlayerMask(playerUUID);
     }
 
     private boolean hasRequiredItems(PlayerEntity player, Quest quest) {
@@ -220,13 +563,21 @@ public class BountyBoardScreenHandler extends ScreenHandler {
         player.sendMessage(Text.translatable("gui.origins.bounty_board.reward_received"), false);
     }
 
-    private String getCurrentPlayerClass() {
+    /**
+     * Получает текущего игрока
+     */
+    private PlayerEntity getCurrentPlayer() {
         if (blockEntity != null && blockEntity.getWorld() != null) {
-            PlayerEntity nearestPlayer = blockEntity.getWorld().getClosestPlayer(
+            return blockEntity.getWorld().getClosestPlayer(
                     blockEntity.getPos().getX(), blockEntity.getPos().getY(), blockEntity.getPos().getZ(), 10.0, false);
-            if (nearestPlayer instanceof ServerPlayerEntity serverPlayer) {
-                return getPlayerOriginClass(serverPlayer);
-            }
+        }
+        return null;
+    }
+    
+    private String getCurrentPlayerClass() {
+        PlayerEntity player = getCurrentPlayer();
+        if (player instanceof ServerPlayerEntity serverPlayer) {
+            return getPlayerOriginClass(serverPlayer);
         }
         return "human";
     }
@@ -266,6 +617,22 @@ public class BountyBoardScreenHandler extends ScreenHandler {
         @Override
         public boolean canInsert(ItemStack stack) {
             return false; // Нельзя вставлять предметы в слоты квестов
+        }
+    }
+
+    /**
+     * Получает BlockEntity доски объявлений
+     */
+    public BountyBoardBlockEntity getBoardEntity() {
+        return blockEntity;
+    }
+    
+    /**
+     * Обновляет список доступных квестов
+     */
+    public void refreshAvailableQuests() {
+        if (blockEntity != null) {
+            blockEntity.refreshQuests();
         }
     }
 

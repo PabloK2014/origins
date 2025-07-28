@@ -29,6 +29,12 @@ public class QuestRegistry {
     public static final Item SKILL_POINT_TOKEN_TIER2 = new SkillPointToken(new Item.Settings(), 1000);
     public static final Item SKILL_POINT_TOKEN_TIER3 = new SkillPointToken(new Item.Settings(), 1500);
     
+    // Билеты квестов разных редкостей
+    public static final Item QUEST_TICKET_COMMON = new QuestTicketItem(new Item.Settings(), Quest.QuestRarity.COMMON);
+    public static final Item QUEST_TICKET_UNCOMMON = new QuestTicketItem(new Item.Settings(), Quest.QuestRarity.UNCOMMON);
+    public static final Item QUEST_TICKET_RARE = new QuestTicketItem(new Item.Settings(), Quest.QuestRarity.RARE);
+    public static final Item QUEST_TICKET_EPIC = new QuestTicketItem(new Item.Settings(), Quest.QuestRarity.EPIC);
+    
     public static void register() {
         Origins.LOGGER.info("Регистрация системы квестов...");
         
@@ -53,6 +59,12 @@ public class QuestRegistry {
         Registry.register(Registries.ITEM, new Identifier(Origins.MODID, "skill_point_token_tier1"), SKILL_POINT_TOKEN_TIER1);
         Registry.register(Registries.ITEM, new Identifier(Origins.MODID, "skill_point_token_tier2"), SKILL_POINT_TOKEN_TIER2);
         Registry.register(Registries.ITEM, new Identifier(Origins.MODID, "skill_point_token_tier3"), SKILL_POINT_TOKEN_TIER3);
+        
+        // Регистрируем билеты квестов
+        Registry.register(Registries.ITEM, new Identifier(Origins.MODID, "quest_ticket_common"), QUEST_TICKET_COMMON);
+        Registry.register(Registries.ITEM, new Identifier(Origins.MODID, "quest_ticket_uncommon"), QUEST_TICKET_UNCOMMON);
+        Registry.register(Registries.ITEM, new Identifier(Origins.MODID, "quest_ticket_rare"), QUEST_TICKET_RARE);
+        Registry.register(Registries.ITEM, new Identifier(Origins.MODID, "quest_ticket_epic"), QUEST_TICKET_EPIC);
         
         Origins.LOGGER.info("Система квестов зарегистрирована успешно!");
     }

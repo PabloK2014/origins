@@ -1,5 +1,6 @@
 package io.github.apace100.origins.quest;
 
+import io.github.apace100.origins.Origins;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -410,6 +411,6 @@ public class BountyBoardBlockEntity extends BlockEntity implements ExtendedScree
             }
         };
     }
-
+    
 
 }

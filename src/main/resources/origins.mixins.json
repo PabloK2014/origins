@@ -50,7 +50,10 @@
     "WarriorAttackMixin",
     "WarriorDamageBoostMixin",
     "WarriorKillMixin",
-    "WarriorRegenMixin"
+    "WarriorRegenMixin",
+    "QuestCraftingMixin",
+    "QuestKillMixin",
+    "QuestPlayerTickMixin"
   ],
   "client": [
     "BlacksmithQualityTooltipInfoMixin",

@@ -24,8 +24,22 @@ public class BountyBoard extends BlockWithEntity {
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         if (!world.isClient) {
             BlockEntity blockEntity = world.getBlockEntity(pos);
-            if (blockEntity instanceof BountyBoardBlockEntity) {
-                player.openHandledScreen((BountyBoardBlockEntity) blockEntity);
+            if (blockEntity instanceof BountyBoardBlockEntity board) {
+                
+                // Проверяем, держит ли игрок Shift и билет квеста
+                if (player.isSneaking()) {
+                    net.minecraft.item.ItemStack heldItem = player.getStackInHand(hand);
+                    if (QuestTicketItem.isQuestTicket(heldItem)) {
+                        // Пытаемся завершить квест
+                        QuestTicketAcceptanceHandler handler = QuestTicketAcceptanceHandler.getInstance();
+                        boolean completed = handler.completeQuestAtBoard(player, heldItem, board);
+                        
+                        return completed ? ActionResult.SUCCESS : ActionResult.FAIL;
+                    }
+                }
+                
+                // Обычное открытие интерфейса доски
+                player.openHandledScreen(board);
             }
         }
         return ActionResult.SUCCESS;

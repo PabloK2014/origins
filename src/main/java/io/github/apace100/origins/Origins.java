@@ -97,12 +97,16 @@ public class Origins implements ModInitializer, OrderedResourceListenerInitializ
 		
 		// Регистрируем пакеты квестов
 		io.github.apace100.origins.networking.QuestPackets.registerServerPackets();
+		io.github.apace100.origins.networking.QuestAcceptancePacket.registerServerHandler();
 		
 		// Инициализируем реестр профессий
 		io.github.apace100.origins.profession.ProfessionRegistry.init();
 		
 		// Регистрируем обработчик активации навыков
 		io.github.apace100.origins.networking.SkillActivationHandler.register();
+		
+		// Инициализируем обработчики событий квестов
+		io.github.apace100.origins.quest.QuestEventHandlers.initialize();
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			OriginCommand.register(dispatcher);
@@ -111,6 +115,7 @@ public class Origins implements ModInitializer, OrderedResourceListenerInitializ
 			io.github.apace100.origins.command.ResetOriginCommand.register(dispatcher);
 			io.github.apace100.origins.command.SetActiveSkillCommand.register(dispatcher);
 			io.github.apace100.origins.command.JsonDiagnosticCommand.register(dispatcher, registryAccess);
+			io.github.apace100.origins.command.ClearQuestsCommand.register(dispatcher, registryAccess);
 		});
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register((content) -> {
 			content.add(ModItems.ORB_OF_ORIGIN);

@@ -28,6 +28,8 @@ public class OriginHudOverlay {
     private static final int EXP_OVERLAY_V = 29;  // Y координата оверлея опыта
     private static final int EXP_TEXT_COLOR = 0xFFFF55; // Желтый цвет для текста опыта
     
+
+    
     // 2. Энергия (вторая текстура)
     private static final int ENERGY_V = 9;      // Y координата полоски энергии
     private static final int ENERGY_TEXT_COLOR = 0x55FFFF; // Голубой цвет для текста энергии
