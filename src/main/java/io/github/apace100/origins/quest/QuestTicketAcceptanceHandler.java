@@ -94,14 +94,17 @@ public class QuestTicketAcceptanceHandler {
                 return false;
             }
             
+            Origins.LOGGER.info("Билет добавлен в инвентарь, проверяем...");
+            inventoryManager.debugInventory(player);
+            
             // Помечаем билет как принятый
             ItemStack addedTicket = inventoryManager.getActiveQuestTicket(player, quest.getId());
             if (!addedTicket.isEmpty()) {
                 QuestTicketItem.markAsAccepted(addedTicket, System.currentTimeMillis());
                 Origins.LOGGER.info("Билет помечен как принятый");
+            } else {
+                Origins.LOGGER.warn("Не удалось найти добавленный билет квеста {}", quest.getId());
             }
-            
-            Origins.LOGGER.info("Билет добавлен в инвентарь");
             
             Origins.LOGGER.info("Регистрируем квест в QuestManager");
             // Регистрируем квест как принятый в QuestManager

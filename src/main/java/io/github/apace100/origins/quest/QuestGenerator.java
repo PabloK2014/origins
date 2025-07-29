@@ -38,7 +38,8 @@ public class QuestGenerator {
             "courier_quests.json",
             "brewer_quests.json",
             "blacksmith_quests.json",
-            "miner_quests.json"
+            "miner_quests.json",
+            "test_quests.json"
         };
         
         for (String fileName : questFiles) {
@@ -127,11 +128,16 @@ public class QuestGenerator {
                 String type = objJson.get("type").getAsString();
                 
                 // Поддерживаем как target, так и item для совместимости
-                String target = "";
+                String target = null;
                 if (objJson.has("target")) {
                     target = objJson.get("target").getAsString();
                 } else if (objJson.has("item")) {
                     target = objJson.get("item").getAsString();
+                }
+                
+                if (target == null || target.isEmpty()) {
+                    Origins.LOGGER.error("Цель квеста не указана в JSON: " + json.get("id").getAsString());
+                    return null;
                 }
                 
                 int amount = objJson.get("amount").getAsInt();

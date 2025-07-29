@@ -41,7 +41,11 @@ public class Quest {
     
     // Методы для совместимости с интерфейсом (возвращают списки с одним элементом)
     public java.util.List<QuestObjective> getObjectives() { 
-        return java.util.Collections.singletonList(objective); 
+        if (objective != null) {
+            return java.util.Collections.singletonList(objective);
+        } else {
+            return new java.util.ArrayList<>();
+        }
     }
     
     public java.util.List<QuestReward> getRewards() { 
@@ -67,10 +71,10 @@ public class Quest {
      * Получает краткую информацию о квесте для отображения в списке
      */
     public Text getQuestInfo() {
-        return Text.literal(String.format("[%s] %s (%d мин)", 
-            getRarity().getDisplayName().getString(), 
-            title, 
-            timeLimit))
+        // Используем прямой текст вместо getString() чтобы сохранить переводы
+        return Text.literal("[")
+            .append(getRarity().getDisplayName())
+            .append("] " + title + " (" + timeLimit + " мин)")
             .formatted(getRarity().getColor());
     }
     

@@ -65,7 +65,7 @@ public class ActiveQuest {
         int completedObjectives = 0;
         
         for (QuestObjective objective : quest.getObjectives()) {
-            if (objective.isCompleted()) {
+            if (objective != null && objective.isCompleted()) {
                 completedObjectives++;
             }
         }
@@ -77,7 +77,9 @@ public class ActiveQuest {
      * Проверяет, завершен ли квест
      */
     public boolean isCompleted() {
-        return quest.getObjectives().stream().allMatch(QuestObjective::isCompleted);
+        return quest.getObjectives().stream()
+            .filter(obj -> obj != null)
+            .allMatch(QuestObjective::isCompleted);
     }
     
     @Override

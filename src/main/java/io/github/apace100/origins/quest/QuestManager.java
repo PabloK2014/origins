@@ -127,6 +127,77 @@ public class QuestManager {
     }
     
     /**
+     * Принимает квест для игрока (алиас для startQuest)
+     */
+    public void acceptQuest(PlayerEntity player, String questId) {
+        Origins.LOGGER.info("QuestManager.acceptQuest: player={}, questId={}", 
+            player.getName().getString(), questId);
+        
+        // Находим квест по ID
+        Quest quest = findQuestById(questId);
+        if (quest == null) {
+            Origins.LOGGER.warn("Квест с ID {} не найден", questId);
+            return;
+        }
+        
+        startQuest(player, quest);
+    }
+    
+    /**
+     * Находит квест по ID
+     */
+    private Quest findQuestById(String questId) {
+        // Сначала пробуем найти в загруженных квестах
+        for (List<Quest> quests : questsByClass.values()) {
+            for (Quest quest : quests) {
+                if (quest.getId().equals(questId)) {
+                    return quest;
+                }
+            }
+        }
+        
+        // Если не найден, пробуем сгенерировать через QuestGenerator
+        Origins.LOGGER.info("Квест {} не найден в загруженных, пробуем сгенерировать", questId);
+        
+        // Извлекаем класс из ID квеста (например, test_cook_2 -> cook)
+        String questClass = extractClassFromQuestId(questId);
+        if (questClass != null) {
+            List<Quest> generatedQuests = QuestGenerator.getRandomQuestsForProfession(questClass, 10);
+            for (Quest quest : generatedQuests) {
+                if (quest.getId().equals(questId)) {
+                    Origins.LOGGER.info("Найден сгенерированный квест: {}", questId);
+                    return quest;
+                }
+            }
+        }
+        
+        Origins.LOGGER.warn("Квест {} не найден ни в загруженных, ни в сгенерированных", questId);
+        return null;
+    }
+    
+    /**
+     * Извлекает класс из ID квеста
+     */
+    private String extractClassFromQuestId(String questId) {
+        if (questId == null) return null;
+        
+        // Ожидаем формат: test_CLASS_NUMBER или просто CLASS_something
+        if (questId.startsWith("test_")) {
+            String[] parts = questId.split("_");
+            if (parts.length >= 2) {
+                return parts[1]; // cook, warrior, etc.
+            }
+        } else {
+            String[] parts = questId.split("_");
+            if (parts.length >= 1) {
+                return parts[0]; // cook, warrior, etc.
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
      * Завершает квест для игрока
      */
     public void completeQuest(PlayerEntity player, Quest quest) {
@@ -419,7 +490,9 @@ public class QuestManager {
                 }
             }
             
-            // Удаляем билеты из инвентаря, которых нет в менеджере
+            // ВРЕМЕННО ОТКЛЮЧЕНО: Удаляем билеты из инвентаря, которых нет в менеджере
+            // Это может вызывать потерю билетов при перезагрузке
+            /*
             for (net.minecraft.item.ItemStack ticket : tickets) {
                 io.github.apace100.origins.quest.Quest quest = 
                     io.github.apace100.origins.quest.QuestItem.getQuestFromStack(ticket);
@@ -428,6 +501,7 @@ public class QuestManager {
                     inventoryManager.removeQuestTicketFromInventory(player, quest.getId());
                 }
             }
+            */
             
             Origins.LOGGER.info("Синхронизация завершена для игрока: {}", player.getName().getString());
             

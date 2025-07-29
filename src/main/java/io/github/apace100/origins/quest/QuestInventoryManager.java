@@ -38,13 +38,23 @@ public class QuestInventoryManager {
         }
         
         try {
+            Origins.LOGGER.info("Ищем билеты квестов в инвентаре игрока {}, размер инвентаря: {}", 
+                player.getName().getString(), player.getInventory().size());
+            
             // Проверяем основной инвентарь
             for (int i = 0; i < player.getInventory().size(); i++) {
                 ItemStack stack = player.getInventory().getStack(i);
+                if (!stack.isEmpty()) {
+                    Origins.LOGGER.info("Слот {}: {} (isQuestTicket: {})", 
+                        i, stack, QuestTicketItem.isQuestTicket(stack));
+                }
                 if (QuestTicketItem.isQuestTicket(stack)) {
                     questTickets.add(stack);
+                    Origins.LOGGER.info("Найден билет квеста в слоте {}: {}", i, stack);
                 }
             }
+            
+            Origins.LOGGER.info("Всего найдено билетов квестов: {}", questTickets.size());
             
         } catch (Exception e) {
             Origins.LOGGER.error("Ошибка при поиске билетов квестов в инвентаре: {}", e.getMessage());
@@ -249,5 +259,76 @@ public class QuestInventoryManager {
      */
     public int getMaxActiveQuests() {
         return MAX_ACTIVE_QUESTS;
+    }
+    
+    /**
+     * Добавляет готовый билет квеста в инвентарь игрока
+     */
+    public boolean addQuestTicket(PlayerEntity player, ItemStack questTicket) {
+        if (player == null || questTicket.isEmpty()) {
+            return false;
+        }
+        
+        try {
+            Origins.LOGGER.info("Добавляем готовый билет квеста в инвентарь игрока {}", 
+                player.getName().getString());
+            
+            // Ищем свободный слот в инвентаре
+            int emptySlot = player.getInventory().getEmptySlot();
+            if (emptySlot == -1) {
+                Origins.LOGGER.warn("Нет свободного места в инвентаре игрока {}", player.getName().getString());
+                return false;
+            }
+            
+            // Добавляем билет в инвентарь
+            player.getInventory().setStack(emptySlot, questTicket.copy());
+            Origins.LOGGER.info("Билет квеста добавлен в слот {}", emptySlot);
+            
+            return true;
+            
+        } catch (Exception e) {
+            Origins.LOGGER.error("Ошибка при добавлении готового билета квеста в инвентарь: {}", e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Отладочный метод для вывода содержимого инвентаря
+     */
+    public void debugInventory(PlayerEntity player) {
+        if (player == null) {
+            return;
+        }
+        
+        try {
+            Origins.LOGGER.info("Отладка инвентаря игрока {}, размер инвентаря: {}", 
+                player.getName().getString(), player.getInventory().size());
+            
+            int questTicketCount = 0;
+            
+            for (int i = 0; i < player.getInventory().size(); i++) {
+                ItemStack stack = player.getInventory().getStack(i);
+                if (!stack.isEmpty()) {
+                    boolean isQuestTicket = QuestTicketItem.isQuestTicket(stack);
+                    Origins.LOGGER.info("Слот {}: {} {} (isQuestTicket: {})", 
+                        i, stack.getCount(), stack.getItem().toString(), isQuestTicket);
+                    
+                    if (isQuestTicket) {
+                        questTicketCount++;
+                        Quest quest = QuestItem.getQuestFromStack(stack);
+                        Origins.LOGGER.info("Найден билет квеста в слоте {}: {} quest_ticket_common", 
+                            i, stack.getCount());
+                        if (quest != null) {
+                            Origins.LOGGER.info("Квест в билете: {} (ID: {})", quest.getTitle(), quest.getId());
+                        }
+                    }
+                }
+            }
+            
+            Origins.LOGGER.info("Всего билетов квестов найдено: {}", questTicketCount);
+            
+        } catch (Exception e) {
+            Origins.LOGGER.error("Ошибка при отладке инвентаря: {}", e.getMessage());
+        }
     }
 }

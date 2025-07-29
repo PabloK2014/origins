@@ -23,6 +23,13 @@ public class QuestEventHandlers {
         // Регистрируем обработчик разрушения блоков
         PlayerBlockBreakEvents.AFTER.register(QuestEventHandlers::onBlockBreak);
         
+        // Регистрируем обработчик тиков игрока для периодического обновления
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register(server -> {
+            for (net.minecraft.server.network.ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                onPlayerTick(player);
+            }
+        });
+        
         Origins.LOGGER.info("Обработчики событий квестов инициализированы");
     }
     
@@ -75,8 +82,10 @@ public class QuestEventHandlers {
         }
         
         try {
-            String itemId = craftedItem.getItem().toString();
+            String itemId = net.minecraft.registry.Registries.ITEM.getId(craftedItem.getItem()).toString();
             int amount = craftedItem.getCount();
+            
+            Origins.LOGGER.info("Игрок {} создал {} x{}", player.getName().getString(), itemId, amount);
             
             // Отслеживаем действие крафта
             QuestProgressTracker tracker = QuestProgressTracker.getInstance();

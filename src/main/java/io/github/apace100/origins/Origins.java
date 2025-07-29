@@ -18,6 +18,7 @@ import io.github.apace100.origins.networking.ModPacketsC2S;
 import io.github.apace100.origins.origin.Origin;
 import io.github.apace100.origins.origin.OriginLayers;
 import io.github.apace100.origins.origin.OriginManager;
+import io.github.apace100.origins.quest.QuestResourceReloadListener;
 import io.github.apace100.origins.power.OriginsEntityConditions;
 import io.github.apace100.origins.power.OriginsPowerTypes;
 import io.github.apace100.origins.power.CustomOriginsPowerTypes;
@@ -116,6 +117,10 @@ public class Origins implements ModInitializer, OrderedResourceListenerInitializ
 			io.github.apace100.origins.command.SetActiveSkillCommand.register(dispatcher);
 			io.github.apace100.origins.command.JsonDiagnosticCommand.register(dispatcher, registryAccess);
 			io.github.apace100.origins.command.ClearQuestsCommand.register(dispatcher, registryAccess);
+			io.github.apace100.origins.command.TestQuestCommand.register(dispatcher, registryAccess);
+			io.github.apace100.origins.command.TestQuestTrackingCommand.register(dispatcher, registryAccess);
+			io.github.apace100.origins.command.CheckQuestTicketsCommand.register(dispatcher, registryAccess);
+			io.github.apace100.origins.command.TestProgressCommand.register(dispatcher, registryAccess);
 		});
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register((content) -> {
 			content.add(ModItems.ORB_OF_ORIGIN);
@@ -161,6 +166,9 @@ public class Origins implements ModInitializer, OrderedResourceListenerInitializ
 		OriginManager originLoader = new OriginManager();
 		manager.register(ResourceType.SERVER_DATA, originLoader).after(powerData).complete();
 		manager.register(ResourceType.SERVER_DATA, new OriginLayers()).after(originData).complete();
+
+		// Регистрируем загрузчик квестов
+		manager.register(ResourceType.SERVER_DATA, new QuestResourceReloadListener()).after(originData).complete();
 
 		BadgeManager.init();
 

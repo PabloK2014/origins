@@ -1,0 +1,40 @@
+{
+  "quests": [
+    {
+      "id": "test_collect_dirt",
+      "playerClass": "any",
+      "level": 1,
+      "title": "Тестовый квест: Земля",
+      "description": "Соберите землю для тестирования системы квестов",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:dirt",
+        "amount": 10
+      },
+      "timeLimit": 10,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 100
+      }
+    },
+    {
+      "id": "test_craft_stick",
+      "playerClass": "any",
+      "level": 1,
+      "title": "Тестовый квест: Палки",
+      "description": "Создайте палки для тестирования крафта",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:stick",
+        "amount": 4
+      },
+      "timeLimit": 10,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 100
+      }
+    }
+  ]
+}

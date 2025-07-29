@@ -4,6 +4,7 @@ import io.github.apace100.origins.Origins;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.registry.Registries;
 
 import java.util.List;
 
@@ -27,27 +28,40 @@ public class QuestProgressTracker {
      * Отслеживает действие игрока и обновляет прогресс квестов
      */
     public void trackPlayerAction(PlayerEntity player, String action, String target, int amount) {
-        if (player == null || player.getWorld().isClient) {
-            return;
-        }
+        Origins.LOGGER.info("Tracking action: player={}, action={}, target={}, amount={}", 
+            player.getName().getString(), action, target, amount);
         
         try {
             // Получаем все билеты квестов в инвентаре игрока
             QuestInventoryManager inventoryManager = QuestInventoryManager.getInstance();
             List<ItemStack> questTickets = inventoryManager.findQuestTickets(player);
             
+            Origins.LOGGER.info("Найдено билетов квестов: {}", questTickets.size());
+            inventoryManager.debugInventory(player);
+            
             if (questTickets.isEmpty()) {
+                Origins.LOGGER.info("Нет активных квестов у игрока {}", player.getName().getString());
                 return; // Нет активных квестов
             }
             
             // Обновляем прогресс для каждого билета
             for (ItemStack ticket : questTickets) {
-                updateTicketProgress(player, ticket, action, target, amount);
+                Origins.LOGGER.info("Обрабатываем билет квеста: {}", ticket);
+                
+                // Получаем квест из билета
+                Quest quest = QuestItem.getQuestFromStack(ticket);
+                if (quest != null) {
+                    Origins.LOGGER.info("Найден квест в билете: {} (ID: {})", quest.getTitle(), quest.getId());
+                    updateTicketProgress(player, ticket, action, target, amount);
+                } else {
+                    Origins.LOGGER.warn("Не удалось получить квест из билета: {}", ticket);
+                }
             }
             
         } catch (Exception e) {
             Origins.LOGGER.error("Ошибка при отслеживании действия игрока {}: {}", 
                 player.getName().getString(), e.getMessage());
+            e.printStackTrace();
         }
     }
     
@@ -65,19 +79,18 @@ public class QuestProgressTracker {
                 return;
             }
             
-            // Проверяем каждую цель квеста
-            for (QuestObjective objective : quest.getObjectives()) {
-                if (!objective.isCompleted()) {
-                    boolean updated = checkObjectiveCompletion(objective, player);
-                    if (updated) {
-                        QuestTicketItem.updateProgress(ticketStack, objective);
-                        
-                        // Синхронизируем с клиентом
-                        syncProgressToClient(player);
-                        
-                        // Уведомляем игрока о прогрессе
-                        notifyPlayerProgress(player, objective, quest);
-                    }
+            // Проверяем цель квеста (новая система с одной целью)
+            QuestObjective objective = quest.getObjective();
+            if (objective != null && !objective.isCompleted()) {
+                boolean updated = checkObjectiveCompletion(objective, player);
+                if (updated) {
+                    QuestTicketItem.updateProgress(ticketStack, objective);
+                    
+                    // Синхронизируем с клиентом
+                    syncProgressToClient(player);
+                    
+                    // Уведомляем игрока о прогрессе
+                    notifyPlayerProgress(player, objective, quest);
                 }
             }
             
@@ -97,34 +110,45 @@ public class QuestProgressTracker {
         try {
             Quest quest = QuestItem.getQuestFromStack(ticket);
             if (quest == null) {
+                Origins.LOGGER.error("Невалидный квест для билета: {}", ticket);
                 return;
             }
             
             boolean progressUpdated = false;
             
-            // Проверяем каждую цель квеста
-            for (QuestObjective objective : quest.getObjectives()) {
-                if (objective.isCompleted()) {
-                    continue; // Цель уже выполнена
+            // Проверяем цель квеста (новая система с одной целью)
+            QuestObjective objective = quest.getObjective();
+            if (objective == null) {
+                Origins.LOGGER.warn("Цель квеста не найдена: {}", quest.getId());
+                return;
+            }
+            
+            if (objective.isCompleted()) {
+                return; // Цель уже выполнена
+            }
+            
+            // Проверяем, соответствует ли действие цели
+            Origins.LOGGER.info("Проверяем соответствие действия цели для квеста {}", quest.getId());
+            if (isActionMatchingObjective(action, target, objective)) {
+                Origins.LOGGER.info("Действие соответствует цели! Обновляем прогресс.");
+                // Обновляем прогресс
+                int newProgress = Math.min(objective.getProgress() + amount, objective.getAmount());
+                objective.setProgress(newProgress);
+                
+                Origins.LOGGER.info("Обновлен прогресс квеста {}: {}/{}", quest.getId(), newProgress, objective.getAmount());
+                
+                if (newProgress >= objective.getAmount()) {
+                    objective.setCompleted(true);
+                    Origins.LOGGER.info("Цель квеста {} выполнена!", quest.getId());
                 }
                 
-                // Проверяем, соответствует ли действие цели
-                if (isActionMatchingObjective(action, target, objective)) {
-                    // Обновляем прогресс
-                    int newProgress = Math.min(objective.getProgress() + amount, objective.getAmount());
-                    objective.setProgress(newProgress);
-                    
-                    if (newProgress >= objective.getAmount()) {
-                        objective.setCompleted(true);
-                    }
-                    
-                    // Обновляем билет
-                    QuestTicketItem.updateProgress(ticket, objective);
-                    progressUpdated = true;
-                    
-                    // Уведомляем игрока
-                    notifyPlayerProgress(player, objective, quest);
-                }
+                // Обновляем билет с новым методом
+                progressUpdated = QuestTicketItem.updateQuestProgress(ticket, action, target, amount);
+                
+                // Уведомляем игрока
+                notifyPlayerProgress(player, objective, quest);
+            } else {
+                Origins.LOGGER.info("Действие НЕ соответствует цели квеста {}", quest.getId());
             }
             
             if (progressUpdated) {
@@ -141,38 +165,64 @@ public class QuestProgressTracker {
      * Проверяет, соответствует ли действие цели квеста
      */
     private boolean isActionMatchingObjective(String action, String target, QuestObjective objective) {
-        if (objective == null || action == null) {
+        if (objective == null || action == null || target == null) {
+            Origins.LOGGER.warn("Null параметры в isActionMatchingObjective: action={}, target={}, objective={}", action, target, objective);
             return false;
         }
+        
+        Origins.LOGGER.info("Проверяем соответствие: action={}, target={}, objectiveType={}, objectiveTarget={}", 
+            action, target, objective.getType().getName(), objective.getTarget());
         
         // Проверяем тип действия
         String objectiveType = objective.getType().getName().toLowerCase();
         String actionLower = action.toLowerCase();
         
-        boolean typeMatches = switch (objectiveType) {
-            case "collect" -> actionLower.equals("collect") || actionLower.equals("pickup");
-            case "kill" -> actionLower.equals("kill") || actionLower.equals("slay");
-            case "craft" -> actionLower.equals("craft") || actionLower.equals("create");
-            case "mine" -> actionLower.equals("mine") || actionLower.equals("break");
-            case "cook" -> actionLower.equals("cook") || actionLower.equals("smelt");
-            default -> false;
-        };
+        boolean typeMatches;
+        switch (objectiveType) {
+            case "collect":
+                typeMatches = actionLower.equals("collect") || actionLower.equals("pickup");
+                break;
+            case "kill":
+                typeMatches = actionLower.equals("kill") || actionLower.equals("slay");
+                break;
+            case "craft":
+                typeMatches = actionLower.equals("craft") || actionLower.equals("create");
+                break;
+            default:
+                typeMatches = false;
+                break;
+        }
         
         if (!typeMatches) {
+            Origins.LOGGER.info("Тип действия не совпадает: {} != {}", actionLower, objectiveType);
             return false;
         }
+        
+        Origins.LOGGER.info("Тип действия совпадает: {} == {}", actionLower, objectiveType);
         
         // Проверяем цель (предмет/моб)
         String objectiveTarget = objective.getTarget();
-        if (objectiveTarget == null || target == null) {
+        if (objectiveTarget == null) {
             return false;
         }
         
-        // Нормализуем названия для сравнения
-        String normalizedObjectiveTarget = normalizeTarget(objectiveTarget);
-        String normalizedTarget = normalizeTarget(target);
+        // Прямое сравнение ID
+        if (objectiveTarget.equals(target)) {
+            Origins.LOGGER.info("Точное совпадение цели: {} == {}", objectiveTarget, target);
+            return true;
+        }
         
-        return normalizedObjectiveTarget.equals(normalizedTarget);
+        // Сравнение без префикса minecraft:
+        String cleanObjective = objectiveTarget.replace("minecraft:", "");
+        String cleanTarget = target.replace("minecraft:", "");
+        
+        if (cleanObjective.equals(cleanTarget)) {
+            Origins.LOGGER.info("Совпадение без префикса: {} == {}", cleanObjective, cleanTarget);
+            return true;
+        }
+        
+        Origins.LOGGER.debug("Цели не совпадают: {} != {}", objectiveTarget, target);
+        return false;
     }
     
     /**
@@ -229,7 +279,7 @@ public class QuestProgressTracker {
             for (int i = 0; i < player.getInventory().size(); i++) {
                 ItemStack stack = player.getInventory().getStack(i);
                 if (!stack.isEmpty()) {
-                    String itemId = stack.getItem().toString();
+                    String itemId = Registries.ITEM.getId(stack.getItem()).toString();
                     if (itemId.contains(targetItem.replace("minecraft:", ""))) {
                         currentAmount += stack.getCount();
                     }
@@ -290,9 +340,9 @@ public class QuestProgressTracker {
                     true // Отображаем в action bar
                 );
                 
-                // Проверяем, выполнен ли весь квест
-                boolean allCompleted = quest.getObjectives().stream().allMatch(QuestObjective::isCompleted);
-                if (allCompleted) {
+                // Проверяем, выполнен ли квест (новая система с одной целью)
+                QuestObjective questObjective = quest.getObjective();
+                if (questObjective != null && questObjective.isCompleted()) {
                     serverPlayer.sendMessage(
                         net.minecraft.text.Text.literal("🎉 Квест \"" + quest.getTitle() + "\" готов к сдаче!")
                             .formatted(net.minecraft.util.Formatting.GOLD),
@@ -322,12 +372,21 @@ public class QuestProgressTracker {
             return "Неизвестная цель";
         }
         
-        String action = switch (objective.getType()) {
-            case COLLECT -> "Собрать";
-            case KILL -> "Убить";
-            case CRAFT -> "Создать";
-            default -> "Выполнить";
-        };
+        String action;
+        switch (objective.getType()) {
+            case COLLECT:
+                action = "Собрать";
+                break;
+            case KILL:
+                action = "Убить";
+                break;
+            case CRAFT:
+                action = "Создать";
+                break;
+            default:
+                action = "Выполнить";
+                break;
+        }
         
         String target = getItemDisplayName(objective.getTarget());
         

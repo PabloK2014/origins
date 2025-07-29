@@ -187,10 +187,7 @@ public class PlayerOriginComponent implements OriginComponent {
         }
     }
 
-    @Override
-    public void onPowersRead() {
-        // NO-OP
-    }
+
 
     @Override
     public void writeToNbt(NbtCompound compoundTag) {
@@ -208,5 +205,11 @@ public class PlayerOriginComponent implements OriginComponent {
     @Override
     public void sync() {
         OriginComponent.sync(this.player);
+    }
+
+    @Override
+    @Deprecated(forRemoval = true)
+    public void onPowersRead() {
+        // Deprecated method - no implementation needed
     }
 }

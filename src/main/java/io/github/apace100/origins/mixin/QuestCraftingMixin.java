@@ -10,6 +10,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * Миксин для отслеживания крафта предметов в квестах
@@ -17,31 +18,25 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(CraftingScreenHandler.class)
 public class QuestCraftingMixin {
     
-    @Inject(method = "onContentChanged", at = @At("TAIL"))
-    private void onCraftingContentChanged(CallbackInfo ci) {
-        CraftingScreenHandler handler = (CraftingScreenHandler) (Object) this;
-        
-        // Получаем игрока через поиск PlayerInventory в слотах
-        PlayerEntity player = null;
-        for (int i = 0; i < handler.slots.size(); i++) {
-            Slot slot = handler.slots.get(i);
-            if (slot.inventory instanceof net.minecraft.entity.player.PlayerInventory playerInventory) {
-                player = playerInventory.player;
-                break;
-            }
-        }
-        
+    @Inject(method = "quickMove", at = @At("HEAD"))
+    private void onQuickCraft(PlayerEntity player, int index, CallbackInfoReturnable<ItemStack> cir) {
         if (player == null || player.getWorld().isClient) {
             return;
         }
         
-        // Проверяем слот результата (индекс 0)
-        Slot resultSlot = handler.getSlot(0);
-        ItemStack resultStack = resultSlot.getStack();
+        CraftingScreenHandler handler = (CraftingScreenHandler) (Object) this;
         
-        if (!resultStack.isEmpty()) {
-            // Отслеживаем крафт предмета для квестов
-            QuestEventHandlers.onItemCraft(player, resultStack);
+        // Проверяем, что это слот результата крафта (индекс 0)
+        if (index == 0) {
+            Slot resultSlot = handler.getSlot(0);
+            ItemStack resultStack = resultSlot.getStack();
+            
+            if (!resultStack.isEmpty()) {
+                // Отслеживаем крафт предмета для квестов
+                QuestEventHandlers.onItemCraft(player, resultStack.copy());
+            }
         }
     }
+    
+
 }

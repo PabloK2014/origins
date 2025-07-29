@@ -38,40 +38,50 @@ public class QuestTicketItem extends Item {
     
     @Override
     public void appendTooltip(ItemStack stack, World world, List<Text> tooltip, net.minecraft.client.item.TooltipContext context) {
-        super.appendTooltip(stack, world, tooltip, context);
-        
-        // Получаем квест из NBT данных
-        Quest quest = QuestItem.getQuestFromStack(stack);
-        if (quest != null) {
-            // Добавляем состояние квеста
-            QuestTicketState state = getTicketState(stack);
-            tooltip.add(Text.literal("Состояние: " + state.getDisplayName())
-                .formatted(getStateFormatting(state)));
+        try {
+            super.appendTooltip(stack, world, tooltip, context);
             
-            // Используем упрощенный метод из QuestItem для базовой информации
-            QuestItem.addQuestTooltip(stack, tooltip);
-            
-            // Добавляем специфичную для билета информацию
-            if (state.isActive() && getAcceptTime(stack) > 0) {
-                // Показываем прогресс для активных квестов
-                tooltip.add(Text.literal(""));
-                tooltip.add(Text.literal("Прогресс:").formatted(Formatting.YELLOW));
-                addProgressTooltip(stack, tooltip, quest);
+            // Получаем квест из NBT данных
+            Quest quest = QuestItem.getQuestFromStack(stack);
+            if (quest != null) {
+                // Добавляем состояние квеста
+                QuestTicketState state = getTicketState(stack);
+                tooltip.add(Text.literal("Состояние: " + state.getDisplayName())
+                    .formatted(getStateFormatting(state)));
                 
-                // Показываем оставшееся время
-                addTimeTooltip(stack, tooltip, quest);
-            }
-            
-            // Добавляем подсказку для готовых к сдаче квестов
-            if (state == QuestTicketState.COMPLETED) {
+                // Добавляем полную информацию о квесте
                 tooltip.add(Text.literal(""));
-                tooltip.add(Text.literal("Shift+ПКМ по доске объявлений для сдачи")
-                    .formatted(Formatting.GOLD));
+                QuestItem.addQuestTooltip(stack, tooltip);
+                
+                // Добавляем специфичную для билета информацию
+                if (state.isActive() && getAcceptTime(stack) > 0) {
+                    // Показываем прогресс для активных квестов
+                    tooltip.add(Text.literal(""));
+                    tooltip.add(Text.literal("Прогресс:").formatted(Formatting.YELLOW));
+                    addProgressTooltip(stack, tooltip, quest);
+                    
+                    // Показываем оставшееся время
+                    addTimeTooltip(stack, tooltip, quest);
+                }
+                
+                // Добавляем подсказку для готовых к сдаче квестов
+                if (state == QuestTicketState.COMPLETED) {
+                    tooltip.add(Text.literal(""));
+                    tooltip.add(Text.literal("Shift+ПКМ по доске объявлений для сдачи")
+                        .formatted(Formatting.GOLD));
+                }
+            } else {
+                // Если квест не найден, показываем отладочную информацию
+                tooltip.add(Text.literal(""));
+                tooltip.add(Text.literal("⚠ Поврежденный билет квеста").formatted(Formatting.RED));
+                tooltip.add(Text.literal("Обратитесь к администратору").formatted(Formatting.GRAY));
             }
-        } else {
-            // Если квест не найден, показываем отладочную информацию
+        } catch (Exception e) {
+            // Если произошла ошибка при создании tooltip, показываем безопасную информацию
+            tooltip.clear();
+            tooltip.add(Text.literal("Билет квеста").formatted(Formatting.WHITE));
             tooltip.add(Text.literal(""));
-            tooltip.add(Text.literal("⚠ Поврежденный билет квеста").formatted(Formatting.RED));
+            tooltip.add(Text.literal("⚠ Ошибка отображения: " + e.getMessage()).formatted(Formatting.RED));
             tooltip.add(Text.literal("Обратитесь к администратору").formatted(Formatting.GRAY));
         }
     }
@@ -108,46 +118,96 @@ public class QuestTicketItem extends Item {
      * Добавляет информацию о прогрессе в tooltip
      */
     private static void addProgressTooltip(ItemStack stack, List<Text> tooltip, Quest quest) {
-        net.minecraft.nbt.NbtCompound nbt = stack.getNbt();
-        if (nbt == null) {
-            return;
-        }
-        
-        net.minecraft.nbt.NbtCompound objectivesNbt = nbt.getCompound("objectives");
-        int objectivesCount = nbt.getInt("objectives_count");
-        
-        int completedObjectives = 0;
-        
-        for (int i = 0; i < objectivesCount; i++) {
-            net.minecraft.nbt.NbtCompound objNbt = objectivesNbt.getCompound("objective_" + i);
-            
-            String type = objNbt.getString("type");
-            String target = objNbt.getString("target");
-            int amount = objNbt.getInt("amount");
-            int progress = objNbt.getInt("progress");
-            boolean completed = objNbt.getBoolean("completed");
-            
-            if (completed) completedObjectives++;
-            
-            String progressText = progress + "/" + amount;
-            Formatting progressColor;
-            String statusIcon;
-            
-            if (completed) {
-                progressColor = Formatting.GREEN;
-                statusIcon = "✓ ";
-            } else if (progress > 0) {
-                progressColor = Formatting.YELLOW;
-                statusIcon = "◐ ";
-            } else {
-                progressColor = Formatting.RED;
-                statusIcon = "○ ";
+        try {
+            net.minecraft.nbt.NbtCompound nbt = stack.getNbt();
+            if (nbt == null) {
+                tooltip.add(Text.literal("  • Нет данных о прогрессе").formatted(Formatting.GRAY));
+                return;
             }
             
-            String actionText = switch (type) {
-                case "collect" -> "Собрать";
-                case "kill" -> "Убить";
-                case "craft" -> "Создать";
+            // Проверяем новую систему с одной целью
+            if (nbt.contains("objective")) {
+                net.minecraft.nbt.NbtCompound objNbt = nbt.getCompound("objective");
+                
+                String type = objNbt.getString("type");
+                String target = objNbt.getString("target");
+                int amount = objNbt.getInt("amount");
+                int progress = objNbt.getInt("progress");
+                boolean completed = objNbt.getBoolean("completed");
+                
+                String progressText = progress + "/" + amount;
+                Formatting progressColor;
+                String statusIcon;
+                
+                if (completed) {
+                    progressColor = Formatting.GREEN;
+                    statusIcon = "✓ ";
+                } else if (progress > 0) {
+                    progressColor = Formatting.YELLOW;
+                    statusIcon = "◐ ";
+                } else {
+                    progressColor = Formatting.RED;
+                    statusIcon = "○ ";
+                }
+                
+                String actionText = switch (type) {
+                    case "collect" -> "Собрать";
+                    case "kill" -> "Убить";
+                    case "craft" -> "Создать";
+                    case "mine" -> "Добыть";
+                    case "smelt" -> "Переплавить";
+                    case "brew" -> "Сварить";
+                    case "cook" -> "Приготовить";
+                    default -> "Выполнить";
+                };
+                
+                tooltip.add(Text.literal("  " + statusIcon + actionText + ": " + getItemDisplayName(target) + " (" + progressText + ")")
+                    .formatted(progressColor));
+                
+                return; // Выходим, так как обработали новую систему
+            }
+            
+            // Fallback к старой системе с множественными целями
+            net.minecraft.nbt.NbtCompound objectivesNbt = nbt.getCompound("objectives");
+            int objectivesCount = nbt.getInt("objectives_count");
+            
+            if (objectivesCount == 0) {
+                tooltip.add(Text.literal("  • Нет целей для отображения").formatted(Formatting.GRAY));
+                return;
+            }
+            
+            int completedObjectives = 0;
+        
+            for (int i = 0; i < objectivesCount; i++) {
+                net.minecraft.nbt.NbtCompound objNbt = objectivesNbt.getCompound("objective_" + i);
+                
+                String type = objNbt.getString("type");
+                String target = objNbt.getString("target");
+                int amount = objNbt.getInt("amount");
+                int progress = objNbt.getInt("progress");
+                boolean completed = objNbt.getBoolean("completed");
+                
+                if (completed) completedObjectives++;
+                
+                String progressText = progress + "/" + amount;
+                Formatting progressColor;
+                String statusIcon;
+                
+                if (completed) {
+                    progressColor = Formatting.GREEN;
+                    statusIcon = "✓ ";
+                } else if (progress > 0) {
+                    progressColor = Formatting.YELLOW;
+                    statusIcon = "◐ ";
+                } else {
+                    progressColor = Formatting.RED;
+                    statusIcon = "○ ";
+                }
+                
+                String actionText = switch (type) {
+                    case "collect" -> "Собрать";
+                    case "kill" -> "Убить";
+                    case "craft" -> "Создать";
                 case "mine" -> "Добыть";
                 case "smelt" -> "Переплавить";
                 case "brew" -> "Сварить";
@@ -159,13 +219,16 @@ public class QuestTicketItem extends Item {
                 .formatted(progressColor));
         }
         
-        // Добавляем общий прогресс
-        if (objectivesCount > 1) {
-            tooltip.add(Text.literal(""));
-            Formatting overallColor = completedObjectives == objectivesCount ? Formatting.GREEN :
-                                    completedObjectives > 0 ? Formatting.YELLOW : Formatting.RED;
-            tooltip.add(Text.literal("Общий прогресс: " + completedObjectives + "/" + objectivesCount + " целей")
-                .formatted(overallColor));
+            // Добавляем общий прогресс
+            if (objectivesCount > 1) {
+                tooltip.add(Text.literal(""));
+                Formatting overallColor = completedObjectives == objectivesCount ? Formatting.GREEN :
+                                        completedObjectives > 0 ? Formatting.YELLOW : Formatting.RED;
+                tooltip.add(Text.literal("Общий прогресс: " + completedObjectives + "/" + objectivesCount + " целей")
+                    .formatted(overallColor));
+            }
+        } catch (Exception e) {
+            tooltip.add(Text.literal("  • Ошибка отображения прогресса: " + e.getMessage()).formatted(Formatting.RED));
         }
     }
     
@@ -173,37 +236,43 @@ public class QuestTicketItem extends Item {
      * Добавляет информацию о времени в tooltip
      */
     private static void addTimeTooltip(ItemStack stack, List<Text> tooltip, Quest quest) {
-        long acceptTime = getAcceptTime(stack);
-        if (acceptTime > 0 && quest.getTimeLimit() > 0) {
-            long currentTime = System.currentTimeMillis();
-            long elapsedMinutes = (currentTime - acceptTime) / (1000 * 60);
-            long remainingMinutes = Math.max(0, quest.getTimeLimit() - elapsedMinutes);
-            
-            // Улучшенное отображение времени
-            String timeText;
-            Formatting timeColor;
-            
-            if (remainingMinutes <= 0) {
-                timeText = "ВРЕМЯ ИСТЕКЛО!";
-                timeColor = Formatting.DARK_RED;
-            } else if (remainingMinutes <= 5) {
-                timeText = "Осталось времени: " + remainingMinutes + " мин (СРОЧНО!)";
-                timeColor = Formatting.RED;
-            } else if (remainingMinutes <= 15) {
-                timeText = "Осталось времени: " + remainingMinutes + " мин";
-                timeColor = Formatting.YELLOW;
-            } else if (remainingMinutes <= 60) {
-                timeText = "Осталось времени: " + remainingMinutes + " мин";
-                timeColor = Formatting.GREEN;
-            } else {
-                long hours = remainingMinutes / 60;
-                long minutes = remainingMinutes % 60;
-                timeText = "Осталось времени: " + hours + "ч " + minutes + "м";
-                timeColor = Formatting.GREEN;
+        try {
+            if (quest == null) {
+                tooltip.add(Text.literal("Нет информации о времени").formatted(Formatting.GRAY));
+                return;
             }
             
-            tooltip.add(Text.literal(timeText).formatted(timeColor));
-        } else if (quest.getTimeLimit() > 0) {
+            long acceptTime = getAcceptTime(stack);
+            if (acceptTime > 0 && quest.getTimeLimit() > 0) {
+                long currentTime = System.currentTimeMillis();
+                long elapsedMinutes = (currentTime - acceptTime) / (1000 * 60);
+                long remainingMinutes = Math.max(0, quest.getTimeLimit() - elapsedMinutes);
+                
+                // Улучшенное отображение времени
+                String timeText;
+                Formatting timeColor;
+                
+                if (remainingMinutes <= 0) {
+                    timeText = "ВРЕМЯ ИСТЕКЛО!";
+                    timeColor = Formatting.DARK_RED;
+                } else if (remainingMinutes <= 5) {
+                    timeText = "Осталось времени: " + remainingMinutes + " мин (СРОЧНО!)";
+                    timeColor = Formatting.RED;
+                } else if (remainingMinutes <= 15) {
+                    timeText = "Осталось времени: " + remainingMinutes + " мин";
+                    timeColor = Formatting.YELLOW;
+                } else if (remainingMinutes <= 60) {
+                    timeText = "Осталось времени: " + remainingMinutes + " мин";
+                    timeColor = Formatting.GREEN;
+                } else {
+                    long hours = remainingMinutes / 60;
+                    long minutes = remainingMinutes % 60;
+                    timeText = "Осталось времени: " + hours + "ч " + minutes + "м";
+                    timeColor = Formatting.GREEN;
+                }
+                
+                tooltip.add(Text.literal(timeText).formatted(timeColor));
+            } else if (quest.getTimeLimit() > 0) {
             if (quest.getTimeLimit() >= 60) {
                 long hours = quest.getTimeLimit() / 60;
                 long minutes = quest.getTimeLimit() % 60;
@@ -216,6 +285,9 @@ public class QuestTicketItem extends Item {
         } else {
             tooltip.add(Text.literal("Без ограничения по времени")
                 .formatted(Formatting.AQUA));
+        }
+        } catch (Exception e) {
+            tooltip.add(Text.literal("Ошибка отображения времени: " + e.getMessage()).formatted(Formatting.RED));
         }
     }
     
@@ -257,6 +329,8 @@ public class QuestTicketItem extends Item {
     public static ItemStack createQuestTicket(Quest quest) {
         if (quest == null) return ItemStack.EMPTY;
         
+        io.github.apace100.origins.Origins.LOGGER.info("Создаем билет для квеста: {} (редкость: {})", quest.getId(), quest.getRarity());
+        
         // Выбираем подходящий предмет в зависимости от редкости
         Item ticketItem;
         switch (quest.getRarity()) {
@@ -277,10 +351,18 @@ public class QuestTicketItem extends Item {
                 break;
         }
         
+        io.github.apace100.origins.Origins.LOGGER.info("Выбран предмет билета: {} (instanceof QuestTicketItem: {})", 
+            ticketItem, ticketItem instanceof QuestTicketItem);
+        
         ItemStack stack = new ItemStack(ticketItem);
+        
+        io.github.apace100.origins.Origins.LOGGER.info("Создан ItemStack: {} (isEmpty: {}, item: {})", 
+            stack, stack.isEmpty(), stack.getItem());
         
         // Сохраняем данные квеста в NBT
         saveQuestToStack(stack, quest);
+        
+        io.github.apace100.origins.Origins.LOGGER.info("Билет создан с NBT: {}", stack.getNbt());
         
         return stack;
     }
@@ -312,20 +394,35 @@ public class QuestTicketItem extends Item {
         // Сохраняем отображаемое название
         updateTicketDisplayName(stack, quest);
         
-        // Сохраняем цели
-        net.minecraft.nbt.NbtCompound objectivesNbt = new net.minecraft.nbt.NbtCompound();
-        for (int i = 0; i < quest.getObjectives().size(); i++) {
-            QuestObjective objective = quest.getObjectives().get(i);
+        // Сохраняем цели (новая система с одной целью)
+        QuestObjective objective = quest.getObjective();
+        if (objective != null) {
             net.minecraft.nbt.NbtCompound objNbt = new net.minecraft.nbt.NbtCompound();
             objNbt.putString("type", objective.getType().getName());
             objNbt.putString("target", objective.getTarget());
             objNbt.putInt("amount", objective.getAmount());
             objNbt.putInt("progress", objective.getProgress());
             objNbt.putBoolean("completed", objective.isCompleted());
-            objectivesNbt.put("objective_" + i, objNbt);
+            nbt.put("objective", objNbt);
+            
+            io.github.apace100.origins.Origins.LOGGER.info("Сохранена цель квеста: type={}, target={}, amount={}", 
+                objective.getType().getName(), objective.getTarget(), objective.getAmount());
+        } else {
+            // Fallback к старой системе с множественными целями
+            net.minecraft.nbt.NbtCompound objectivesNbt = new net.minecraft.nbt.NbtCompound();
+            for (int i = 0; i < quest.getObjectives().size(); i++) {
+                QuestObjective obj = quest.getObjectives().get(i);
+                net.minecraft.nbt.NbtCompound objNbt = new net.minecraft.nbt.NbtCompound();
+                objNbt.putString("type", obj.getType().getName());
+                objNbt.putString("target", obj.getTarget());
+                objNbt.putInt("amount", obj.getAmount());
+                objNbt.putInt("progress", obj.getProgress());
+                objNbt.putBoolean("completed", obj.isCompleted());
+                objectivesNbt.put("objective_" + i, objNbt);
+            }
+            nbt.put("objectives", objectivesNbt);
+            nbt.putInt("objectives_count", quest.getObjectives().size());
         }
-        nbt.put("objectives", objectivesNbt);
-        nbt.putInt("objectives_count", quest.getObjectives().size());
         
         // Сохраняем награды
         net.minecraft.nbt.NbtCompound rewardsNbt = new net.minecraft.nbt.NbtCompound();
@@ -355,8 +452,8 @@ public class QuestTicketItem extends Item {
         // Формируем базовое название
         String baseName = "Билет квеста: " + quest.getTitle();
         
-        // Добавляем информацию о редкости
-        String rarityText = getRarityDisplayName(quest.getRarity());
+        // Добавляем информацию о редкости (пока не используем)
+        // String rarityText = getRarityDisplayName(quest.getRarity());
         
         // Добавляем информацию о классе, если не "any"
         String classInfo = "";
@@ -395,12 +492,13 @@ public class QuestTicketItem extends Item {
      * Получает отображаемое название редкости
      */
     private static String getRarityDisplayName(Quest.QuestRarity rarity) {
+        if (rarity == null) return "Неизвестный";
+        
         return switch (rarity) {
             case COMMON -> "Обычный";
             case UNCOMMON -> "Необычный";
             case RARE -> "Редкий";
             case EPIC -> "Эпический";
-            default -> "Неизвестный";
         };
     }
     
@@ -408,6 +506,9 @@ public class QuestTicketItem extends Item {
      * Получает форматирование названия в зависимости от состояния и редкости
      */
     private static Formatting getNameFormatting(QuestTicketState state, Quest.QuestRarity rarity) {
+        if (state == null) state = QuestTicketState.AVAILABLE;
+        if (rarity == null) rarity = Quest.QuestRarity.COMMON;
+        
         // Приоритет состояния над редкостью
         switch (state) {
             case COMPLETED:
@@ -423,7 +524,6 @@ public class QuestTicketItem extends Item {
                     case UNCOMMON -> Formatting.GREEN;
                     case RARE -> Formatting.BLUE;
                     case EPIC -> Formatting.LIGHT_PURPLE;
-                    default -> Formatting.GRAY;
                 };
         }
     }
@@ -432,16 +532,46 @@ public class QuestTicketItem extends Item {
      * Добавляет базовую информацию о целях для неактивных квестов
      */
     private static void addBasicObjectivesTooltip(ItemStack stack, List<Text> tooltip, Quest quest) {
-        for (QuestObjective objective : quest.getObjectives()) {
-            String actionText = switch (objective.getType()) {
-                case COLLECT -> "Собрать";
-                case KILL -> "Убить";
-                case CRAFT -> "Создать";
-                default -> "Выполнить";
-            };
-            
-            tooltip.add(Text.literal("  • " + actionText + ": " + getItemDisplayName(objective.getTarget()) + " x" + objective.getAmount())
-                .formatted(Formatting.WHITE));
+        if (quest == null) {
+            tooltip.add(Text.literal("  • Ошибка: квест не найден").formatted(Formatting.RED));
+            return;
+        }
+        
+        try {
+            // Для новой системы квестов используем getObjective() для одной цели
+            QuestObjective objective = quest.getObjective();
+            if (objective != null) {
+                String actionText = switch (objective.getType()) {
+                    case COLLECT -> "Собрать";
+                    case KILL -> "Убить";
+                    case CRAFT -> "Создать";
+                    default -> "Выполнить";
+                };
+                
+                tooltip.add(Text.literal("  • " + actionText + ": " + getItemDisplayName(objective.getTarget()) + " x" + objective.getAmount())
+                    .formatted(Formatting.WHITE));
+            } else {
+                // Fallback к старой системе с множественными целями
+                if (quest.getObjectives() != null && !quest.getObjectives().isEmpty()) {
+                    for (QuestObjective obj : quest.getObjectives()) {
+                        if (obj != null) {
+                            String actionText = switch (obj.getType()) {
+                                case COLLECT -> "Собрать";
+                                case KILL -> "Убить";
+                                case CRAFT -> "Создать";
+                                default -> "Выполнить";
+                            };
+                            
+                            tooltip.add(Text.literal("  • " + actionText + ": " + getItemDisplayName(obj.getTarget()) + " x" + obj.getAmount())
+                                .formatted(Formatting.WHITE));
+                        }
+                    }
+                } else {
+                    tooltip.add(Text.literal("  • Нет доступных целей").formatted(Formatting.GRAY));
+                }
+            }
+        } catch (Exception e) {
+            tooltip.add(Text.literal("  • Ошибка отображения целей: " + e.getMessage()).formatted(Formatting.RED));
         }
     }
     
@@ -487,44 +617,7 @@ public class QuestTicketItem extends Item {
         }
     }
     
-    /**
-     * Добавляет информацию о прогрессе для активных квестов
-     */
-    private static void addProgressTooltip(ItemStack stack, List<Text> tooltip, Quest quest) {
-        if (quest.getObjective() != null) {
-            QuestObjective objective = quest.getObjective();
-            int progress = objective.getProgress();
-            int total = objective.getAmount();
-            
-            String progressText = String.format("  • %s: %d/%d", 
-                getItemDisplayName(objective.getTarget()), progress, total);
-            
-            Formatting color = progress >= total ? Formatting.GREEN : 
-                              progress > 0 ? Formatting.YELLOW : Formatting.WHITE;
-            
-            tooltip.add(Text.literal(progressText).formatted(color));
-        }
-    }
-    
-    /**
-     * Добавляет информацию о времени для активных квестов
-     */
-    private static void addTimeTooltip(ItemStack stack, List<Text> tooltip, Quest quest) {
-        long acceptTime = getAcceptTime(stack);
-        if (acceptTime > 0 && quest.getTimeLimit() > 0) {
-            int remainingTime = quest.getRemainingTime(acceptTime);
-            
-            if (remainingTime <= 0) {
-                tooltip.add(Text.literal("Время истекло!").formatted(Formatting.RED));
-            } else if (remainingTime < 5) {
-                tooltip.add(Text.literal("Осталось: " + remainingTime + " мин").formatted(Formatting.RED));
-            } else if (remainingTime < 15) {
-                tooltip.add(Text.literal("Осталось: " + remainingTime + " мин").formatted(Formatting.YELLOW));
-            } else {
-                tooltip.add(Text.literal("Осталось: " + remainingTime + " мин").formatted(Formatting.GREEN));
-            }
-        }
-    }
+
     
     /**
      * Проверяет, принят ли квест
@@ -561,33 +654,180 @@ public class QuestTicketItem extends Item {
      */
     public static void updateProgress(ItemStack stack, QuestObjective objective) {
         if (stack.isEmpty() || !isQuestTicket(stack) || objective == null) {
+            io.github.apace100.origins.Origins.LOGGER.warn("Попытка обновить прогресс с недопустимыми параметрами");
             return;
         }
         
-        net.minecraft.nbt.NbtCompound nbt = stack.getOrCreateNbt();
-        
-        // Обновляем состояние на "в процессе"
-        if (QuestTicketState.fromName(nbt.getString("quest_state")) == QuestTicketState.ACCEPTED) {
-            nbt.putString("quest_state", QuestTicketState.IN_PROGRESS.getName());
-        }
-        
-        // Обновляем прогресс цели
-        net.minecraft.nbt.NbtCompound objectivesNbt = nbt.getCompound("objectives");
-        int objectivesCount = nbt.getInt("objectives_count");
-        
-        for (int i = 0; i < objectivesCount; i++) {
-            net.minecraft.nbt.NbtCompound objNbt = objectivesNbt.getCompound("objective_" + i);
-            if (objNbt.getString("type").equals(objective.getType().getName()) &&
-                objNbt.getString("target").equals(objective.getTarget())) {
-                
+        try {
+            net.minecraft.nbt.NbtCompound nbt = stack.getOrCreateNbt();
+            
+            // Обновляем состояние на "в процессе"
+            QuestTicketState currentState = QuestTicketState.fromName(nbt.getString("quest_state"));
+            if (currentState == QuestTicketState.ACCEPTED) {
+                nbt.putString("quest_state", QuestTicketState.IN_PROGRESS.getName());
+            }
+            
+            // Обновляем прогресс цели (новая система)
+            // Сначала пробуем новую систему с одной целью
+            if (nbt.contains("objective")) {
+                net.minecraft.nbt.NbtCompound objNbt = nbt.getCompound("objective");
                 objNbt.putInt("progress", objective.getProgress());
                 objNbt.putBoolean("completed", objective.isCompleted());
-                break;
+                io.github.apace100.origins.Origins.LOGGER.info("Обновлен прогресс цели (новая система): {} {}/{}", 
+                    objective.getTarget(), objective.getProgress(), objective.getAmount());
+            } else {
+                // Fallback к старой системе с множественными целями
+                net.minecraft.nbt.NbtCompound objectivesNbt = nbt.getCompound("objectives");
+                int objectivesCount = nbt.getInt("objectives_count");
+                
+                boolean objectiveFound = false;
+                for (int i = 0; i < objectivesCount; i++) {
+                    net.minecraft.nbt.NbtCompound objNbt = objectivesNbt.getCompound("objective_" + i);
+                    String objType = objNbt.getString("type");
+                    String objTarget = objNbt.getString("target");
+                    
+                    if (objType.equals(objective.getType().getName()) && objTarget.equals(objective.getTarget())) {
+                        objNbt.putInt("progress", objective.getProgress());
+                        objNbt.putBoolean("completed", objective.isCompleted());
+                        objectiveFound = true;
+                        io.github.apace100.origins.Origins.LOGGER.info("Обновлен прогресс цели (старая система): {} {}/{}", 
+                            objTarget, objective.getProgress(), objective.getAmount());
+                        break;
+                    }
+                }
+                
+                if (!objectiveFound) {
+                    io.github.apace100.origins.Origins.LOGGER.warn("Цель квеста не найдена для обновления: {} {}", 
+                        objective.getType().getName(), objective.getTarget());
+                }
             }
+            
+            // Проверяем, готов ли квест к завершению
+            checkAndUpdateCompletionStatus(stack);
+            
+        } catch (Exception e) {
+            io.github.apace100.origins.Origins.LOGGER.error("Ошибка при обновлении прогресса билета: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Проверяет, завершен ли квест в билете
+     */
+    public static boolean isQuestCompleted(ItemStack stack) {
+        if (!isQuestTicket(stack) || !stack.hasNbt()) {
+            return false;
         }
         
-        // Проверяем, готов ли квест к завершению
-        checkAndUpdateCompletionStatus(stack);
+        net.minecraft.nbt.NbtCompound nbt = stack.getNbt();
+        return nbt.getBoolean("completion_ready");
+    }
+    
+    /**
+     * Обновляет прогресс квеста в билете
+     */
+    public static boolean updateQuestProgress(ItemStack stack, String action, String target, int amount) {
+        if (!isQuestTicket(stack) || !stack.hasNbt()) {
+            io.github.apace100.origins.Origins.LOGGER.warn("Попытка обновить прогресс не-билета или билета без NBT");
+            return false;
+        }
+        
+        try {
+            net.minecraft.nbt.NbtCompound nbt = stack.getNbt();
+            String questId = nbt.getString("quest_id");
+            io.github.apace100.origins.Origins.LOGGER.info("Обновляем прогресс квеста {} для действия {} с целью {}", 
+                questId, action, target);
+            
+            boolean progressUpdated = false;
+            
+            // Проверяем новую систему с одной целью
+            if (nbt.contains("objective")) {
+                net.minecraft.nbt.NbtCompound objective = nbt.getCompound("objective");
+                
+                String objectiveType = objective.getString("type");
+                String objectiveTarget = objective.getString("target");
+                int requiredAmount = objective.getInt("amount");
+                int currentProgress = objective.getInt("progress");
+                boolean completed = objective.getBoolean("completed");
+                
+                io.github.apace100.origins.Origins.LOGGER.info("Проверяем цель: type={}, target={}, required={}, current={}, completed={}", 
+                    objectiveType, objectiveTarget, requiredAmount, currentProgress, completed);
+                
+                // Проверяем, подходит ли это действие для данной цели
+                if (!completed && objectiveType.equals(action) && objectiveTarget.equals(target)) {
+                    io.github.apace100.origins.Origins.LOGGER.info("Цель подходит! Обновляем прогресс с {} на {}", 
+                        currentProgress, currentProgress + amount);
+                    
+                    int newProgress = Math.min(currentProgress + amount, requiredAmount);
+                    objective.putInt("progress", newProgress);
+                    
+                    // Проверяем, завершена ли цель
+                    if (newProgress >= requiredAmount) {
+                        objective.putBoolean("completed", true);
+                        io.github.apace100.origins.Origins.LOGGER.info("Цель завершена! ({}/{})", newProgress, requiredAmount);
+                    }
+                    
+                    progressUpdated = true;
+                    io.github.apace100.origins.Origins.LOGGER.info("Прогресс обновлен: {}/{}", newProgress, requiredAmount);
+                }
+            } else {
+                // Fallback к старой системе с множественными целями
+                net.minecraft.nbt.NbtCompound objectivesNbt = nbt.getCompound("objectives");
+                int objectivesCount = nbt.getInt("objectives_count");
+                
+                // Проверяем каждую цель
+                for (int i = 0; i < objectivesCount; i++) {
+                    String objectiveKey = "objective_" + i;
+                    if (objectivesNbt.contains(objectiveKey)) {
+                        net.minecraft.nbt.NbtCompound objective = objectivesNbt.getCompound(objectiveKey);
+                        
+                        String objectiveType = objective.getString("type");
+                        String objectiveTarget = objective.getString("target");
+                        int requiredAmount = objective.getInt("amount");
+                        int currentProgress = objective.getInt("progress");
+                        boolean completed = objective.getBoolean("completed");
+                        
+                        io.github.apace100.origins.Origins.LOGGER.info("Проверяем цель {}: type={}, target={}, required={}, current={}, completed={}", 
+                            i, objectiveType, objectiveTarget, requiredAmount, currentProgress, completed);
+                        
+                        // Проверяем, подходит ли это действие для данной цели
+                        if (!completed && objectiveType.equals(action) && objectiveTarget.equals(target)) {
+                            io.github.apace100.origins.Origins.LOGGER.info("Цель подходит! Обновляем прогресс с {} на {}", 
+                                currentProgress, currentProgress + amount);
+                            
+                            int newProgress = Math.min(currentProgress + amount, requiredAmount);
+                            objective.putInt("progress", newProgress);
+                            
+                            // Проверяем, завершена ли цель
+                            if (newProgress >= requiredAmount) {
+                                objective.putBoolean("completed", true);
+                                io.github.apace100.origins.Origins.LOGGER.info("Цель {} завершена! ({}/{})", i, newProgress, requiredAmount);
+                            }
+                            
+                            progressUpdated = true;
+                            io.github.apace100.origins.Origins.LOGGER.info("Прогресс обновлен: {}/{}", newProgress, requiredAmount);
+                        }
+                    }
+                }
+            }
+            
+            if (progressUpdated) {
+                // Проверяем, завершены ли все цели
+                checkAndUpdateCompletionStatus(stack);
+                
+                // Обновляем отображаемое имя билета
+                Quest quest = QuestItem.getQuestFromStack(stack);
+                if (quest != null) {
+                    updateTicketDisplayName(stack, quest);
+                }
+            }
+            
+            return progressUpdated;
+            
+        } catch (Exception e) {
+            io.github.apace100.origins.Origins.LOGGER.error("Ошибка при обновлении прогресса квеста: {}", e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
     }
     
     /**
@@ -598,22 +838,37 @@ public class QuestTicketItem extends Item {
             return;
         }
         
-        net.minecraft.nbt.NbtCompound nbt = stack.getOrCreateNbt();
-        net.minecraft.nbt.NbtCompound objectivesNbt = nbt.getCompound("objectives");
-        int objectivesCount = nbt.getInt("objectives_count");
-        
-        boolean allCompleted = true;
-        for (int i = 0; i < objectivesCount; i++) {
-            net.minecraft.nbt.NbtCompound objNbt = objectivesNbt.getCompound("objective_" + i);
-            if (!objNbt.getBoolean("completed")) {
-                allCompleted = false;
-                break;
+        try {
+            net.minecraft.nbt.NbtCompound nbt = stack.getOrCreateNbt();
+            
+            boolean allCompleted = false;
+            
+            // Проверяем новую систему с одной целью
+            if (nbt.contains("objective")) {
+                net.minecraft.nbt.NbtCompound objNbt = nbt.getCompound("objective");
+                allCompleted = objNbt.getBoolean("completed");
+            } else {
+                // Fallback к старой системе с множественными целями
+                net.minecraft.nbt.NbtCompound objectivesNbt = nbt.getCompound("objectives");
+                int objectivesCount = nbt.getInt("objectives_count");
+                
+                allCompleted = true;
+                for (int i = 0; i < objectivesCount; i++) {
+                    net.minecraft.nbt.NbtCompound objNbt = objectivesNbt.getCompound("objective_" + i);
+                    if (!objNbt.getBoolean("completed")) {
+                        allCompleted = false;
+                        break;
+                    }
+                }
             }
-        }
-        
-        if (allCompleted) {
-            nbt.putString("quest_state", QuestTicketState.COMPLETED.getName());
-            nbt.putBoolean("completion_ready", true);
+            
+            if (allCompleted) {
+                nbt.putString("quest_state", QuestTicketState.COMPLETED.getName());
+                nbt.putBoolean("completion_ready", true);
+                io.github.apace100.origins.Origins.LOGGER.info("Квест готов к сдаче!");
+            }
+        } catch (Exception e) {
+            io.github.apace100.origins.Origins.LOGGER.error("Ошибка при проверке статуса завершения: " + e.getMessage());
         }
     }
     

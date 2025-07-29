@@ -52,6 +52,7 @@
     "WarriorKillMixin",
     "WarriorRegenMixin",
     "QuestCraftingMixin",
+    "CraftingResultSlotMixin",
     "QuestKillMixin",
     "QuestPlayerTickMixin"
   ],
