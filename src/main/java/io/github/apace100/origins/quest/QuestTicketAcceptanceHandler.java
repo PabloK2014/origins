@@ -204,12 +204,15 @@ public class QuestTicketAcceptanceHandler {
             
             Origins.LOGGER.info("Проверяем готовность квеста {} к завершению", quest.getId());
             
-            // Проверяем готовность квеста к завершению
-            if (!isQuestReadyForCompletion(player, quest)) {
+            // Проверяем готовность квеста к завершению через билет
+            QuestTicketState ticketState = QuestTicketItem.getTicketState(ticketStack);
+            boolean isReady = QuestTicketItem.isReadyForCompletion(ticketStack);
+            
+            Origins.LOGGER.info("Состояние билета: {}, готов к завершению: {}", ticketState, isReady);
+            
+            if (!isReady) {
                 Origins.LOGGER.info("Квест {} не готов к завершению", quest.getId());
-                
-                // Показываем детальную информацию о том, что не выполнено
-                showQuestProgressDetails(player, ticketStack, quest);
+                sendErrorMessage(player, "Квест еще не выполнен! Проверьте все условия.");
                 return false;
             }
             

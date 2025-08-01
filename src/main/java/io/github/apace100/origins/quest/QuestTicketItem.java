@@ -87,21 +87,6 @@ public class QuestTicketItem extends Item {
     }
     
     /**
-     * Получает отображаемое название класса
-     */
-    private static String getClassDisplayName(String playerClass) {
-        return switch (playerClass) {
-            case "warrior" -> "Воин";
-            case "miner" -> "Шахтер";
-            case "blacksmith" -> "Кузнец";
-            case "courier" -> "Курьер";
-            case "brewer" -> "Пивовар";
-            case "cook" -> "Повар";
-            default -> playerClass;
-        };
-    }
-    
-    /**
      * Получает форматирование для состояния квеста
      */
     private static Formatting getStateFormatting(QuestTicketState state) {
@@ -244,7 +229,10 @@ public class QuestTicketItem extends Item {
             }
             
             long acceptTime = getAcceptTime(stack);
-            if (acceptTime > 0 && quest.getTimeLimit() > 0) {
+            QuestTicketState state = getTicketState(stack);
+            
+            // Если квест принят и есть лимит времени
+            if (state.isActive() && acceptTime > 0 && quest.getTimeLimit() > 0) {
                 long currentTime = System.currentTimeMillis();
                 long elapsedMinutes = (currentTime - acceptTime) / (1000 * 60);
                 long remainingMinutes = Math.max(0, quest.getTimeLimit() - elapsedMinutes);
@@ -274,19 +262,20 @@ public class QuestTicketItem extends Item {
                 
                 tooltip.add(Text.literal(timeText).formatted(timeColor));
             } else if (quest.getTimeLimit() > 0) {
-            if (quest.getTimeLimit() >= 60) {
-                long hours = quest.getTimeLimit() / 60;
-                long minutes = quest.getTimeLimit() % 60;
-                tooltip.add(Text.literal("Лимит времени: " + hours + "ч " + minutes + "м")
-                    .formatted(Formatting.WHITE));
+                // Показываем лимит времени для неактивных квестов
+                if (quest.getTimeLimit() >= 60) {
+                    long hours = quest.getTimeLimit() / 60;
+                    long minutes = quest.getTimeLimit() % 60;
+                    tooltip.add(Text.literal("Лимит времени: " + hours + "ч " + minutes + "м")
+                        .formatted(Formatting.WHITE));
+                } else {
+                    tooltip.add(Text.literal("Лимит времени: " + quest.getTimeLimit() + " мин")
+                        .formatted(Formatting.WHITE));
+                }
             } else {
-                tooltip.add(Text.literal("Лимит времени: " + quest.getTimeLimit() + " мин")
-                    .formatted(Formatting.WHITE));
+                tooltip.add(Text.literal("Без ограничения по времени")
+                    .formatted(Formatting.AQUA));
             }
-        } else {
-            tooltip.add(Text.literal("Без ограничения по времени")
-                .formatted(Formatting.AQUA));
-        }
         } catch (Exception e) {
             tooltip.add(Text.literal("Ошибка отображения времени: " + e.getMessage()).formatted(Formatting.RED));
         }
@@ -469,7 +458,12 @@ public class QuestTicketItem extends Item {
         // Добавляем информацию о классе, если не "any"
         String classInfo = "";
         if (!"any".equals(quest.getPlayerClass()) && !"human".equals(quest.getPlayerClass())) {
-            classInfo = " (" + getClassDisplayName(quest.getPlayerClass()) + ")";
+            String playerClass = quest.getPlayerClass();
+            // Убираем префикс "origins:" если есть
+            if (playerClass.startsWith("origins:")) {
+                playerClass = playerClass.substring(8);
+            }
+            classInfo = " (" + QuestItem.getClassDisplayName(playerClass) + ")";
         }
         
         // Формируем итоговое название с учетом состояния

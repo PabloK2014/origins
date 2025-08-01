@@ -251,7 +251,10 @@ public class QuestItem {
             // Получаем читаемое название предмета/сущности
             String itemName = getReadableItemName(objective.getTarget());
             
-            return Text.literal(actionText + ": " + itemName + " x" + objective.getAmount()).formatted(Formatting.YELLOW);
+            // Добавляем прогресс
+            String progressText = "(" + objective.getProgress() + "/" + objective.getAmount() + ")";
+            
+            return Text.literal(actionText + ": " + itemName + " x" + objective.getAmount() + " " + progressText).formatted(Formatting.YELLOW);
         }
         return Text.literal("Цель не указана").formatted(Formatting.DARK_GRAY);
     }
@@ -431,7 +434,12 @@ public class QuestItem {
         tooltip.add(getQuestTimeLimit(stack));
         
         if (!quest.getPlayerClass().equals("any")) {
-            tooltip.add(Text.literal("Класс: " + getClassDisplayName(quest.getPlayerClass())).formatted(Formatting.AQUA));
+            String playerClass = quest.getPlayerClass();
+            // Убираем префикс "origins:" если есть
+            if (playerClass.startsWith("origins:")) {
+                playerClass = playerClass.substring(8);
+            }
+            tooltip.add(Text.literal("Класс: " + getClassDisplayName(playerClass)).formatted(Formatting.AQUA));
         }
         
         // Добавляем редкость
@@ -484,15 +492,21 @@ public class QuestItem {
     /**
      * Получает отображаемое название класса
      */
-    private static String getClassDisplayName(String playerClass) {
-        return switch (playerClass) {
+    public static String getClassDisplayName(String playerClass) {
+        // Убираем префикс "origins:" если есть
+        String cleanClass = playerClass;
+        if (cleanClass.startsWith("origins:")) {
+            cleanClass = cleanClass.substring(8);
+        }
+        
+        return switch (cleanClass) {
             case "warrior" -> "Воин";
             case "miner" -> "Шахтер";
             case "blacksmith" -> "Кузнец";
             case "courier" -> "Курьер";
             case "brewer" -> "Пивовар";
             case "cook" -> "Повар";
-            default -> playerClass;
+            default -> cleanClass;
         };
     }
     
