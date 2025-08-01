@@ -68,7 +68,8 @@
     "ItemNameColorMixin",
     "ScreenAccessor",
     "QuestTicketTooltipMixin",
-    "ItemStackTooltipMixin"
+    "ItemStackTooltipMixin",
+    "QuestTicketHighlightMixin"
   ],
   "injectors": {
     "defaultRequire": 1

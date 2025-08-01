@@ -7,6 +7,7 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
@@ -25,6 +26,9 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
     private final QuestSelectionState selectionState = new QuestSelectionState();
     private boolean isDragging = false;
     private Quest draggedQuest = null;
+    private Quest selectedQuest = null; // Выбранный квест для подсветки
+    private int highlightedCenterSlot = -1; // Индекс подсвеченного слота в центре
+    private long highlightStartTime = 0; // Время начала подсветки
 
     public BountyBoardScreen(BountyBoardScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
@@ -70,6 +74,8 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
             }
         }
 
+        // Отрисовка подсветки квестов в центральной части
+        drawCenterQuestHighlights(context);
     }
 
     @Override
@@ -403,6 +409,15 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
         super.init();
         titleY = 6;
     }
+    
+    @Override
+    public void close() {
+        // Очищаем подсветку билетов при закрытии экрана
+        clearAllTicketHighlights();
+        // Очищаем подсветку центральных квестов
+        clearCenterQuestHighlight();
+        super.close();
+    }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
@@ -458,9 +473,16 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
                     // Обновляем состояние выбора
                     Quest clickedQuest = questButton.getQuest();
                     if (clickedQuest != null) {
+                        Origins.LOGGER.info("Кликнули на квест '{}' с ID '{}'", clickedQuest.getTitle(), clickedQuest.getId());
                         selectionState.selectQuest(i, clickedQuest);
                         handler.setSelectedQuestIndex(i);
-
+                        
+                        // Устанавливаем выбранный квест для подсветки билета
+                        selectedQuest = clickedQuest;
+                        highlightQuestTicketInInventory(clickedQuest);
+                        
+                        // Подсвечиваем соответствующий квест в центральной части
+                        highlightQuestInCenter(clickedQuest);
                     }
                     
                     // Обработка принятия квеста через ЛКМ
@@ -783,6 +805,252 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
             return QuestIntegration.getPlayerClass(client.player);
         }
         return "human";
+    }
+    
+    /**
+     * Подсвечивает билет квеста в инвентаре игрока
+     */
+    private void highlightQuestTicketInInventory(Quest quest) {
+        if (client == null || client.player == null || quest == null) {
+            return;
+        }
+        
+        // Ищем билет квеста в инвентаре игрока
+        for (int i = 0; i < client.player.getInventory().size(); i++) {
+            net.minecraft.item.ItemStack stack = client.player.getInventory().getStack(i);
+            
+            if (QuestTicketItem.isQuestTicket(stack)) {
+                Quest ticketQuest = QuestItem.getQuestFromStack(stack);
+                if (ticketQuest != null && ticketQuest.getId().equals(quest.getId())) {
+                    // Найден соответствующий билет - запускаем анимацию подсветки
+                    startTicketHighlightAnimation(i);
+                    break;
+                }
+            }
+        }
+    }
+    
+    /**
+     * Запускает анимацию подсветки билета в слоте инвентаря
+     */
+    private void startTicketHighlightAnimation(int slotIndex) {
+        // Создаем эффект подсветки через NBT данные билета
+        if (client != null && client.player != null) {
+            net.minecraft.item.ItemStack stack = client.player.getInventory().getStack(slotIndex);
+            if (QuestTicketItem.isQuestTicket(stack)) {
+                // Добавляем временную метку для подсветки
+                net.minecraft.nbt.NbtCompound nbt = stack.getOrCreateNbt();
+                nbt.putLong("highlight_start_time", System.currentTimeMillis());
+                nbt.putInt("highlight_slot", slotIndex);
+                nbt.putBoolean("should_highlight", true);
+                
+                // Логируем для отладки
+                io.github.apace100.origins.Origins.LOGGER.info("Подсвечиваем билет квеста в слоте {}", slotIndex);
+            }
+        }
+    }
+    
+    /**
+     * Проверяет, должен ли билет быть подсвечен
+     */
+    public static boolean shouldHighlightTicket(net.minecraft.item.ItemStack stack) {
+        if (!QuestTicketItem.isQuestTicket(stack)) {
+            return false;
+        }
+        
+        net.minecraft.nbt.NbtCompound nbt = stack.getNbt();
+        if (nbt == null || !nbt.getBoolean("should_highlight")) {
+            return false;
+        }
+        
+        long highlightStartTime = nbt.getLong("highlight_start_time");
+        long currentTime = System.currentTimeMillis();
+        long elapsedTime = currentTime - highlightStartTime;
+        
+        // Подсветка длится 3 секунды
+        if (elapsedTime > 3000) {
+            // Убираем метки подсветки
+            nbt.remove("highlight_start_time");
+            nbt.remove("highlight_slot");
+            nbt.putBoolean("should_highlight", false);
+            return false;
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Получает интенсивность подсветки билета (0.0 - 1.0)
+     */
+    public static float getHighlightIntensity(net.minecraft.item.ItemStack stack) {
+        if (!shouldHighlightTicket(stack)) {
+            return 0.0f;
+        }
+        
+        net.minecraft.nbt.NbtCompound nbt = stack.getNbt();
+        long highlightStartTime = nbt.getLong("highlight_start_time");
+        long currentTime = System.currentTimeMillis();
+        long elapsedTime = currentTime - highlightStartTime;
+        
+        // Создаем пульсирующий эффект
+        float progress = (elapsedTime % 1000) / 1000.0f; // Цикл 1 секунда
+        return 0.3f + 0.4f * (float)Math.sin(progress * Math.PI * 2); // Пульсация от 0.3 до 0.7
+    }
+    
+    /**
+     * Очищает подсветку всех билетов в инвентаре
+     */
+    private void clearAllTicketHighlights() {
+        if (client == null || client.player == null) {
+            return;
+        }
+        
+        for (int i = 0; i < client.player.getInventory().size(); i++) {
+            net.minecraft.item.ItemStack stack = client.player.getInventory().getStack(i);
+            
+            if (QuestTicketItem.isQuestTicket(stack)) {
+                net.minecraft.nbt.NbtCompound nbt = stack.getNbt();
+                if (nbt != null && nbt.getBoolean("should_highlight")) {
+                    nbt.remove("highlight_start_time");
+                    nbt.remove("highlight_slot");
+                    nbt.putBoolean("should_highlight", false);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Подсвечивает квест в центральной части доски объявлений
+     */
+    private void highlightQuestInCenter(Quest quest) {
+        if (quest == null) {
+            highlightedCenterSlot = -1;
+            return;
+        }
+        
+        // Ищем соответствующий слот квеста в центральной части
+        // Используем bounties инвентарь напрямую из blockEntity
+        if (handler.getBlockEntity() != null) {
+            for (int i = 0; i < 21; i++) { // 21 слот в центральной части (3x7)
+                ItemStack stack = handler.getBlockEntity().getBounties().getStack(i);
+                if (!stack.isEmpty()) {
+                    Quest centerQuest = null;
+                    
+                    // Получаем квест из стека
+                    if (stack.getItem() instanceof QuestTicketItem) {
+                        centerQuest = QuestItem.getQuestFromStack(stack);
+                    } else if (stack.getItem() instanceof BountifulQuestItem) {
+                        // Для BountifulQuestItem создаем временный квест для сравнения
+                        // Используем NBT данные для получения ID
+                        if (stack.hasNbt()) {
+                            String stackId = stack.getNbt().getString("quest_id");
+                            if (!stackId.isEmpty() && stackId.equals(quest.getId())) {
+                                highlightedCenterSlot = i;
+                                highlightStartTime = System.currentTimeMillis();
+                                Origins.LOGGER.info("Подсвечиваем BountifulQuest в центральном слоте {}", i);
+                                return;
+                            }
+                        }
+                    }
+                    
+                    // Сравниваем квесты по ID
+                    if (centerQuest != null && centerQuest.getId().equals(quest.getId())) {
+                        highlightedCenterSlot = i;
+                        highlightStartTime = System.currentTimeMillis();
+                        Origins.LOGGER.info("Подсвечиваем квест '{}' в центральном слоте {}", centerQuest.getTitle(), i);
+                        return;
+                    }
+                }
+            }
+        }
+        
+        Origins.LOGGER.warn("Не удалось найти квест '{}' в центральной части", quest.getTitle());
+        highlightedCenterSlot = -1;
+    }
+    
+    /**
+     * Отрисовывает подсветку квестов в центральной части
+     */
+    private void drawCenterQuestHighlights(DrawContext context) {
+        if (highlightedCenterSlot == -1) {
+            return;
+        }
+        
+        long currentTime = System.currentTimeMillis();
+        long elapsed = currentTime - highlightStartTime;
+        
+        // Подсветка длится 3 секунды
+        if (elapsed > 3000) {
+            highlightedCenterSlot = -1;
+            return;
+        }
+        
+        // Вычисляем интенсивность подсветки (пульсация)
+        float intensity = getCenterHighlightIntensity(elapsed);
+        
+        // Отрисовываем подсветку для соответствующего слота в центральной части
+        drawCenterSlotHighlight(context, highlightedCenterSlot, intensity);
+    }
+    
+    /**
+     * Отрисовывает подсветку конкретного слота в центральной части
+     */
+    private void drawCenterSlotHighlight(DrawContext context, int slotIndex, float intensity) {
+        // Вычисляем позицию слота в центральной части (3x7 сетка)
+        int row = slotIndex / 7;
+        int col = slotIndex % 7;
+        
+        // Базовые координаты центральной части (точно как в setupSlots)
+        int adjustX = 173;
+        int adjustY = 0;
+        int bountySlotSize = 18;
+        
+        // Вычисляем точные координаты слота (как в setupSlots)
+        int slotX = 8 + col * bountySlotSize + adjustX;
+        int slotY = 18 + row * bountySlotSize + adjustY;
+        
+        // Размер слота
+        int slotSize = 16;
+        
+        // Цвет подсветки с учетом интенсивности
+        int alpha = (int)(intensity * 255);
+        int goldColor = 0xFFD700; // Золотой цвет
+        int highlightColor = (alpha << 24) | goldColor;
+        
+        // Отрисовываем золотую рамку
+        int thickness = 2;
+        context.fill(slotX - thickness, slotY - thickness, slotX + slotSize + thickness, slotY, highlightColor); // Верх
+        context.fill(slotX - thickness, slotY + slotSize, slotX + slotSize + thickness, slotY + slotSize + thickness, highlightColor); // Низ
+        context.fill(slotX - thickness, slotY, slotX, slotY + slotSize, highlightColor); // Лево
+        context.fill(slotX + slotSize, slotY, slotX + slotSize + thickness, slotY + slotSize, highlightColor); // Право
+        
+        // Добавляем легкую подсветку фона
+        int backgroundAlpha = (int)(intensity * 0.3f * 255);
+        int backgroundHighlight = (backgroundAlpha << 24) | 0xFFFF00; // Желтый фон
+        context.fill(slotX, slotY, slotX + slotSize, slotY + slotSize, backgroundHighlight);
+        
+        Origins.LOGGER.info("Отрисовываем подсветку слота {} в позиции ({}, {})", slotIndex, slotX, slotY);
+    }
+    
+    /**
+     * Вычисляет интенсивность подсветки для создания эффекта пульсации в центральной части
+     */
+    private float getCenterHighlightIntensity(long elapsed) {
+        // Создаем пульсирующий эффект с периодом 1 секунда
+        float cycle = (elapsed % 1000) / 1000.0f; // 0.0 - 1.0
+        float intensity = 0.3f + 0.4f * (float)Math.sin(cycle * Math.PI * 2); // 0.3 - 0.7
+        
+        // Уменьшаем интенсивность к концу анимации
+        float fadeOut = Math.max(0, 1.0f - elapsed / 3000.0f);
+        return intensity * fadeOut;
+    }
+    
+    /**
+     * Очищает подсветку квестов в центральной части
+     */
+    private void clearCenterQuestHighlight() {
+        highlightedCenterSlot = -1;
+        highlightStartTime = 0;
     }
 
 }
