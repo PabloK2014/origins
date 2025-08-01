@@ -31,5 +31,8 @@ public class OriginsClient implements ClientModInitializer {
         HudRenderCallback.EVENT.register((drawContext, tickDelta) -> {
             OriginHudOverlay.render(drawContext, tickDelta);
         });
+        
+        // Регистрируем предикаты модели для квестов Bountiful
+        io.github.apace100.origins.quest.BountifulQuestItem.registerModelPredicates();
     }
 }

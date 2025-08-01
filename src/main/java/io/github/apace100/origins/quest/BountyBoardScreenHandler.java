@@ -37,13 +37,13 @@ public class BountyBoardScreenHandler extends ScreenHandler {
     }
 
     private void setupSlots(PlayerInventory playerInventory) {
-        // Слоты для квестов (3x7 сетка)
+        // Слоты для квестов (3x7 сетка) - используем bounties инвентарь из blockEntity
         int bountySlotSize = 18;
         int adjustX = 173;
         int adjustY = 0;
         for (int j = 0; j < 3; j++) {
             for (int k = 0; k < 7; k++) {
-                addSlot(new QuestSlot(questInventory, k + j * 7, 8 + k * bountySlotSize + adjustX, 18 + j * bountySlotSize + adjustY));
+                addSlot(new BountySlot(blockEntity.getBounties(), k + j * 7, 8 + k * bountySlotSize + adjustX, 18 + j * bountySlotSize + adjustY));
             }
         }
 
@@ -352,7 +352,7 @@ public class BountyBoardScreenHandler extends ScreenHandler {
      */
     public boolean canPlaceQuestInSlot(Quest quest, int slotIndex) {
         if (slotIndex == 21) { // SelectedQuestSlot
-            return quest != null && quest.getPlayerClass().equals(getCurrentPlayerClass());
+            return quest != null; // Временно убираем проверку класса
         }
         return false; // Обычные слоты квестов не принимают перетаскиваемые квесты
     }
@@ -410,10 +410,10 @@ public class BountyBoardScreenHandler extends ScreenHandler {
     private boolean canAcceptQuest(Quest quest) {
         if (quest == null) return false;
         
-        // Проверяем класс игрока
-        if (!quest.getPlayerClass().equals(getCurrentPlayerClass())) {
-            return false;
-        }
+        // Временно убираем проверку класса игрока для отладки
+        // if (!quest.getPlayerClass().equals(getCurrentPlayerClass())) {
+        //     return false;
+        // }
         
         // Проверяем, не принят ли уже этот квест
         // TODO: Добавить проверку активных квестов игрока
@@ -633,6 +633,8 @@ public class BountyBoardScreenHandler extends ScreenHandler {
     public void refreshAvailableQuests() {
         if (blockEntity != null) {
             blockEntity.refreshQuests();
+            questInventory.refreshQuests();
+            syncQuestState();
         }
     }
 

@@ -36,6 +36,9 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
         for (int i = 0; i < 21; i++) {
             questButtons.add(new QuestButton(this, i));
         }
+        
+        // Принудительно обновляем квесты при открытии экрана
+        handler.refreshAvailableQuests();
     }
 
     @Override
@@ -359,7 +362,6 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
             button.setQuestData(quest);
             validQuests.add(button);
         }
-        
         return validQuests;
     }
     
@@ -390,32 +392,32 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        Origins.LOGGER.info("BountyBoardScreen.mouseClicked: mouseX={}, mouseY={}, button={}", mouseX, mouseY, button);
+
         
         QuestDragHandler dragHandler = handler.getDragHandler();
         
         // Обработка завершения drag-and-drop
         if (dragHandler.isDragging()) {
-            Origins.LOGGER.info("Обрабатываем drag-and-drop");
+
             if (handleDragDrop(mouseX, mouseY)) {
                 return true;
             }
         }
         
         if (toggledOut) {
-            Origins.LOGGER.info("Доска развернута, проверяем клики по квестам");
+
             // Проверяем клик по кнопкам квестов
             List<QuestButton> allQuests = getAllQuests();
             int startY = 18;
             int maxVisible = 7;
             int visibleIndex = 0;
             
-            Origins.LOGGER.info("Всего квестов: {}, максимум видимых: {}", allQuests.size(), maxVisible);
+
             
             for (int i = 0; i < allQuests.size() && visibleIndex < maxVisible; i++) {
                 // Пропускаем замаскированные квесты
                 if (handler.isQuestSlotMasked(i)) {
-                    Origins.LOGGER.info("Квест {} замаскирован, пропускаем", i);
+
                     continue;
                 }
                 
@@ -429,25 +431,24 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
                 int buttonX = 5;
                 int buttonY = startY + (visibleIndex - scrollOffset) * 20;
                 
-                Origins.LOGGER.info("Проверяем квест {}: buttonX={}, buttonY={}, quest={}", 
-                    i, buttonX, buttonY, questButton.getQuest() != null ? questButton.getQuest().getTitle() : "null");
+
                 
                 if (isPointInButton((int)mouseX, (int)mouseY, buttonX, buttonY)) {
-                    Origins.LOGGER.info("Клик попал в кнопку квеста: button={}, quest={}", button, questButton.getQuest() != null ? questButton.getQuest().getTitle() : "null");
+
                     
                     // Обновляем состояние выбора
                     Quest clickedQuest = questButton.getQuest();
                     if (clickedQuest != null) {
                         selectionState.selectQuest(i, clickedQuest);
                         handler.setSelectedQuestIndex(i);
-                        Origins.LOGGER.info("Выбран квест: {} (индекс {})", clickedQuest.getTitle(), i);
+
                     }
                     
                     // Обработка принятия квеста через ЛКМ
                     if (button == 0 && clickedQuest != null) { // Left click
-                        Origins.LOGGER.info("Левый клик по квесту: {}", clickedQuest.getTitle());
+
                         if (acceptQuestDirectly(clickedQuest)) {
-                            Origins.LOGGER.info("Квест принят успешно");
+
                             return true;
                         }
                         Origins.LOGGER.warn("Прямое принятие квеста не удалось, пробуем drag-and-drop");
@@ -462,12 +463,12 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
                 
                 visibleIndex++;
             }
-            Origins.LOGGER.info("Клик не попал ни в одну кнопку квеста");
+
         } else {
-            Origins.LOGGER.info("Доска не развернута");
+
         }
 
-        Origins.LOGGER.info("Передаем клик в super.mouseClicked");
+
         // Если клик не был обработан выше, передаем его в стандартную обработку
         return super.mouseClicked(mouseX, mouseY, button);
     }
@@ -483,7 +484,7 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
         }
         
         try {
-            Origins.LOGGER.info("Попытка принять квест через билет: {} ({})", quest.getTitle(), quest.getId());
+
             
             // Получаем BlockEntity доски объявлений
             BountyBoardBlockEntity boardEntity = handler.getBoardEntity();
@@ -492,14 +493,14 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
                 return false;
             }
             
-            Origins.LOGGER.info("BoardEntity найден в позиции: {}", boardEntity.getPos());
+
             
             // Используем QuestTicketAcceptanceHandler для принятия квеста
             QuestTicketAcceptanceHandler acceptanceHandler = QuestTicketAcceptanceHandler.getInstance();
             boolean result = acceptanceHandler.acceptQuestFromBoard(client.player, quest, boardEntity);
             
             if (result) {
-                Origins.LOGGER.info("Квест {} успешно принят через билет", quest.getId());
+
                 // Обновляем экран локально
                 refreshQuestList();
                 return true;

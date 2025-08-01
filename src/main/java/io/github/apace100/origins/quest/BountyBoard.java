@@ -2,6 +2,8 @@ package io.github.apace100.origins.quest;
 
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.BlockEntityTicker;
+import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -38,6 +40,14 @@ public class BountyBoard extends BlockWithEntity {
                     }
                 }
                 
+                // Принудительно инициализируем доску если нужно
+                board.tryInitialPopulation();
+                
+                // Если квестов все еще нет, принудительно регенерируем
+                if (board.getQuestCount() == 0) {
+                    board.forceRegenerateQuests();
+                }
+                
                 // Обычное открытие интерфейса доски
                 player.openHandledScreen(board);
             }
@@ -48,5 +58,10 @@ public class BountyBoard extends BlockWithEntity {
     @Override
     public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
         return new BountyBoardBlockEntity(pos, state);
+    }
+
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
+        return checkType(type, QuestRegistry.BOUNTY_BOARD_BLOCK_ENTITY, BountyBoardBlockEntity::tick);
     }
 } 

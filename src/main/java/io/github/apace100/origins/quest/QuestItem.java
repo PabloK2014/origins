@@ -72,91 +72,131 @@ public class QuestItem {
      * Извлекает квест из ItemStack
      */
     public static Quest getQuestFromStack(ItemStack stack) {
-        if (stack.isEmpty() || !(stack.getItem() instanceof QuestTicketItem)) {
-            return null;
-        }
-        
-        NbtCompound nbt = stack.getNbt();
-        if (nbt == null) {
-            return null;
-        }
-        
-        // Проверяем оба формата: новый (с QuestData) и старый (прямо в NBT)
-        NbtCompound questNbt;
-        if (nbt.contains(QUEST_NBT_KEY)) {
-            questNbt = nbt.getCompound(QUEST_NBT_KEY);
-        } else if (nbt.contains("quest_id")) {
-            // Используем данные напрямую из NBT (формат QuestTicketItem)
-            questNbt = nbt;
-        } else {
-            return null;
-        }
-        
-        try {
-            // Поддерживаем оба формата данных
-            String id = questNbt.contains(QUEST_ID_KEY) ? 
-                questNbt.getString(QUEST_ID_KEY) : questNbt.getString("quest_id");
-            String title = questNbt.contains(QUEST_TITLE_KEY) ? 
-                questNbt.getString(QUEST_TITLE_KEY) : questNbt.getString("quest_title");
-            String description = questNbt.contains(QUEST_DESCRIPTION_KEY) ? 
-                questNbt.getString(QUEST_DESCRIPTION_KEY) : "";
-            int level = questNbt.contains(QUEST_LEVEL_KEY) ? 
-                questNbt.getInt(QUEST_LEVEL_KEY) : 1;
-            String playerClass = questNbt.contains(QUEST_CLASS_KEY) ? 
-                questNbt.getString(QUEST_CLASS_KEY) : questNbt.getString("quest_class");
-            int timeLimit = questNbt.contains(QUEST_TIME_LIMIT_KEY) ? 
-                questNbt.getInt(QUEST_TIME_LIMIT_KEY) : 60;
+    if (stack.isEmpty() || !(stack.getItem() instanceof QuestTicketItem)) {
+        io.github.apace100.origins.Origins.LOGGER.warn("Попытка получить квест из пустого или неверного ItemStack: {}", stack);
+        return null;
+    }
+    
+    NbtCompound nbt = stack.getNbt();
+    if (nbt == null) {
+        io.github.apace100.origins.Origins.LOGGER.warn("Билет квеста не содержит NBT: {}", stack);
+        return null;
+    }
+    
+
+    
+    // Проверяем оба формата: новый (с QuestData) и старый (прямо в NBT)
+    NbtCompound questNbt;
+    if (nbt.contains(QUEST_NBT_KEY)) {
+        questNbt = nbt.getCompound(QUEST_NBT_KEY);
+    } else if (nbt.contains("quest_id")) {
+        questNbt = nbt;
+    } else {
+        io.github.apace100.origins.Origins.LOGGER.warn("Билет квеста не содержит QuestData или quest_id: {}", nbt);
+        return null;
+    }
+    
+    try {
+        String id = questNbt.contains(QUEST_ID_KEY) ? 
+            questNbt.getString(QUEST_ID_KEY) : questNbt.getString("quest_id");
+        String title = questNbt.contains(QUEST_TITLE_KEY) ? 
+            questNbt.getString(QUEST_TITLE_KEY) : questNbt.getString("quest_title");
+        String description = questNbt.contains(QUEST_DESCRIPTION_KEY) ? 
+            questNbt.getString(QUEST_DESCRIPTION_KEY) : "";
+        int level = questNbt.contains(QUEST_LEVEL_KEY) ? 
+            questNbt.getInt(QUEST_LEVEL_KEY) : 1;
+        String playerClass = questNbt.contains(QUEST_CLASS_KEY) ? 
+            questNbt.getString(QUEST_CLASS_KEY) : questNbt.getString("quest_class");
+        int timeLimit = questNbt.contains(QUEST_TIME_LIMIT_KEY) ? 
+            questNbt.getInt(QUEST_TIME_LIMIT_KEY) : 60;
             
-            // Восстанавливаем цель квеста
-            QuestObjective objective = null;
-            if (questNbt.contains("objective")) {
-                NbtCompound objectiveNbt = questNbt.getCompound("objective");
-                try {
-                    QuestObjective.ObjectiveType type = QuestObjective.ObjectiveType.valueOf(
-                        objectiveNbt.getString("type").toUpperCase());
-                    String target = objectiveNbt.getString("target");
-                    int amount = objectiveNbt.getInt("amount");
-                    objective = new QuestObjective(type, target, amount);
-                    
-                    // Восстанавливаем прогресс если есть
-                    if (objectiveNbt.contains("progress")) {
-                        objective.setProgress(objectiveNbt.getInt("progress"));
-                    }
-                    if (objectiveNbt.getBoolean("completed")) {
-                        objective.setCompleted(true);
-                    }
-                } catch (Exception e) {
-                    io.github.apace100.origins.Origins.LOGGER.warn("Ошибка при восстановлении цели: {}", e.getMessage());
+
+        
+        // Восстанавливаем цель квеста
+        QuestObjective objective = null;
+        if (questNbt.contains("objective")) {
+            NbtCompound objectiveNbt = questNbt.getCompound("objective");
+            try {
+                QuestObjective.ObjectiveType type = QuestObjective.ObjectiveType.valueOf(
+                    objectiveNbt.getString("type").toUpperCase());
+                String target = objectiveNbt.getString("target");
+                int amount = objectiveNbt.getInt("amount");
+                if (target.isEmpty() || amount <= 0) {
+                    io.github.apace100.origins.Origins.LOGGER.error("Невалидная цель квеста: target={}, amount={}", target, amount);
+                    return null;
                 }
+                objective = new QuestObjective(type, target, amount);
+                
+                if (objectiveNbt.contains("progress")) {
+                    objective.setProgress(objectiveNbt.getInt("progress"));
+                }
+                if (objectiveNbt.getBoolean("completed")) {
+                    objective.setCompleted(true);
+                }
+            } catch (Exception e) {
+                io.github.apace100.origins.Origins.LOGGER.error("Ошибка при восстановлении цели для квеста {}: {}", id, e.getMessage());
+                return null; // Не создаём квест без валидной цели
             }
-            
-            // Восстанавливаем награду
-            QuestReward reward = null;
-            if (questNbt.contains("reward")) {
-                NbtCompound rewardNbt = questNbt.getCompound("reward");
+        } else {
+            io.github.apace100.origins.Origins.LOGGER.error("Билет квеста {} не содержит данных цели", id);
+            return null;
+        }
+        
+        // Восстанавливаем награду
+        QuestReward reward = null;
+        if (questNbt.contains("reward")) {
+            NbtCompound rewardNbt = questNbt.getCompound("reward");
+            try {
+                QuestReward.RewardType type = QuestReward.RewardType.valueOf(
+                    rewardNbt.getString("type").toUpperCase());
+                int tier = rewardNbt.getInt("tier");
+                int experience = rewardNbt.contains("experience") ? 
+                    rewardNbt.getInt("experience") : 
+                    (rewardNbt.contains("amount") ? rewardNbt.getInt("amount") : 500);
+                reward = new QuestReward(type, tier, experience);
+            } catch (Exception e) {
+                io.github.apace100.origins.Origins.LOGGER.warn("Ошибка при восстановлении награды для квеста {}: {}", id, e.getMessage());
+            }
+        } else if (questNbt.contains("rewards")) {
+            // Пытаемся загрузить из нового формата
+            NbtCompound rewardsNbt = questNbt.getCompound("rewards");
+            if (rewardsNbt.contains("reward_0")) {
+                NbtCompound rewardNbt = rewardsNbt.getCompound("reward_0");
                 try {
                     QuestReward.RewardType type = QuestReward.RewardType.valueOf(
                         rewardNbt.getString("type").toUpperCase());
                     int tier = rewardNbt.getInt("tier");
-                    int experience = rewardNbt.contains("experience") ? 
-                        rewardNbt.getInt("experience") : 
-                        (rewardNbt.contains("amount") ? rewardNbt.getInt("amount") : 500);
+                    int experience = rewardNbt.getInt("experience");
                     reward = new QuestReward(type, tier, experience);
                 } catch (Exception e) {
-                    io.github.apace100.origins.Origins.LOGGER.warn("Ошибка при восстановлении награды: {}", e.getMessage());
+                    io.github.apace100.origins.Origins.LOGGER.warn("Ошибка при восстановлении награды из rewards для квеста {}: {}", id, e.getMessage());
                 }
             }
-            
-            // Создаем квест
-            return new Quest(id, playerClass, level, title, description, 
-                           objective, timeLimit, reward);
-            
-        } catch (Exception e) {
-            io.github.apace100.origins.Origins.LOGGER.error(
-                "Ошибка при восстановлении квеста из ItemStack: " + e.getMessage());
+        }
+        
+        // Если награда не найдена, создаем награду по умолчанию
+        if (reward == null) {
+            io.github.apace100.origins.Origins.LOGGER.warn("Награда не найдена для квеста {}, создаем награду по умолчанию", id);
+            reward = new QuestReward(QuestReward.RewardType.SKILL_POINT_TOKEN, 1, 500);
+        }
+        
+        if (objective == null) {
+            io.github.apace100.origins.Origins.LOGGER.error("Квест {} не имеет валидной цели", id);
             return null;
         }
+        
+        // Предполагаем, что Quest принимает List<QuestObjective>
+        java.util.List<QuestObjective> objectives = new java.util.ArrayList<>();
+        objectives.add(objective);
+        
+        Quest quest = new Quest(id, playerClass, level, title, description, objective, timeLimit, reward);
+
+        return quest;
+    } catch (Exception e) {
+        io.github.apace100.origins.Origins.LOGGER.error("Ошибка при восстановлении квеста из ItemStack: {}", e.getMessage());
+        return null;
     }
+}
     
     /**
      * Проверяет, является ли ItemStack квестом
@@ -200,20 +240,46 @@ public class QuestItem {
         if (quest != null && quest.getObjective() != null) {
             QuestObjective objective = quest.getObjective();
             
-            // Используем локализованные строки
-            String translationKey = switch (objective.getType()) {
-                case COLLECT -> "quest.origins.objective.collect";
-                case KILL -> "quest.origins.objective.kill";
-                case CRAFT -> "quest.origins.objective.craft";
-                default -> "quest.origins.objective.unknown";
+            // Используем прямые строки вместо локализации
+            String actionText = switch (objective.getType()) {
+                case COLLECT -> "Собрать";
+                case KILL -> "Убить";
+                case CRAFT -> "Создать";
+                default -> "Выполнить";
             };
             
-            // Получаем локализованное название предмета/сущности
-            String itemName = getLocalizedItemName(objective.getTarget());
+            // Получаем читаемое название предмета/сущности
+            String itemName = getReadableItemName(objective.getTarget());
             
-            return Text.translatable(translationKey, 0, objective.getAmount(), itemName).formatted(Formatting.YELLOW);
+            return Text.literal(actionText + ": " + itemName + " x" + objective.getAmount()).formatted(Formatting.YELLOW);
         }
-        return Text.translatable("quest.origins.objective.unknown").formatted(Formatting.DARK_GRAY);
+        return Text.literal("Цель не указана").formatted(Formatting.DARK_GRAY);
+    }
+    
+    /**
+     * Получает читаемое название предмета
+     */
+    private static String getReadableItemName(String itemId) {
+        try {
+            net.minecraft.util.Identifier identifier = new net.minecraft.util.Identifier(itemId);
+            net.minecraft.item.Item item = net.minecraft.registry.Registries.ITEM.get(identifier);
+            if (item != null) {
+                return item.getName().getString();
+            }
+        } catch (Exception e) {
+            // Fallback к простому преобразованию
+        }
+        
+        // Простое преобразование ID предмета в читаемое название
+        String[] parts = itemId.replace("minecraft:", "").split("_");
+        StringBuilder name = new StringBuilder();
+        
+        for (String part : parts) {
+            if (name.length() > 0) name.append(" ");
+            name.append(part.substring(0, 1).toUpperCase()).append(part.substring(1));
+        }
+        
+        return name.toString();
     }
     
     /**
@@ -369,8 +435,7 @@ public class QuestItem {
         }
         
         // Добавляем редкость
-        tooltip.add(Text.literal("Редкость: ").formatted(Formatting.WHITE)
-            .append(quest.getRarity().getDisplayName()));
+        tooltip.add(Text.literal("Редкость: " + getRarityDisplayName(quest.getRarity())).formatted(Formatting.WHITE));
     }
     
     /**
@@ -428,6 +493,19 @@ public class QuestItem {
             case "brewer" -> "Пивовар";
             case "cook" -> "Повар";
             default -> playerClass;
+        };
+    }
+    
+    /**
+     * Получает отображаемое название редкости
+     */
+    private static String getRarityDisplayName(Quest.QuestRarity rarity) {
+        return switch (rarity) {
+            case COMMON -> "Обычный";
+            case UNCOMMON -> "Необычный";
+            case RARE -> "Редкий";
+            case EPIC -> "Эпический";
+            default -> "Неизвестный";
         };
     }
     

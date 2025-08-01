@@ -2,7 +2,6 @@
   "schemaVersion": 1,
   "id": "origins",
   "version": "${version}",
-
   "name": "Origins",
   "description": "This mod adds several origins with passive abilities to the game, which you can choose from at the beginning of the game.",
   "authors": [
@@ -13,10 +12,8 @@
     "sources": "https://github.com/apace100/origins-fabric",
     "issues": "https://github.com/apace100/origins-fabric/issues"
   },
-
   "license": "MIT",
   "icon": "assets/origins/icon.png",
-
   "environment": "*",
   "entrypoints": {
     "main": [
@@ -29,11 +26,13 @@
     "modmenu": [
       "io.github.apace100.origins.integration.ModMenuIntegration"
     ],
+    "cardinal-components": [
+      "io.github.apace100.origins.registry.ModComponents"
+    ],
     "cardinal-components-entity": [
-      "io.github.apace100.origins.registry.ModComponents",
-      "io.github.apace100.origins.progression.ProgressionComponents",
+      "io.github.apace100.origins.skill.SkillComponents",
       "io.github.apace100.origins.profession.ProfessionComponents",
-      "io.github.apace100.origins.skill.SkillComponents"
+      "io.github.apace100.origins.progression.ProgressionComponents"
     ],
     "calio:ordered-resource-listener": [
       "io.github.apace100.origins.Origins"
@@ -45,12 +44,11 @@
   "custom": {
     "cardinal-components": [
       "origins:origin",
-      "origins:progression",
       "origins:profession",
-      "origins:player_skills"
+      "origins:player_skills",
+      "origins:progression"
     ]
   },
-
   "depends": {
     "java": ">=17",
     "fabricloader": ">=0.12.3",

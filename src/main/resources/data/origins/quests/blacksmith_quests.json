@@ -2,16 +2,16 @@
   "quests": [
     {
       "id": "blacksmith_iron_sword_1",
-      "profession": "blacksmith",
+      "playerClass": "origins:blacksmith",
       "level": 1,
-      "title": "quest.origins.blacksmith_iron_sword_1.title",
-      "description": "quest.origins.blacksmith_iron_sword_1.description",
+      "title": "Железный меч",
+      "description": "Создайте железный меч для защиты",
       "objective": {
         "type": "craft",
-        "item": "minecraft:iron_sword",
+        "target": "minecraft:iron_sword",
         "amount": 1
       },
-      "timeLimit": 1200,
+      "timeLimit": 20,
       "reward": {
         "type": "skill_point_token",
         "tier": 1,
@@ -20,16 +20,16 @@
     },
     {
       "id": "blacksmith_diamond_pickaxe_2",
-      "profession": "blacksmith",
+      "playerClass": "origins:blacksmith",
       "level": 2,
-      "title": "quest.origins.blacksmith_diamond_pickaxe_2.title",
-      "description": "quest.origins.blacksmith_diamond_pickaxe_2.description",
+      "title": "Алмазная кирка",
+      "description": "Создайте алмазную кирку для добычи",
       "objective": {
         "type": "craft",
-        "item": "minecraft:diamond_pickaxe",
+        "target": "minecraft:diamond_pickaxe",
         "amount": 1
       },
-      "timeLimit": 1800,
+      "timeLimit": 30,
       "reward": {
         "type": "skill_point_token",
         "tier": 2,
@@ -38,16 +38,304 @@
     },
     {
       "id": "blacksmith_netherite_ingot_3",
-      "profession": "blacksmith",
+      "playerClass": "origins:blacksmith",
       "level": 3,
-      "title": "quest.origins.blacksmith_netherite_ingot_3.title",
-      "description": "quest.origins.blacksmith_netherite_ingot_3.description",
+      "title": "Незеритовый слиток",
+      "description": "Соберите незеритовый слиток для мастерских работ",
       "objective": {
         "type": "collect",
-        "item": "minecraft:netherite_ingot",
+        "target": "minecraft:netherite_ingot",
         "amount": 1
       },
-      "timeLimit": 2400,
+      "timeLimit": 40,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    },
+    {
+      "id": "blacksmith_iron_axe_1",
+      "playerClass": "origins:blacksmith",
+      "level": 1,
+      "title": "Железный топор",
+      "description": "Создайте железный топор для рубки",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:iron_axe",
+        "amount": 1
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "blacksmith_iron_armor_2",
+      "playerClass": "origins:blacksmith",
+      "level": 2,
+      "title": "Железная броня",
+      "description": "Создайте железную кирасу для защиты",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:iron_chestplate",
+        "amount": 1
+      },
+      "timeLimit": 30,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "blacksmith_anvil_3",
+      "playerClass": "origins:blacksmith",
+      "level": 3,
+      "title": "Наковальня мастера",
+      "description": "Создайте наковальню для ремонта инструментов",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:anvil",
+        "amount": 1
+      },
+      "timeLimit": 40,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    },
+    {
+      "id": "blacksmith_iron_ingot_1",
+      "playerClass": "origins:blacksmith",
+      "level": 1,
+      "title": "Железные слитки",
+      "description": "Соберите железные слитки для ковки",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:iron_ingot",
+        "amount": 10
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "blacksmith_diamond_axe_2",
+      "playerClass": "origins:blacksmith",
+      "level": 2,
+      "title": "Алмазный топор",
+      "description": "Создайте алмазный топор для эффективной рубки",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:diamond_axe",
+        "amount": 1
+      },
+      "timeLimit": 30,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "blacksmith_gold_sword_1",
+      "playerClass": "origins:blacksmith",
+      "level": 1,
+      "title": "Золотой меч",
+      "description": "Создайте золотой меч для церемоний",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:golden_sword",
+        "amount": 1
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "blacksmith_furnace_1",
+      "playerClass": "origins:blacksmith",
+      "level": 1,
+      "title": "Печь кузнеца",
+      "description": "Создайте печь для плавки металлов",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:furnace",
+        "amount": 1
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "blacksmith_shield_2",
+      "playerClass": "origins:blacksmith",
+      "level": 2,
+      "title": "Щит защитника",
+      "description": "Создайте щит для защиты в бою",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:shield",
+        "amount": 1
+      },
+      "timeLimit": 30,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "blacksmith_netherite_sword_3",
+      "playerClass": "origins:blacksmith",
+      "level": 3,
+      "title": "Незеритовый меч",
+      "description": "Создайте незеритовый меч - вершину кузнечного мастерства",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:netherite_sword",
+        "amount": 1
+      },
+      "timeLimit": 40,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    },
+    {
+      "id": "blacksmith_iron_hoe_1",
+      "playerClass": "origins:blacksmith",
+      "level": 1,
+      "title": "Железная мотыга",
+      "description": "Создайте железную мотыгу для фермеров",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:iron_hoe",
+        "amount": 1
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "blacksmith_diamond_shovel_2",
+      "playerClass": "origins:blacksmith",
+      "level": 2,
+      "title": "Алмазная лопата",
+      "description": "Создайте алмазную лопату для земляных работ",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:diamond_shovel",
+        "amount": 1
+      },
+      "timeLimit": 30,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "blacksmith_gold_ingot_1",
+      "playerClass": "origins:blacksmith",
+      "level": 1,
+      "title": "Золотые слитки",
+      "description": "Соберите золотые слитки для украшений",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:gold_ingot",
+        "amount": 8
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "blacksmith_crossbow_3",
+      "playerClass": "origins:blacksmith",
+      "level": 3,
+      "title": "Арбалет мастера",
+      "description": "Создайте арбалет для точной стрельбы",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:crossbow",
+        "amount": 1
+      },
+      "timeLimit": 40,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    },
+    {
+      "id": "blacksmith_coal_1",
+      "playerClass": "origins:blacksmith",
+      "level": 1,
+      "title": "Уголь для печи",
+      "description": "Соберите уголь для топлива",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:coal",
+        "amount": 20
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "blacksmith_bucket_2",
+      "playerClass": "origins:blacksmith",
+      "level": 2,
+      "title": "Железные ведра",
+      "description": "Создайте ведра для хранения жидкостей",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:bucket",
+        "amount": 2
+      },
+      "timeLimit": 30,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "blacksmith_flint_3",
+      "playerClass": "origins:blacksmith",
+      "level": 3,
+      "title": "Кремень для огнива",
+      "description": "Соберите кремень для создания огнива",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:flint",
+        "amount": 15
+      },
+      "timeLimit": 40,
       "reward": {
         "type": "skill_point_token",
         "tier": 3,

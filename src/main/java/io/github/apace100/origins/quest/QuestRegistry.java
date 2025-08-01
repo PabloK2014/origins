@@ -35,6 +35,9 @@ public class QuestRegistry {
     public static final Item QUEST_TICKET_RARE = new QuestTicketItem(new Item.Settings(), Quest.QuestRarity.RARE);
     public static final Item QUEST_TICKET_EPIC = new QuestTicketItem(new Item.Settings(), Quest.QuestRarity.EPIC);
     
+    // Новый предмет квеста в стиле Bountiful
+    public static final BountifulQuestItem BOUNTIFUL_QUEST_ITEM = new BountifulQuestItem();
+    
     public static void register() {
         Origins.LOGGER.info("Регистрация системы квестов...");
         
@@ -65,6 +68,9 @@ public class QuestRegistry {
         Registry.register(Registries.ITEM, new Identifier(Origins.MODID, "quest_ticket_uncommon"), QUEST_TICKET_UNCOMMON);
         Registry.register(Registries.ITEM, new Identifier(Origins.MODID, "quest_ticket_rare"), QUEST_TICKET_RARE);
         Registry.register(Registries.ITEM, new Identifier(Origins.MODID, "quest_ticket_epic"), QUEST_TICKET_EPIC);
+        
+        // Регистрируем новый предмет квеста
+        Registry.register(Registries.ITEM, new Identifier(Origins.MODID, "bountiful_quest"), BOUNTIFUL_QUEST_ITEM);
         
         Origins.LOGGER.info("Система квестов зарегистрирована успешно!");
     }

@@ -27,7 +27,12 @@ public enum QuestTicketState {
     /**
      * Квест завершен и награда получена
      */
-    FINISHED("finished", "Завершен");
+    FINISHED("finished", "Завершен"),
+    
+    /**
+     * Квест провален (время истекло или другие причины)
+     */
+    FAILED("failed", "Провален");
     
     private final String name;
     private final String displayName;

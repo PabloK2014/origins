@@ -98,6 +98,9 @@ public class Origins implements ModInitializer, OrderedResourceListenerInitializ
 		
 		// Регистрируем пакеты квестов
 		io.github.apace100.origins.networking.QuestPackets.registerServerPackets();
+		
+		// Регистрируем обработчики событий для квестов Bountiful
+		io.github.apace100.origins.quest.BountifulQuestEventHandler.registerEvents();
 		io.github.apace100.origins.networking.QuestAcceptancePacket.registerServerHandler();
 		
 		// Инициализируем реестр профессий
@@ -108,6 +111,9 @@ public class Origins implements ModInitializer, OrderedResourceListenerInitializ
 		
 		// Инициализируем обработчики событий квестов
 		io.github.apace100.origins.quest.QuestEventHandlers.initialize();
+		
+		// Регистрируем обновлятель времени билетов квестов
+		io.github.apace100.origins.quest.QuestTicketTimeUpdater.register();
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			OriginCommand.register(dispatcher);
@@ -121,6 +127,16 @@ public class Origins implements ModInitializer, OrderedResourceListenerInitializ
 			io.github.apace100.origins.command.TestQuestTrackingCommand.register(dispatcher, registryAccess);
 			io.github.apace100.origins.command.CheckQuestTicketsCommand.register(dispatcher, registryAccess);
 			io.github.apace100.origins.command.TestProgressCommand.register(dispatcher, registryAccess);
+			io.github.apace100.origins.command.BountifulQuestCommand.register(dispatcher, registryAccess);
+			io.github.apace100.origins.command.RefreshBountyBoardCommand.register(dispatcher, registryAccess);
+			io.github.apace100.origins.command.CreateBountyBoardCommand.register(dispatcher, registryAccess);
+			io.github.apace100.origins.command.TestQuestLoadingCommand.register(dispatcher, registryAccess);
+			io.github.apace100.origins.command.TestBountyBoardCommand.register(dispatcher, registryAccess);
+			io.github.apace100.origins.command.InitBountyBoardCommand.register(dispatcher, registryAccess);
+			io.github.apace100.origins.command.TestBountyBoardFixCommand.register(dispatcher, registryAccess, environment);
+			io.github.apace100.origins.command.ForceClearBoardCommand.register(dispatcher, registryAccess, environment);
+			io.github.apace100.origins.command.FixBountyBoardCommand.register(dispatcher, registryAccess, environment);
+			io.github.apace100.origins.command.FinalFixCommand.register(dispatcher, registryAccess, environment);
 		});
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register((content) -> {
 			content.add(ModItems.ORB_OF_ORIGIN);

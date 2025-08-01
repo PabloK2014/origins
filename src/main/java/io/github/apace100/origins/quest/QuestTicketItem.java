@@ -111,6 +111,7 @@ public class QuestTicketItem extends Item {
             case IN_PROGRESS -> Formatting.AQUA;
             case COMPLETED -> Formatting.GREEN;
             case FINISHED -> Formatting.GRAY;
+            case FAILED -> Formatting.RED;
         };
     }
     
@@ -424,7 +425,7 @@ public class QuestTicketItem extends Item {
             nbt.putInt("objectives_count", quest.getObjectives().size());
         }
         
-        // Сохраняем награды
+        // Сохраняем награды (и в новом, и в старом формате для совместимости)
         net.minecraft.nbt.NbtCompound rewardsNbt = new net.minecraft.nbt.NbtCompound();
         for (int i = 0; i < quest.getRewards().size(); i++) {
             QuestReward reward = quest.getRewards().get(i);
@@ -436,6 +437,16 @@ public class QuestTicketItem extends Item {
         }
         nbt.put("rewards", rewardsNbt);
         nbt.putInt("rewards_count", quest.getRewards().size());
+        
+        // Также сохраняем первую награду в старом формате для совместимости
+        if (!quest.getRewards().isEmpty()) {
+            QuestReward firstReward = quest.getRewards().get(0);
+            net.minecraft.nbt.NbtCompound rewardNbt = new net.minecraft.nbt.NbtCompound();
+            rewardNbt.putString("type", firstReward.getType().getName());
+            rewardNbt.putInt("tier", firstReward.getTier());
+            rewardNbt.putInt("experience", firstReward.getExperience());
+            nbt.put("reward", rewardNbt);
+        }
     }
     
     /**
@@ -918,6 +929,25 @@ public class QuestTicketItem extends Item {
         }
         
         return nbt.getLong("accept_time");
+    }
+    
+    /**
+     * Отмечает квест как проваленный
+     */
+    public static void markAsFailed(ItemStack stack) {
+        if (stack.isEmpty() || !isQuestTicket(stack)) {
+            return;
+        }
+        
+        net.minecraft.nbt.NbtCompound nbt = stack.getOrCreateNbt();
+        nbt.putString("quest_state", QuestTicketState.FAILED.getName());
+        nbt.putBoolean("completion_ready", false);
+        
+        // Обновляем отображаемое название
+        Quest quest = QuestItem.getQuestFromStack(stack);
+        if (quest != null) {
+            updateTicketDisplayName(stack, quest);
+        }
     }
     
     /**

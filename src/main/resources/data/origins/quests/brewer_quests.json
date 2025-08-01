@@ -2,16 +2,16 @@
   "quests": [
     {
       "id": "brewer_nether_wart_1",
-      "profession": "brewer",
+      "playerClass": "origins:brewer",
       "level": 1,
-      "title": "quest.origins.brewer_nether_wart_1.title",
-      "description": "quest.origins.brewer_nether_wart_1.description",
+      "title": "Адский нарост",
+      "description": "Соберите адский нарост для варки зелий",
       "objective": {
         "type": "collect",
-        "item": "minecraft:nether_wart",
+        "target": "minecraft:nether_wart",
         "amount": 10
       },
-      "timeLimit": 1200,
+      "timeLimit": 20,
       "reward": {
         "type": "skill_point_token",
         "tier": 1,
@@ -20,16 +20,16 @@
     },
     {
       "id": "brewer_blaze_powder_2",
-      "profession": "brewer",
+      "playerClass": "origins:brewer",
       "level": 2,
-      "title": "quest.origins.brewer_blaze_powder_2.title",
-      "description": "quest.origins.brewer_blaze_powder_2.description",
+      "title": "Огненный порошок",
+      "description": "Соберите огненный порошок для варочной стойки",
       "objective": {
         "type": "collect",
-        "item": "minecraft:blaze_powder",
+        "target": "minecraft:blaze_powder",
         "amount": 5
       },
-      "timeLimit": 1800,
+      "timeLimit": 30,
       "reward": {
         "type": "skill_point_token",
         "tier": 2,
@@ -38,20 +38,308 @@
     },
     {
       "id": "brewer_ghast_tear_3",
-      "profession": "brewer",
+      "playerClass": "origins:brewer",
       "level": 3,
-      "title": "quest.origins.brewer_ghast_tear_3.title",
-      "description": "quest.origins.brewer_ghast_tear_3.description",
+      "title": "Слеза гаста",
+      "description": "Добудьте слезы гаста для зелий регенерации",
       "objective": {
         "type": "collect",
-        "item": "minecraft:ghast_tear",
+        "target": "minecraft:ghast_tear",
         "amount": 3
       },
-      "timeLimit": 2400,
+      "timeLimit": 40,
       "reward": {
         "type": "skill_point_token",
         "tier": 3,
         "experience": 1500
+      }
+    },
+    {
+      "id": "brewer_sugar_1",
+      "playerClass": "origins:brewer",
+      "level": 1,
+      "title": "Сахар для зелий",
+      "description": "Соберите сахар для зелий скорости",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:sugar",
+        "amount": 12
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "brewer_spider_eye_2",
+      "playerClass": "origins:brewer",
+      "level": 2,
+      "title": "Глаза пауков",
+      "description": "Соберите глаза пауков для ядовитых зелий",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:spider_eye",
+        "amount": 8
+      },
+      "timeLimit": 30,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "brewer_bottle_1",
+      "playerClass": "origins:brewer",
+      "level": 1,
+      "title": "Стеклянные бутылки",
+      "description": "Создайте стеклянные бутылки для зелий",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:glass_bottle",
+        "amount": 5
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "brewer_magma_cream_2",
+      "playerClass": "origins:brewer",
+      "level": 2,
+      "title": "Лавовый крем",
+      "description": "Соберите лавовый крем для зелий огнестойкости",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:magma_cream",
+        "amount": 4
+      },
+      "timeLimit": 30,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "brewer_glowstone_3",
+      "playerClass": "origins:brewer",
+      "level": 3,
+      "title": "Светокаменная пыль",
+      "description": "Соберите светокаменную пыль для усиления зелий",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:glowstone_dust",
+        "amount": 10
+      },
+      "timeLimit": 40,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    },
+    {
+      "id": "brewer_redstone_2",
+      "playerClass": "origins:brewer",
+      "level": 2,
+      "title": "Красная пыль",
+      "description": "Соберите красную пыль для продления действия зелий",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:redstone",
+        "amount": 15
+      },
+      "timeLimit": 30,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "brewer_rabbit_foot_3",
+      "playerClass": "origins:brewer",
+      "level": 3,
+      "title": "Кроличья лапка",
+      "description": "Добудьте кроличьи лапки для зелий прыгучести",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:rabbit_foot",
+        "amount": 3
+      },
+      "timeLimit": 40,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    },
+    {
+      "id": "brewer_fermented_eye_2",
+      "playerClass": "origins:brewer",
+      "level": 2,
+      "title": "Забродивший паучий глаз",
+      "description": "Создайте забродивший паучий глаз для обращения зелий",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:fermented_spider_eye",
+        "amount": 3
+      },
+      "timeLimit": 30,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "brewer_cauldron_1",
+      "playerClass": "origins:brewer",
+      "level": 1,
+      "title": "Котел алхимика",
+      "description": "Создайте котел для хранения воды",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:cauldron",
+        "amount": 1
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "brewer_glistering_melon_3",
+      "playerClass": "origins:brewer",
+      "level": 3,
+      "title": "Сверкающая дыня",
+      "description": "Создайте сверкающие дольки дыни для зелий лечения",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:glistering_melon_slice",
+        "amount": 4
+      },
+      "timeLimit": 40,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    },
+    {
+      "id": "brewer_sand_1",
+      "playerClass": "origins:brewer",
+      "level": 1,
+      "title": "Песок для стекла",
+      "description": "Соберите песок для создания стеклянных бутылок",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:sand",
+        "amount": 20
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "brewer_gunpowder_2",
+      "playerClass": "origins:brewer",
+      "level": 2,
+      "title": "Порох для взрывных зелий",
+      "description": "Соберите порох для создания взрывных зелий",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:gunpowder",
+        "amount": 10
+      },
+      "timeLimit": 30,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "brewer_gold_nugget_3",
+      "playerClass": "origins:brewer",
+      "level": 3,
+      "title": "Золотые самородки",
+      "description": "Соберите золотые самородки для золотых морковок",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:gold_nugget",
+        "amount": 20
+      },
+      "timeLimit": 40,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    },
+    {
+      "id": "brewer_pufferfish_2",
+      "playerClass": "origins:brewer",
+      "level": 2,
+      "title": "Рыба-фугу",
+      "description": "Поймайте рыбу-фугу для зелий подводного дыхания",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:pufferfish",
+        "amount": 4
+      },
+      "timeLimit": 30,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "brewer_turtle_shell_3",
+      "playerClass": "origins:brewer",
+      "level": 3,
+      "title": "Щитки черепах",
+      "description": "Соберите щитки черепах для шлема черепахи",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:scute",
+        "amount": 5
+      },
+      "timeLimit": 40,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    },
+    {
+      "id": "brewer_brewing_stand_1",
+      "playerClass": "origins:brewer",
+      "level": 1,
+      "title": "Варочная стойка",
+      "description": "Создайте варочную стойку для варки зелий",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:brewing_stand",
+        "amount": 1
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
       }
     }
   ]

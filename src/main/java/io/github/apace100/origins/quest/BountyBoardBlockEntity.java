@@ -36,8 +36,7 @@ public class BountyBoardBlockEntity extends BlockEntity implements ExtendedScree
 
     public BountyBoardBlockEntity(BlockPos pos, BlockState state) {
         super(QuestRegistry.BOUNTY_BOARD_BLOCK_ENTITY, pos, state);
-        // Генерируем квесты при создании блока
-        generateRandomQuests();
+        // Квесты будут сгенерированы в tryInitialPopulation() когда world будет доступен
     }
 
     @Override
@@ -64,7 +63,29 @@ public class BountyBoardBlockEntity extends BlockEntity implements ExtendedScree
     }
 
     public List<Quest> getAvailableQuests() {
-        return availableQuests;
+        // Создаем список квестов из инвентаря bounties
+        List<Quest> quests = new ArrayList<>();
+        
+        for (int i = 0; i < bounties.size(); i++) {
+            ItemStack stack = bounties.getStack(i);
+            if (!stack.isEmpty()) {
+                if (stack.getItem() instanceof QuestTicketItem) {
+                    // Это билет квеста - извлекаем Quest из NBT
+                    Quest quest = QuestItem.getQuestFromStack(stack);
+                    if (quest != null) {
+                        quests.add(quest);
+                    }
+                } else if (stack.getItem() instanceof BountifulQuestItem) {
+                    // Это BountifulQuestItem - создаем простой Quest для совместимости
+                    Quest simpleQuest = createSimpleQuestFromBountifulItem(stack, "unknown", 1);
+                    if (simpleQuest != null) {
+                        quests.add(simpleQuest);
+                    }
+                }
+            }
+        }
+        
+        return quests;
     }
 
     public void addQuest(Quest quest, int slot) {
@@ -89,103 +110,160 @@ public class BountyBoardBlockEntity extends BlockEntity implements ExtendedScree
     }
     
     public void refreshQuests() {
+        if (world == null || world.isClient) {
+            return;
+        }
+        
+        // Принудительно очищаем все
         availableQuests.clear();
+        bounties.clear();
+        
         generateRandomQuests();
         markDirty();
     }
     
+    /**
+     * Принудительно пересоздает все квесты на доске
+     */
+    public void forceRegenerateQuests() {
+        if (world == null || world.isClient) {
+            return;
+        }
+        
+        // Полностью очищаем все данные
+        availableQuests.clear();
+        bounties.clear();
+        takenMask.clear();
+        finishMap.clear();
+        
+        // Генерируем новые квесты
+        generateRandomQuests();
+        markDirty();
+    }
+    
+    /**
+     * Получить количество квестов на доске
+     */
+    public int getQuestCount() {
+        int count = 0;
+        for (int i = 0; i < bounties.size(); i++) {
+            if (!bounties.getStack(i).isEmpty()) {
+                count++;
+            }
+        }
+        return count;
+    }
+    
     private void generateRandomQuests() {
+        // Проверяем, что мир доступен и это серверная сторона
+        if (world == null || world.isClient) {
+            return;
+        }
+        
         // Очищаем старые квесты
         availableQuests.clear();
+        bounties.clear(); // Очищаем также инвентарь квестов
         
-        // Всегда создаем тестовые квесты для стабильной работы
-        createTestQuests();
-        System.out.println("Создано тестовых квестов: " + availableQuests.size());
-        
-        // Пытаемся дополнительно загрузить квесты из JSON файлов
-        if (world != null && !world.isClient && world.getServer() != null) {
+        if (world instanceof ServerWorld) {
             try {
-                System.out.println("Попытка загрузки квестов из JSON...");
-                QuestGenerator.loadQuestsFromResources(world.getServer().getResourceManager());
-                
-                // Проверяем, сколько квестов загрузилось
+                // Проверяем, есть ли уже загруженные квесты (они должны быть загружены через QuestResourceReloadListener)
                 int totalJsonQuests = QuestGenerator.getTotalQuestCount();
-                System.out.println("Загружено квестов из JSON: " + totalJsonQuests);
                 
                 if (totalJsonQuests > 0) {
-                    // Добавляем квесты из JSON (если загрузились)
+                    // Загружаем квесты из JSON файлов в слоты доски
                     String[] professions = {"warrior", "cook", "courier", "brewer", "blacksmith", "miner"};
+                    int slotIndex = 0;
+                    
                     for (String profession : professions) {
-                        List<Quest> professionQuests = QuestGenerator.getRandomQuestsForProfession(profession, 1);
-                        if (!professionQuests.isEmpty()) {
-                            availableQuests.addAll(professionQuests);
-                            System.out.println("Добавлено " + professionQuests.size() + " квестов для " + profession);
+                        List<Quest> professionQuests = QuestGenerator.getRandomQuestsForProfession(profession, 3);
+                        System.out.println("Получено " + professionQuests.size() + " квестов для профессии " + profession);
+                        
+                        for (Quest quest : professionQuests) {
+                            if (slotIndex < 21 && quest != null) {
+                                // Создаем билет квеста из JSON квеста
+                                ItemStack questTicket = QuestTicketItem.createQuestTicket(quest);
+                                
+                                if (!questTicket.isEmpty()) {
+                                    bounties.setStack(slotIndex, questTicket);
+                                    slotIndex++;
+                                }
+                            }
                         }
                     }
                 } else {
-                    System.out.println("JSON квесты не загрузились, используем только тестовые");
+                    generateBountifulQuests();
                 }
                 
-                System.out.println("Общее количество квестов: " + availableQuests.size());
             } catch (Exception e) {
-                System.out.println("Ошибка загрузки JSON квестов: " + e.getMessage());
                 e.printStackTrace();
+                // Fallback к BountifulQuestCreator
+                generateBountifulQuests();
             }
         }
     }
     
     /**
-     * Создает тестовые квесты для всех классов
+     * Генерирует квесты через BountifulQuestCreator как fallback
      */
-    private void createTestQuests() {
-        // Воин - 2 квеста
-        availableQuests.add(new Quest("test_warrior_1", "warrior", 1, "Сбор костей", "Соберите кости для тренировки", 
-            new QuestObjective(QuestObjective.ObjectiveType.COLLECT, "minecraft:bone", 8), 30, 
-            new QuestReward(QuestReward.RewardType.SKILL_POINT_TOKEN, 1, 400)));
-        availableQuests.add(new Quest("test_warrior_2", "warrior", 1, "Охота на зомби", "Убейте зомби для получения опыта", 
-            new QuestObjective(QuestObjective.ObjectiveType.COLLECT, "minecraft:rotten_flesh", 5), 25, 
-            new QuestReward(QuestReward.RewardType.SKILL_POINT_TOKEN, 1, 350)));
+    private void generateBountifulQuests() {
+        String[] professions = {"warrior", "cook", "courier", "brewer", "blacksmith", "miner"};
+        Random random = new Random();
+        
+        // Создаем 12-15 квестов для доски
+        int questCount = 12 + random.nextInt(4);
+        
+        for (int i = 0; i < questCount && i < 21; i++) {
+            String profession = professions[random.nextInt(professions.length)];
+            int level = random.nextInt(10) + 1;
             
-        // Повар - 2 квеста
-        availableQuests.add(new Quest("test_cook_1", "cook", 1, "Сбор пшеницы", "Соберите пшеницу для хлеба", 
-            new QuestObjective(QuestObjective.ObjectiveType.COLLECT, "minecraft:wheat", 10), 20, 
-            new QuestReward(QuestReward.RewardType.SKILL_POINT_TOKEN, 1, 300)));
-        availableQuests.add(new Quest("test_cook_2", "cook", 1, "Выпечка хлеба", "Испеките хлеб для жителей", 
-            new QuestObjective(QuestObjective.ObjectiveType.CRAFT, "minecraft:bread", 5), 25, 
-            new QuestReward(QuestReward.RewardType.SKILL_POINT_TOKEN, 1, 400)));
+            BountifulQuestCreator creator = new BountifulQuestCreator(
+                (ServerWorld) world,
+                pos,
+                profession,
+                level,
+                world.getTime()
+            );
             
-        // Шахтер - 2 квеста
-        availableQuests.add(new Quest("test_miner_1", "miner", 1, "Добыча угля", "Добудьте уголь в шахтах", 
-            new QuestObjective(QuestObjective.ObjectiveType.COLLECT, "minecraft:coal", 16), 30, 
-            new QuestReward(QuestReward.RewardType.SKILL_POINT_TOKEN, 1, 350)));
-        availableQuests.add(new Quest("test_miner_2", "miner", 1, "Железная руда", "Добудьте железную руду", 
-            new QuestObjective(QuestObjective.ObjectiveType.COLLECT, "minecraft:raw_iron", 6), 35, 
-            new QuestReward(QuestReward.RewardType.SKILL_POINT_TOKEN, 1, 500)));
-            
-        // Кузнец - 2 квеста
-        availableQuests.add(new Quest("test_blacksmith_1", "blacksmith", 1, "Железные слитки", "Выплавите железные слитки", 
-            new QuestObjective(QuestObjective.ObjectiveType.COLLECT, "minecraft:iron_ingot", 8), 25, 
-            new QuestReward(QuestReward.RewardType.SKILL_POINT_TOKEN, 1, 400)));
-        availableQuests.add(new Quest("test_blacksmith_2", "blacksmith", 1, "Железные инструменты", "Создайте железную кирку", 
-            new QuestObjective(QuestObjective.ObjectiveType.CRAFT, "minecraft:iron_pickaxe", 1), 30, 
-            new QuestReward(QuestReward.RewardType.SKILL_POINT_TOKEN, 1, 450)));
-            
-        // Курьер - 2 квеста
-        availableQuests.add(new Quest("test_courier_1", "courier", 1, "Быстрые ноги", "Создайте кожаные ботинки", 
-            new QuestObjective(QuestObjective.ObjectiveType.CRAFT, "minecraft:leather_boots", 1), 20, 
-            new QuestReward(QuestReward.RewardType.SKILL_POINT_TOKEN, 1, 300)));
-        availableQuests.add(new Quest("test_courier_2", "courier", 1, "Навигация", "Создайте компас", 
-            new QuestObjective(QuestObjective.ObjectiveType.CRAFT, "minecraft:compass", 1), 25, 
-            new QuestReward(QuestReward.RewardType.SKILL_POINT_TOKEN, 1, 400)));
-            
-        // Пивовар - 2 квеста
-        availableQuests.add(new Quest("test_brewer_1", "brewer", 1, "Адский нарост", "Соберите адский нарост", 
-            new QuestObjective(QuestObjective.ObjectiveType.COLLECT, "minecraft:nether_wart", 8), 40, 
-            new QuestReward(QuestReward.RewardType.SKILL_POINT_TOKEN, 1, 500)));
-        availableQuests.add(new Quest("test_brewer_2", "brewer", 1, "Варочная стойка", "Создайте варочную стойку", 
-            new QuestObjective(QuestObjective.ObjectiveType.CRAFT, "minecraft:brewing_stand", 1), 30, 
-            new QuestReward(QuestReward.RewardType.SKILL_POINT_TOKEN, 1, 450)));
+            ItemStack questItem = creator.createQuestItem();
+            if (!questItem.isEmpty()) {
+                bounties.setStack(i, questItem);
+                
+
+            }
+        }
     }
+    
+    /**
+     * Создает простой Quest объект из BountifulQuestItem для совместимости
+     */
+    private Quest createSimpleQuestFromBountifulItem(ItemStack questItem, String profession, int level) {
+        try {
+            // Создаем простой квест с базовой информацией
+            String questId = "bountiful_" + profession + "_" + level + "_" + System.currentTimeMillis();
+            String title = "Квест " + profession + " (Уровень " + level + ")";
+            String description = "Автоматически созданный квест для " + profession;
+            
+            // Простая цель - собрать предмет
+            QuestObjective objective = new QuestObjective(
+                QuestObjective.ObjectiveType.COLLECT, 
+                "minecraft:dirt", 
+                1
+            );
+            
+            // Простая награда
+            QuestReward reward = new QuestReward(
+                QuestReward.RewardType.SKILL_POINT_TOKEN, 
+                1, 
+                level * 100
+            );
+            
+            return new Quest(questId, profession, level, title, description, objective, 30, reward);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    
+
 
     public Set<Integer> maskFor(PlayerEntity player) {
         return takenMask.computeIfAbsent(player.getUuidAsString(), k -> new HashSet<>());
@@ -224,48 +302,131 @@ public class BountyBoardBlockEntity extends BlockEntity implements ExtendedScree
     }
 
     public void tryInitialPopulation() {
-        if (isPristine()) {
+        System.out.println("tryInitialPopulation() вызван. world: " + world + ", isPristine: " + isPristine());
+        
+        // Проверяем, что мир доступен и это серверная сторона
+        if (world == null || world.isClient) {
+            System.out.println("Мир недоступен или это клиентская сторона, пропускаем инициализацию");
+            return;
+        }
+        
+        // Проверяем количество валидных квестов
+        int validQuestCount = getValidQuestCount();
+        System.out.println("Валидных квестов на доске: " + validQuestCount);
+        
+        if (isPristine() || validQuestCount == 0) {
+            System.out.println("Доска пустая или нет валидных квестов, начинаем инициализацию...");
+            
             if (decrees.isEmpty()) {
                 setDecree();
             }
-            for (int i = 0; i < 6; i++) {
-                randomlyUpdateBoard();
-            }
+            
+            // Генерируем квесты через основной метод
+            generateRandomQuests();
+            
             markDirty();
+            System.out.println("Инициализация завершена. Квестов в инвентаре: " + getQuestCount());
         }
+    }
+    
+    /**
+     * Получает количество валидных квестов (которые можно извлечь из билетов)
+     */
+    private int getValidQuestCount() {
+        int count = 0;
+        for (int i = 0; i < bounties.size(); i++) {
+            ItemStack stack = bounties.getStack(i);
+            if (!stack.isEmpty() && stack.getItem() instanceof QuestTicketItem) {
+                Quest quest = QuestItem.getQuestFromStack(stack);
+                if (quest != null) {
+                    count++;
+                }
+            }
+        }
+        return count;
     }
 
     private boolean isPristine() {
-        return bounties.isEmpty() && finishMap.isEmpty() && takenMask.isEmpty();
+        // Проверяем, есть ли предметы в инвентаре bounties
+        boolean bountiesEmpty = true;
+        for (int i = 0; i < bounties.size(); i++) {
+            if (!bounties.getStack(i).isEmpty()) {
+                bountiesEmpty = false;
+                break;
+            }
+        }
+        
+        boolean isEmpty = bountiesEmpty && finishMap.isEmpty() && takenMask.isEmpty();
+        System.out.println("isPristine(): bountiesEmpty=" + bountiesEmpty + 
+                          ", finishMap.isEmpty=" + finishMap.isEmpty() + 
+                          ", takenMask.isEmpty=" + takenMask.isEmpty() + 
+                          ", result=" + isEmpty);
+        return isEmpty;
     }
 
     private void randomlyUpdateBoard() {
         if (!(world instanceof ServerWorld)) return;
 
-        int slotToAddTo = new Random().nextInt(21);
-        int slotsToRemove = new Random().nextInt(3) > 0 ? (new Random().nextBoolean() ? 1 : 2) : 0;
+        Random random = new Random();
+        int slotToAddTo = random.nextInt(21);
+        int slotsToRemove = random.nextInt(3) > 0 ? (random.nextBoolean() ? 1 : 2) : 0;
         List<Integer> slotsToRemoveList = new ArrayList<>();
         for (int i = 0; i < slotsToRemove; i++) {
-            int slot = new Random().nextInt(21);
+            int slot = random.nextInt(21);
             if (slot != slotToAddTo) slotsToRemoveList.add(slot);
         }
 
-        // Генерируем новый квест для случайной профессии
-        String[] professions = {"warrior", "cook", "courier", "brewer", "blacksmith", "miner"};
-        String profession = professions[new Random().nextInt(professions.length)];
-        int level = new Random().nextInt(3) + 1; // Уровень от 1 до 3
-        Quest newQuest = QuestGenerator.generateRandomQuest(profession, level);
-        if (newQuest != null) {
-            removeQuest(slotToAddTo);
-            addQuest(newQuest, slotToAddTo);
+        // Сначала пытаемся взять квест из JSON файлов
+        try {
+            String[] professions = {"warrior", "cook", "courier", "brewer", "blacksmith", "miner"};
+            String profession = professions[random.nextInt(professions.length)];
+            
+            List<Quest> availableJsonQuests = QuestGenerator.getRandomQuestsForProfession(profession, 1);
+            
+            if (!availableJsonQuests.isEmpty()) {
+                // Используем квест из JSON
+                Quest jsonQuest = availableJsonQuests.get(0);
+                ItemStack questTicket = QuestTicketItem.createQuestTicket(jsonQuest);
+                bounties.setStack(slotToAddTo, questTicket);
+                System.out.println("Добавлен JSON квест " + jsonQuest.getTitle() + " в слот " + slotToAddTo);
+            } else {
+                // Fallback к BountifulQuestCreator
+                int level = random.nextInt(10) + 1;
+                
+                BountifulQuestCreator creator = new BountifulQuestCreator(
+                    (ServerWorld) world,
+                    pos,
+                    profession,
+                    level,
+                    world.getTime()
+                );
+                
+                ItemStack newQuestItem = creator.createQuestItem();
+                if (!newQuestItem.isEmpty()) {
+                    bounties.setStack(slotToAddTo, newQuestItem);
+                    System.out.println("Добавлен новый квест " + profession + " уровня " + level + " в слот " + slotToAddTo);
+                }
+            }
+        } catch (Exception e) {
+            Origins.LOGGER.error("Ошибка при генерации квеста: " + e.getMessage());
+            e.printStackTrace();
         }
 
-        Set<Integer> playerMask = maskFor((PlayerEntity) world.getPlayers().get(0)); // Пример, замените на реального игрока
-        playerMask.removeIf(slot -> slot == slotToAddTo || slotsToRemoveList.contains(slot));
-        slotsToRemoveList.forEach(this::removeQuest);
+        // Очищаем маски для обновленных слотов
+        for (Set<Integer> mask : takenMask.values()) {
+            mask.removeIf(slot -> slot == slotToAddTo || slotsToRemoveList.contains(slot));
+        }
+        
+        // Удаляем квесты из указанных слотов
+        slotsToRemoveList.forEach(slot -> {
+            bounties.setStack(slot, ItemStack.EMPTY);
+            System.out.println("Удален квест из слота " + slot);
+        });
 
         markDirty();
     }
+    
+
 
     public int[] levelProgress(int done) {
         int doneAcc = done;

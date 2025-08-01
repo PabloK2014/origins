@@ -2,16 +2,16 @@
   "quests": [
     {
       "id": "miner_coal_1",
-      "profession": "miner",
+      "playerClass": "origins:miner",
       "level": 1,
-      "title": "quest.origins.miner_coal_1.title",
-      "description": "quest.origins.miner_coal_1.description",
+      "title": "Добыча угля",
+      "description": "Добудьте уголь для топлива и факелов",
       "objective": {
         "type": "collect",
-        "item": "minecraft:coal",
+        "target": "minecraft:coal",
         "amount": 32
       },
-      "timeLimit": 1200,
+      "timeLimit": 20,
       "reward": {
         "type": "skill_point_token",
         "tier": 1,
@@ -20,16 +20,16 @@
     },
     {
       "id": "miner_iron_2",
-      "profession": "miner",
+      "playerClass": "origins:miner",
       "level": 2,
-      "title": "quest.origins.miner_iron_2.title",
-      "description": "quest.origins.miner_iron_2.description",
+      "title": "Железные слитки",
+      "description": "Добудьте и переплавьте железную руду",
       "objective": {
         "type": "collect",
-        "item": "minecraft:iron_ingot",
+        "target": "minecraft:iron_ingot",
         "amount": 16
       },
-      "timeLimit": 1800,
+      "timeLimit": 30,
       "reward": {
         "type": "skill_point_token",
         "tier": 2,
@@ -38,20 +38,326 @@
     },
     {
       "id": "miner_diamond_3",
-      "profession": "miner",
+      "playerClass": "origins:miner",
       "level": 3,
-      "title": "quest.origins.miner_diamond_3.title",
-      "description": "quest.origins.miner_diamond_3.description",
+      "title": "Алмазы глубин",
+      "description": "Найдите алмазы в глубинах земли",
       "objective": {
         "type": "collect",
-        "item": "minecraft:diamond",
+        "target": "minecraft:diamond",
         "amount": 5
       },
-      "timeLimit": 2400,
+      "timeLimit": 40,
       "reward": {
         "type": "skill_point_token",
         "tier": 3,
         "experience": 1500
+      }
+    },
+    {
+      "id": "miner_redstone_1",
+      "playerClass": "origins:miner",
+      "level": 1,
+      "title": "Красная пыль",
+      "description": "Добудьте красную пыль для механизмов",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:redstone",
+        "amount": 20
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "miner_lapis_2",
+      "playerClass": "origins:miner",
+      "level": 2,
+      "title": "Лазурит для зачарований",
+      "description": "Добудьте лазурит для зачарования предметов",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:lapis_lazuli",
+        "amount": 12
+      },
+      "timeLimit": 30,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "miner_emerald_3",
+      "playerClass": "origins:miner",
+      "level": 3,
+      "title": "Изумруды для торговли",
+      "description": "Найдите изумруды для торговли с жителями",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:emerald",
+        "amount": 6
+      },
+      "timeLimit": 40,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    },
+    {
+      "id": "miner_gold_1",
+      "playerClass": "origins:miner",
+      "level": 1,
+      "title": "Золотые слитки",
+      "description": "Добудьте и переплавьте золотую руду",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:gold_ingot",
+        "amount": 10
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "miner_copper_2",
+      "playerClass": "origins:miner",
+      "level": 2,
+      "title": "Медные слитки",
+      "description": "Добудьте медную руду и переплавьте её",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:copper_ingot",
+        "amount": 15
+      },
+      "timeLimit": 30,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "miner_obsidian_3",
+      "playerClass": "origins:miner",
+      "level": 3,
+      "title": "Обсидиан для портала",
+      "description": "Добудьте обсидиан для создания портала в Незер",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:obsidian",
+        "amount": 10
+      },
+      "timeLimit": 40,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    },
+    {
+      "id": "miner_flint_1",
+      "playerClass": "origins:miner",
+      "level": 1,
+      "title": "Кремень из гравия",
+      "description": "Добудьте кремень для создания инструментов",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:flint",
+        "amount": 16
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "miner_gravel_2",
+      "playerClass": "origins:miner",
+      "level": 2,
+      "title": "Гравий для дорог",
+      "description": "Добудьте гравий для строительства дорог",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:gravel",
+        "amount": 30
+      },
+      "timeLimit": 30,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "miner_stone_1",
+      "playerClass": "origins:miner",
+      "level": 1,
+      "title": "Камень для строительства",
+      "description": "Добудьте камень для строительных работ",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:stone",
+        "amount": 40
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "miner_nether_quartz_3",
+      "playerClass": "origins:miner",
+      "level": 3,
+      "title": "Кварц Незера",
+      "description": "Добудьте кварц в Незере для декораций",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:quartz",
+        "amount": 20
+      },
+      "timeLimit": 40,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    },
+    {
+      "id": "miner_ancient_debris_3",
+      "playerClass": "origins:miner",
+      "level": 3,
+      "title": "Древние обломки",
+      "description": "Найдите древние обломки для незеритового снаряжения",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:ancient_debris",
+        "amount": 2
+      },
+      "timeLimit": 40,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    },
+    {
+      "id": "miner_sand_1",
+      "playerClass": "origins:miner",
+      "level": 1,
+      "title": "Песок для стекла",
+      "description": "Добудьте песок для создания стекла",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:sand",
+        "amount": 30
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "miner_clay_2",
+      "playerClass": "origins:miner",
+      "level": 2,
+      "title": "Глина для кирпичей",
+      "description": "Добудьте глину для создания кирпичей",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:clay",
+        "amount": 20
+      },
+      "timeLimit": 30,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "miner_granite_1",
+      "playerClass": "origins:miner",
+      "level": 1,
+      "title": "Гранит для отделки",
+      "description": "Добудьте гранит для декоративной отделки",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:granite",
+        "amount": 30
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "miner_diorite_2",
+      "playerClass": "origins:miner",
+      "level": 2,
+      "title": "Диорит для строительства",
+      "description": "Добудьте диорит для строительных проектов",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:diorite",
+        "amount": 25
+      },
+      "timeLimit": 30,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "miner_andesite_3",
+      "playerClass": "origins:miner",
+      "level": 3,
+      "title": "Андезит для мастеров",
+      "description": "Добудьте андезит для сложных построек",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:andesite",
+        "amount": 30
+      },
+      "timeLimit": 40,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    },
+    {
+      "id": "miner_torch_1",
+      "playerClass": "origins:miner",
+      "level": 1,
+      "title": "Факелы для шахт",
+      "description": "Создайте факелы для освещения шахт",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:torch",
+        "amount": 16
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
       }
     }
   ]

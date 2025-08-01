@@ -133,7 +133,8 @@ public class QuestInventory extends SimpleInventory {
     public void refreshQuests() {
         availableQuests.clear();
         if (blockEntity != null) {
-            availableQuests.addAll(blockEntity.getAvailableQuests());
+            List<Quest> blockQuests = blockEntity.getAvailableQuests();
+            availableQuests.addAll(blockQuests);
         }
         
         // Очищаем выбор если он стал невалидным

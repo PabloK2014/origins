@@ -30,10 +30,7 @@ public class QuestTicketAcceptanceHandler {
      * Принимает квест через ЛКМ по билету на доске объявлений с улучшенной обработкой ошибок
      */
     public boolean acceptQuestFromBoard(PlayerEntity player, Quest quest, BountyBoardBlockEntity board) {
-        Origins.LOGGER.info("QuestTicketAcceptanceHandler.acceptQuestFromBoard: player={}, quest={}, board={}", 
-            player != null ? player.getName().getString() : "null",
-            quest != null ? quest.getTitle() : "null",
-            board != null ? board.getPos() : "null");
+
         
         // Валидация входных параметров
         if (player == null) {

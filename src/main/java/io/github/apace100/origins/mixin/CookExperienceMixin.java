@@ -71,7 +71,6 @@ class CookingExperienceMixin {
 
     @Inject(method = "assemble", at = @At("RETURN"))
     private void giveExperienceForCooking(Inventory inventory, net.minecraft.registry.DynamicRegistryManager registryManager, CallbackInfoReturnable<ItemStack> cir) {
-        System.out.println("[DEBUG] CookingExperienceMixin.assemble called");
         if (inventory.getClass().getSimpleName().contains("FurnaceInventory")) {
             try {
                 // Получаем игрока, который использует печь

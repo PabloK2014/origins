@@ -107,6 +107,258 @@
         "tier": 3,
         "experience": 1500
       }
+    },
+    {
+      "id": "cook_carrot_1",
+      "playerClass": "origins:cook",
+      "level": 1,
+      "title": "Сбор моркови",
+      "description": "Соберите морковь для питательных блюд",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:carrot",
+        "amount": 15
+      },
+      "timeLimit": 25,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "cook_cookie_1",
+      "playerClass": "origins:cook",
+      "level": 1,
+      "title": "Печенье для перекуса",
+      "description": "Испеките печенье для быстрого перекуса",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:cookie",
+        "amount": 16
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "cook_pumpkin_pie_2",
+      "playerClass": "origins:cook",
+      "level": 2,
+      "title": "Тыквенный пирог",
+      "description": "Приготовьте тыквенные пироги для праздника",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:pumpkin_pie",
+        "amount": 4
+      },
+      "timeLimit": 40,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "cook_sugar_2",
+      "playerClass": "origins:cook",
+      "level": 2,
+      "title": "Сбор сахара",
+      "description": "Соберите сахар для сладких блюд",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:sugar",
+        "amount": 12
+      },
+      "timeLimit": 30,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "cook_golden_carrot_3",
+      "playerClass": "origins:cook",
+      "level": 3,
+      "title": "Золотая морковь",
+      "description": "Создайте золотую морковь для ночного зрения",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:golden_carrot",
+        "amount": 3
+      },
+      "timeLimit": 50,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    },
+    {
+      "id": "cook_potato_1",
+      "playerClass": "origins:cook",
+      "level": 1,
+      "title": "Сбор картофеля",
+      "description": "Соберите картофель для сытных блюд",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:potato",
+        "amount": 15
+      },
+      "timeLimit": 25,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "cook_baked_potato_1",
+      "playerClass": "origins:cook",
+      "level": 1,
+      "title": "Запеченный картофель",
+      "description": "Приготовьте запеченный картофель для ужина",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:baked_potato",
+        "amount": 10
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "cook_beetroot_2",
+      "playerClass": "origins:cook",
+      "level": 2,
+      "title": "Сбор свеклы",
+      "description": "Соберите свеклу для супа",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:beetroot",
+        "amount": 12
+      },
+      "timeLimit": 30,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "cook_beetroot_soup_2",
+      "playerClass": "origins:cook",
+      "level": 2,
+      "title": "Свекольный суп",
+      "description": "Приготовьте свекольный суп для жителей",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:beetroot_soup",
+        "amount": 6
+      },
+      "timeLimit": 40,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "cook_egg_1",
+      "playerClass": "origins:cook",
+      "level": 1,
+      "title": "Сбор яиц",
+      "description": "Соберите яйца для выпечки",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:egg",
+        "amount": 16
+      },
+      "timeLimit": 25,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "cook_rabbit_stew_3",
+      "playerClass": "origins:cook",
+      "level": 3,
+      "title": "Рагу из кролика",
+      "description": "Приготовьте рагу из кролика для гурманов",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:rabbit_stew",
+        "amount": 5
+      },
+      "timeLimit": 50,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    },
+    {
+      "id": "cook_cocoa_2",
+      "playerClass": "origins:cook",
+      "level": 2,
+      "title": "Какао-бобы",
+      "description": "Соберите какао-бобы для десертов",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:cocoa_beans",
+        "amount": 10
+      },
+      "timeLimit": 30,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "cook_furnace_1",
+      "playerClass": "origins:cook",
+      "level": 1,
+      "title": "Печь повара",
+      "description": "Создайте печь для приготовления блюд",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:furnace",
+        "amount": 1
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "cook_honey_3",
+      "playerClass": "origins:cook",
+      "level": 3,
+      "title": "Медовый урожай",
+      "description": "Соберите мед для сладких блюд",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:honey_bottle",
+        "amount": 4
+      },
+      "timeLimit": 50,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
     }
   ]
 }

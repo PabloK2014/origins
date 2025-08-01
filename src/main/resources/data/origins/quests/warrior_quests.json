@@ -107,6 +107,258 @@
         "tier": 3,
         "experience": 1500
       }
+    },
+    {
+      "id": "warrior_spider_kill_1",
+      "playerClass": "origins:warrior",
+      "level": 1,
+      "title": "Охота на пауков",
+      "description": "Убейте пауков для тренировки ловкости",
+      "objective": {
+        "type": "kill",
+        "target": "minecraft:spider",
+        "amount": 6
+      },
+      "timeLimit": 25,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "warrior_iron_sword_1",
+      "playerClass": "origins:warrior",
+      "level": 1,
+      "title": "Железный клинок",
+      "description": "Создайте железный меч для битвы",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:iron_sword",
+        "amount": 1
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "warrior_creeper_kill_2",
+      "playerClass": "origins:warrior",
+      "level": 2,
+      "title": "Уничтожение крипперов",
+      "description": "Убейте крипперов для защиты деревни",
+      "objective": {
+        "type": "kill",
+        "target": "minecraft:creeper",
+        "amount": 5
+      },
+      "timeLimit": 40,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "warrior_shield_2",
+      "playerClass": "origins:warrior",
+      "level": 2,
+      "title": "Щит воина",
+      "description": "Создайте щит для защиты в бою",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:shield",
+        "amount": 1
+      },
+      "timeLimit": 35,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "warrior_ender_pearl_3",
+      "playerClass": "origins:warrior",
+      "level": 3,
+      "title": "Жемчуг Края",
+      "description": "Соберите жемчуг эндерменов для телепортации",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:ender_pearl",
+        "amount": 4
+      },
+      "timeLimit": 60,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    },
+    {
+      "id": "warrior_bow_2",
+      "playerClass": "origins:warrior",
+      "level": 2,
+      "title": "Лук стрелка",
+      "description": "Создайте лук для дальнего боя",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:bow",
+        "amount": 1
+      },
+      "timeLimit": 35,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "warrior_arrow_1",
+      "playerClass": "origins:warrior",
+      "level": 1,
+      "title": "Стрелы для боя",
+      "description": "Создайте стрелы для стрельбы из лука",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:arrow",
+        "amount": 16
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "warrior_blaze_kill_3",
+      "playerClass": "origins:warrior",
+      "level": 3,
+      "title": "Огненное испытание",
+      "description": "Убейте ифритов для добычи их силы",
+      "objective": {
+        "type": "kill",
+        "target": "minecraft:blaze",
+        "amount": 4
+      },
+      "timeLimit": 60,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    },
+    {
+      "id": "warrior_iron_armor_2",
+      "playerClass": "origins:warrior",
+      "level": 2,
+      "title": "Железная броня",
+      "description": "Создайте железную броню для защиты",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:iron_chestplate",
+        "amount": 1
+      },
+      "timeLimit": 40,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "warrior_spider_eye_1",
+      "playerClass": "origins:warrior",
+      "level": 1,
+      "title": "Глаза пауков",
+      "description": "Соберите глаза пауков для алхимии",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:spider_eye",
+        "amount": 8
+      },
+      "timeLimit": 25,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "warrior_enderman_kill_3",
+      "playerClass": "origins:warrior",
+      "level": 3,
+      "title": "Битва с эндерменами",
+      "description": "Убейте эндерменов для добычи жемчуга",
+      "objective": {
+        "type": "kill",
+        "target": "minecraft:enderman",
+        "amount": 3
+      },
+      "timeLimit": 60,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    },
+    {
+      "id": "warrior_tnt_2",
+      "playerClass": "origins:warrior",
+      "level": 2,
+      "title": "Взрывная мощь",
+      "description": "Создайте ТНТ для разрушения",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:tnt",
+        "amount": 2
+      },
+      "timeLimit": 40,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "warrior_flint_1",
+      "playerClass": "origins:warrior",
+      "level": 1,
+      "title": "Кремень для стрел",
+      "description": "Соберите кремень для создания стрел",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:flint",
+        "amount": 12
+      },
+      "timeLimit": 25,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "warrior_crossbow_3",
+      "playerClass": "origins:warrior",
+      "level": 3,
+      "title": "Арбалет воина",
+      "description": "Создайте арбалет для точной стрельбы",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:crossbow",
+        "amount": 1
+      },
+      "timeLimit": 50,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
     }
   ]
 }

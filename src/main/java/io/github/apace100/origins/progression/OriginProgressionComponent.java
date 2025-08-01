@@ -19,8 +19,7 @@ import java.util.Map;
  */
 public class OriginProgressionComponent implements AutoSyncedComponent, ServerTickingComponent {
 
-    public static final ComponentKey<OriginProgressionComponent> KEY =
-        ComponentRegistry.getOrCreate(Origins.identifier("progression"), OriginProgressionComponent.class);
+    public static final ComponentKey<OriginProgressionComponent> KEY = ProgressionComponents.PROGRESSION;
 
     private final PlayerEntity player;
     private final Map<String, OriginProgression> progressions = new HashMap<>();

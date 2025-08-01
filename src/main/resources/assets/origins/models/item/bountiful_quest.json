@@ -1,0 +1,32 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "origins:item/bountiful_quest"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "origins:rarity": 0.0
+      },
+      "model": "origins:item/bountiful_quest_common"
+    },
+    {
+      "predicate": {
+        "origins:rarity": 0.1
+      },
+      "model": "origins:item/bountiful_quest_uncommon"
+    },
+    {
+      "predicate": {
+        "origins:rarity": 0.2
+      },
+      "model": "origins:item/bountiful_quest_rare"
+    },
+    {
+      "predicate": {
+        "origins:rarity": 0.3
+      },
+      "model": "origins:item/bountiful_quest_epic"
+    }
+  ]
+}

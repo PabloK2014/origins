@@ -2,16 +2,16 @@
   "quests": [
     {
       "id": "courier_leather_boots_1",
-      "profession": "courier",
+      "playerClass": "origins:courier",
       "level": 1,
-      "title": "quest.origins.courier_leather_boots_1.title",
-      "description": "quest.origins.courier_leather_boots_1.description",
+      "title": "Кожаные сапоги",
+      "description": "Создайте кожаные сапоги для быстрого передвижения",
       "objective": {
         "type": "craft",
-        "item": "minecraft:leather_boots",
+        "target": "minecraft:leather_boots",
         "amount": 1
       },
-      "timeLimit": 1200,
+      "timeLimit": 20,
       "reward": {
         "type": "skill_point_token",
         "tier": 1,
@@ -20,16 +20,16 @@
     },
     {
       "id": "courier_map_2",
-      "profession": "courier",
+      "playerClass": "origins:courier",
       "level": 2,
-      "title": "quest.origins.courier_map_2.title",
-      "description": "quest.origins.courier_map_2.description",
+      "title": "Карты местности",
+      "description": "Создайте карты для навигации",
       "objective": {
         "type": "craft",
-        "item": "minecraft:map",
+        "target": "minecraft:map",
         "amount": 3
       },
-      "timeLimit": 1800,
+      "timeLimit": 30,
       "reward": {
         "type": "skill_point_token",
         "tier": 2,
@@ -38,20 +38,326 @@
     },
     {
       "id": "courier_compass_3",
-      "profession": "courier",
+      "playerClass": "origins:courier",
       "level": 3,
-      "title": "quest.origins.courier_compass_3.title",
-      "description": "quest.origins.courier_compass_3.description",
+      "title": "Компасы навигации",
+      "description": "Создайте компасы для точной навигации",
       "objective": {
         "type": "craft",
-        "item": "minecraft:compass",
+        "target": "minecraft:compass",
         "amount": 2
       },
-      "timeLimit": 2400,
+      "timeLimit": 40,
       "reward": {
         "type": "skill_point_token",
         "tier": 3,
         "experience": 1500
+      }
+    },
+    {
+      "id": "courier_paper_1",
+      "playerClass": "origins:courier",
+      "level": 1,
+      "title": "Бумага для писем",
+      "description": "Соберите бумагу для написания сообщений",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:paper",
+        "amount": 16
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "courier_horse_3",
+      "playerClass": "origins:courier",
+      "level": 3,
+      "title": "Золотые морковки",
+      "description": "Соберите золотые морковки для приручения лошадей",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:golden_carrot",
+        "amount": 5
+      },
+      "timeLimit": 40,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    },
+    {
+      "id": "courier_book_1",
+      "playerClass": "origins:courier",
+      "level": 1,
+      "title": "Книги для записей",
+      "description": "Создайте книги для ведения записей",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:book",
+        "amount": 3
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "courier_ink_2",
+      "playerClass": "origins:courier",
+      "level": 2,
+      "title": "Чернильные мешки",
+      "description": "Соберите чернильные мешки для письма",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:ink_sac",
+        "amount": 10
+      },
+      "timeLimit": 30,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "courier_cart_3",
+      "playerClass": "origins:courier",
+      "level": 3,
+      "title": "Вагонетки для грузов",
+      "description": "Создайте вагонетки для перевозки грузов",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:minecart",
+        "amount": 2
+      },
+      "timeLimit": 40,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    },
+    {
+      "id": "courier_rail_2",
+      "playerClass": "origins:courier",
+      "level": 2,
+      "title": "Рельсы для путей",
+      "description": "Создайте рельсы для железнодорожных путей",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:rail",
+        "amount": 16
+      },
+      "timeLimit": 30,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "courier_leather_1",
+      "playerClass": "origins:courier",
+      "level": 1,
+      "title": "Кожа для снаряжения",
+      "description": "Соберите кожу для создания снаряжения",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:leather",
+        "amount": 8
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "courier_feather_2",
+      "playerClass": "origins:courier",
+      "level": 2,
+      "title": "Перья для стрел",
+      "description": "Соберите перья для создания стрел",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:feather",
+        "amount": 12
+      },
+      "timeLimit": 30,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "courier_chest_3",
+      "playerClass": "origins:courier",
+      "level": 3,
+      "title": "Сундуки для хранения",
+      "description": "Создайте сундуки для хранения грузов",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:chest",
+        "amount": 4
+      },
+      "timeLimit": 40,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    },
+    {
+      "id": "courier_boat_2",
+      "playerClass": "origins:courier",
+      "level": 2,
+      "title": "Лодки для переправы",
+      "description": "Создайте лодки для водных путешествий",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:oak_boat",
+        "amount": 2
+      },
+      "timeLimit": 30,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "courier_fish_1",
+      "playerClass": "origins:courier",
+      "level": 1,
+      "title": "Рыба для провизии",
+      "description": "Поймайте рыбу для пропитания в пути",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:cod",
+        "amount": 10
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    },
+    {
+      "id": "courier_banner_3",
+      "playerClass": "origins:courier",
+      "level": 3,
+      "title": "Знамена для сигналов",
+      "description": "Создайте знамена для подачи сигналов",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:white_banner",
+        "amount": 2
+      },
+      "timeLimit": 40,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    },
+    {
+      "id": "courier_sugar_2",
+      "playerClass": "origins:courier",
+      "level": 2,
+      "title": "Сахар для энергии",
+      "description": "Соберите сахар для быстрого восстановления энергии",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:sugar",
+        "amount": 15
+      },
+      "timeLimit": 30,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "courier_elytra_3",
+      "playerClass": "origins:courier",
+      "level": 3,
+      "title": "Элитры для полета",
+      "description": "Добудьте элитры для воздушных путешествий",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:elytra",
+        "amount": 1
+      },
+      "timeLimit": 40,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    },
+    {
+      "id": "courier_firework_3",
+      "playerClass": "origins:courier",
+      "level": 3,
+      "title": "Фейерверки для полета",
+      "description": "Создайте фейерверки для ускорения полета",
+      "objective": {
+        "type": "craft",
+        "target": "minecraft:firework_rocket",
+        "amount": 5
+      },
+      "timeLimit": 40,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 3,
+        "experience": 1500
+      }
+    },
+    {
+      "id": "courier_emerald_2",
+      "playerClass": "origins:courier",
+      "level": 2,
+      "title": "Изумруды для торговли",
+      "description": "Соберите изумруды для торговли с жителями",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:emerald",
+        "amount": 8
+      },
+      "timeLimit": 30,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
+      }
+    },
+    {
+      "id": "courier_saddle_2",
+      "playerClass": "origins:courier",
+      "level": 2,
+      "title": "Седло для лошади",
+      "description": "Найдите седло для верховой езды",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:saddle",
+        "amount": 1
+      },
+      "timeLimit": 30,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 2,
+        "experience": 1000
       }
     }
   ]
