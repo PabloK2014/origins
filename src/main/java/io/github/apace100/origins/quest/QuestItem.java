@@ -319,6 +319,77 @@ public class QuestItem {
     }
     
     /**
+     * Получает актуальную информацию о времени квеста (лимит или оставшееся время)
+     */
+    public static Text getQuestTimeInfo(ItemStack stack) {
+        Quest quest = getQuestFromStack(stack);
+        if (quest == null) {
+            return Text.literal("Время неизвестно").formatted(Formatting.DARK_GRAY);
+        }
+        
+        // Если у квеста нет лимита времени, показываем это
+        if (quest.getTimeLimit() <= 0) {
+            return Text.literal("Без ограничения по времени").formatted(Formatting.AQUA);
+        }
+        
+        // Проверяем, является ли это билетом квеста
+        if (!(stack.getItem() instanceof QuestTicketItem)) {
+            // Для обычных квестов показываем лимит времени
+            return getQuestTimeLimit(stack);
+        }
+        
+        // Для билетов квестов проверяем состояние
+        QuestTicketState state = QuestTicketItem.getTicketState(stack);
+        long acceptTime = QuestTicketItem.getAcceptTime(stack);
+        
+        // Если квест активен и есть время принятия, показываем оставшееся время
+        if (state.isActive() && acceptTime > 0) {
+            long currentTime = System.currentTimeMillis();
+            long elapsedSeconds = (currentTime - acceptTime) / 1000;
+            long totalLimitSeconds = quest.getTimeLimit() * 60; // конвертируем минуты в секунды
+            long remainingSeconds = Math.max(0, totalLimitSeconds - elapsedSeconds);
+            
+            // Форматируем оставшееся время с секундами
+            String timeText;
+            Formatting timeColor;
+            
+            if (remainingSeconds <= 0) {
+                timeText = "Время: ИСТЕКЛО!";
+                timeColor = Formatting.DARK_RED;
+            } else {
+                // Вычисляем часы, минуты и секунды
+                long hours = remainingSeconds / 3600;
+                long minutes = (remainingSeconds % 3600) / 60;
+                long seconds = remainingSeconds % 60;
+                
+                // Форматируем время в зависимости от оставшегося времени
+                if (remainingSeconds <= 300) { // Меньше 5 минут - показываем секунды и делаем красным
+                    if (minutes > 0) {
+                        timeText = String.format("Время: %dм %02dс (СРОЧНО!)", minutes, seconds);
+                    } else {
+                        timeText = String.format("Время: %dс (СРОЧНО!)", seconds);
+                    }
+                    timeColor = Formatting.RED;
+                } else if (remainingSeconds <= 900) { // Меньше 15 минут - показываем минуты и секунды
+                    timeText = String.format("Время: %dм %02dс", minutes, seconds);
+                    timeColor = Formatting.YELLOW;
+                } else if (remainingSeconds < 3600) { // Меньше часа - показываем минуты и секунды
+                    timeText = String.format("Время: %dм %02dс", minutes, seconds);
+                    timeColor = Formatting.AQUA;
+                } else { // Больше часа - показываем часы, минуты и секунды
+                    timeText = String.format("Время: %dч %02dм %02dс", hours, minutes, seconds);
+                    timeColor = Formatting.AQUA;
+                }
+            }
+            
+            return Text.literal(timeText).formatted(timeColor);
+        } else {
+            // Для неактивных квестов показываем лимит времени
+            return getQuestTimeLimit(stack);
+        }
+    }
+    
+    /**
      * Получает читаемое название предмета
      */
     private static String getItemName(String itemId) {
@@ -431,7 +502,7 @@ public class QuestItem {
         }
         
         // Добавляем информацию о времени и классе
-        tooltip.add(getQuestTimeLimit(stack));
+        tooltip.add(getQuestTimeInfo(stack));
         
         if (!quest.getPlayerClass().equals("any")) {
             String playerClass = quest.getPlayerClass();

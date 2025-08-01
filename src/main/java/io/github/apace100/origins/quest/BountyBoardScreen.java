@@ -38,7 +38,9 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
         }
         
         // Принудительно обновляем квесты при открытии экрана
-        handler.refreshAvailableQuests();
+        if (handler.getBlockEntity() != null && handler.getBlockEntity().getQuestCount() == 0) {
+            handler.getBlockEntity().refreshQuests();
+        }
     }
 
     @Override
@@ -142,7 +144,7 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
         int visibleIndex = 0;
         int renderedCount = 0;
         
-        for (int i = 0; i < allQuests.size() && renderedCount < maxVisible; i++) {
+        for (int i = 0; i < allQuests.size(); i++) {
             QuestButton button = allQuests.get(i);
             boolean isMasked = handler.isQuestSlotMasked(i);
             
@@ -155,6 +157,11 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
             if (visibleIndex < scrollOffset) {
                 visibleIndex++;
                 continue;
+            }
+            
+            // Проверяем, не превышаем ли максимальное количество видимых квестов
+            if (renderedCount >= maxVisible) {
+                break;
             }
             
             int buttonX = 5;
@@ -296,22 +303,28 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
         int startY = 18;
         int maxVisible = 7;
         int visibleIndex = 0;
+        int renderedIndex = 0;
         
-        for (int i = 0; i < allQuests.size() && visibleIndex < maxVisible; i++) {
+        for (int i = 0; i < allQuests.size(); i++) {
             // Пропускаем замаскированные квесты
             if (handler.isQuestSlotMasked(i)) {
                 continue;
             }
             
-            // Проверяем скроллинг
+            // Проверяем скроллинг для видимых квестов
             if (visibleIndex < scrollOffset) {
                 visibleIndex++;
                 continue;
             }
             
+            // Проверяем, не превышаем ли максимальное количество видимых квестов
+            if (renderedIndex >= maxVisible) {
+                break;
+            }
+            
             QuestButton button = allQuests.get(i);
             int buttonX = 5;
-            int buttonY = startY + (visibleIndex - scrollOffset) * 20;
+            int buttonY = startY + renderedIndex * 20;
             
             if (isPointInButton(mouseX, mouseY, buttonX, buttonY)) {
                 button.renderTooltip(context, mouseX, mouseY);
@@ -319,6 +332,7 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
             }
             
             visibleIndex++;
+            renderedIndex++;
         }
     }
     
@@ -414,10 +428,10 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
             
 
             
-            for (int i = 0; i < allQuests.size() && visibleIndex < maxVisible; i++) {
+            int renderedIndex = 0;
+            for (int i = 0; i < allQuests.size(); i++) {
                 // Пропускаем замаскированные квесты
                 if (handler.isQuestSlotMasked(i)) {
-
                     continue;
                 }
                 
@@ -427,9 +441,14 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
                     continue;
                 }
                 
+                // Проверяем, не превышаем ли максимальное количество видимых квестов
+                if (renderedIndex >= maxVisible) {
+                    break;
+                }
+                
                 QuestButton questButton = allQuests.get(i);
                 int buttonX = 5;
-                int buttonY = startY + (visibleIndex - scrollOffset) * 20;
+                int buttonY = startY + renderedIndex * 20;
                 
 
                 
@@ -451,8 +470,7 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
 
                             return true;
                         }
-                        Origins.LOGGER.warn("Прямое принятие квеста не удалось, пробуем drag-and-drop");
-                        // Fallback к drag-and-drop если прямое принятие не удалось
+                  
                         if (startDragFromButton(questButton, i, mouseX, mouseY)) {
                             return true;
                         }
@@ -462,6 +480,7 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
                 }
                 
                 visibleIndex++;
+                renderedIndex++;
             }
 
         } else {
@@ -505,12 +524,12 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
                 refreshQuestList();
                 return true;
             } else {
-                Origins.LOGGER.warn("Не удалось принять квест {} через билет", quest.getId());
+                Origins.LOGGER.warn("ne udalos prinat {} cherez bilet", quest.getId());
                 return false;
             }
             
         } catch (Exception e) {
-            Origins.LOGGER.error("Ошибка при принятии квеста через билет {}: {}", quest.getId(), e.getMessage());
+            Origins.LOGGER.error("oshibka pri prinyatii {}: {}", quest.getId(), e.getMessage());
             e.printStackTrace();
         }
         
@@ -754,6 +773,16 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
      */
     public net.minecraft.client.font.TextRenderer getTextRenderer() {
         return this.textRenderer;
+    }
+    
+    /**
+     * Получает класс текущего игрока
+     */
+    private String getPlayerClass() {
+        if (client != null && client.player != null) {
+            return QuestIntegration.getPlayerClass(client.player);
+        }
+        return "human";
     }
 
 }

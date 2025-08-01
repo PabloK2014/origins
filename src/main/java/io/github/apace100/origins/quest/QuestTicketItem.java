@@ -41,6 +41,9 @@ public class QuestTicketItem extends Item {
         try {
             super.appendTooltip(stack, world, tooltip, context);
             
+            // Принудительно обновляем время для активных квестов при каждом отображении тултипа
+            updateTimeForActiveQuest(stack);
+            
             // Получаем квест из NBT данных
             Quest quest = QuestItem.getQuestFromStack(stack);
             if (quest != null) {
@@ -53,16 +56,7 @@ public class QuestTicketItem extends Item {
                 tooltip.add(Text.literal(""));
                 QuestItem.addQuestTooltip(stack, tooltip);
                 
-                // Добавляем специфичную для билета информацию
-                if (state.isActive() && getAcceptTime(stack) > 0) {
-                    // Показываем прогресс для активных квестов
-                    tooltip.add(Text.literal(""));
-                    tooltip.add(Text.literal("Прогресс:").formatted(Formatting.YELLOW));
-                    addProgressTooltip(stack, tooltip, quest);
-                    
-                    // Показываем оставшееся время
-                    addTimeTooltip(stack, tooltip, quest);
-                }
+                // Убираем отображение прогресса - время теперь отображается в основном тултипе
                 
                 // Добавляем подсказку для готовых к сдаче квестов
                 if (state == QuestTicketState.COMPLETED) {
@@ -83,6 +77,45 @@ public class QuestTicketItem extends Item {
             tooltip.add(Text.literal(""));
             tooltip.add(Text.literal("⚠ Ошибка отображения: " + e.getMessage()).formatted(Formatting.RED));
             tooltip.add(Text.literal("Обратитесь к администратору").formatted(Formatting.GRAY));
+        }
+    }
+    
+    /**
+     * Принудительно обновляет время для активных квестов
+     */
+    private static void updateTimeForActiveQuest(ItemStack stack) {
+        if (stack.isEmpty() || !isQuestTicket(stack)) {
+            return;
+        }
+        
+        QuestTicketState state = getTicketState(stack);
+        if (!state.isActive()) {
+            return;
+        }
+        
+        long acceptTime = getAcceptTime(stack);
+        if (acceptTime <= 0) {
+            return;
+        }
+        
+        Quest quest = QuestItem.getQuestFromStack(stack);
+        if (quest == null || quest.getTimeLimit() <= 0) {
+            return;
+        }
+        
+        // Проверяем, не истекло ли время (используем секунды для точности)
+        long currentTime = System.currentTimeMillis();
+        long elapsedSeconds = (currentTime - acceptTime) / 1000;
+        long totalLimitSeconds = quest.getTimeLimit() * 60; // конвертируем минуты в секунды
+        
+        if (elapsedSeconds >= totalLimitSeconds) {
+            // Время истекло, помечаем квест как проваленный
+            markAsFailed(stack);
+            io.github.apace100.origins.Origins.LOGGER.info("Квест {} помечен как проваленный из-за истечения времени", quest.getId());
+        } else {
+            // Обновляем метку времени для принудительного обновления tooltip
+            net.minecraft.nbt.NbtCompound nbt = stack.getOrCreateNbt();
+            nbt.putLong("tooltip_update_time", currentTime);
         }
     }
     
@@ -234,30 +267,41 @@ public class QuestTicketItem extends Item {
             // Если квест принят и есть лимит времени
             if (state.isActive() && acceptTime > 0 && quest.getTimeLimit() > 0) {
                 long currentTime = System.currentTimeMillis();
-                long elapsedMinutes = (currentTime - acceptTime) / (1000 * 60);
-                long remainingMinutes = Math.max(0, quest.getTimeLimit() - elapsedMinutes);
+                long elapsedSeconds = (currentTime - acceptTime) / 1000;
+                long totalLimitSeconds = quest.getTimeLimit() * 60; // конвертируем минуты в секунды
+                long remainingSeconds = Math.max(0, totalLimitSeconds - elapsedSeconds);
                 
-                // Улучшенное отображение времени
+                // Улучшенное отображение времени с секундами
                 String timeText;
                 Formatting timeColor;
                 
-                if (remainingMinutes <= 0) {
+                if (remainingSeconds <= 0) {
                     timeText = "ВРЕМЯ ИСТЕКЛО!";
                     timeColor = Formatting.DARK_RED;
-                } else if (remainingMinutes <= 5) {
-                    timeText = "Осталось времени: " + remainingMinutes + " мин (СРОЧНО!)";
-                    timeColor = Formatting.RED;
-                } else if (remainingMinutes <= 15) {
-                    timeText = "Осталось времени: " + remainingMinutes + " мин";
-                    timeColor = Formatting.YELLOW;
-                } else if (remainingMinutes <= 60) {
-                    timeText = "Осталось времени: " + remainingMinutes + " мин";
-                    timeColor = Formatting.GREEN;
                 } else {
-                    long hours = remainingMinutes / 60;
-                    long minutes = remainingMinutes % 60;
-                    timeText = "Осталось времени: " + hours + "ч " + minutes + "м";
-                    timeColor = Formatting.GREEN;
+                    // Вычисляем часы, минуты и секунды
+                    long hours = remainingSeconds / 3600;
+                    long minutes = (remainingSeconds % 3600) / 60;
+                    long seconds = remainingSeconds % 60;
+                    
+                    // Форматируем время в зависимости от оставшегося времени
+                    if (remainingSeconds <= 300) { // Меньше 5 минут - показываем секунды
+                        if (minutes > 0) {
+                            timeText = String.format("Осталось времени: %dм %02dс (СРОЧНО!)", minutes, seconds);
+                        } else {
+                            timeText = String.format("Осталось времени: %dс (СРОЧНО!)", seconds);
+                        }
+                        timeColor = Formatting.RED;
+                    } else if (remainingSeconds <= 900) { // Меньше 15 минут - показываем минуты и секунды
+                        timeText = String.format("Осталось времени: %dм %02dс", minutes, seconds);
+                        timeColor = Formatting.YELLOW;
+                    } else if (remainingSeconds < 3600) { // Меньше часа - показываем минуты и секунды
+                        timeText = String.format("Осталось времени: %dм %02dс", minutes, seconds);
+                        timeColor = Formatting.GREEN;
+                    } else { // Больше часа - показываем часы, минуты и секунды
+                        timeText = String.format("Осталось времени: %dч %02dм %02dс", hours, minutes, seconds);
+                        timeColor = Formatting.GREEN;
+                    }
                 }
                 
                 tooltip.add(Text.literal(timeText).formatted(timeColor));

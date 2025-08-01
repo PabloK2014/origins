@@ -34,5 +34,8 @@ public class OriginsClient implements ClientModInitializer {
         
         // Регистрируем предикаты модели для квестов Bountiful
         io.github.apace100.origins.quest.BountifulQuestItem.registerModelPredicates();
+        
+        // Регистрируем клиентский обновлятель времени билетов квестов
+        io.github.apace100.origins.quest.QuestTicketClientUpdater.register();
     }
 }

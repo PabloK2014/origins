@@ -137,6 +137,10 @@ public class Origins implements ModInitializer, OrderedResourceListenerInitializ
 			io.github.apace100.origins.command.ForceClearBoardCommand.register(dispatcher, registryAccess, environment);
 			io.github.apace100.origins.command.FixBountyBoardCommand.register(dispatcher, registryAccess, environment);
 			io.github.apace100.origins.command.FinalFixCommand.register(dispatcher, registryAccess, environment);
+			io.github.apace100.origins.command.TestTimeUpdateCommand.register(dispatcher, registryAccess);
+			io.github.apace100.origins.command.TestAutoTimeCommand.register(dispatcher, registryAccess);
+			io.github.apace100.origins.command.CheckTimeStatusCommand.register(dispatcher, registryAccess);
+			io.github.apace100.origins.command.ResetAllTicketTimesCommand.register(dispatcher, registryAccess);
 		});
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register((content) -> {
 			content.add(ModItems.ORB_OF_ORIGIN);

@@ -11,7 +11,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
  */
 public class QuestTicketTimeUpdater {
     private static int tickCounter = 0;
-    private static final int UPDATE_INTERVAL = 1200; // Обновляем каждые 60 секунд (20 тиков * 60)
+    private static final int UPDATE_INTERVAL = 20; // Обновляем каждую секунду (20 тиков)
     
     public static void register() {
         ServerTickEvents.END_SERVER_TICK.register(QuestTicketTimeUpdater::onServerTick);
@@ -58,11 +58,13 @@ public class QuestTicketTimeUpdater {
         }
         
         long currentTime = System.currentTimeMillis();
-        long elapsedMinutes = (currentTime - acceptTime) / (1000 * 60);
+        long elapsedSeconds = (currentTime - acceptTime) / 1000;
+        long totalLimitSeconds = quest.getTimeLimit() * 60; // конвертируем минуты в секунды
         
         // Если время истекло, помечаем квест как проваленный
-        if (elapsedMinutes >= quest.getTimeLimit()) {
+        if (elapsedSeconds >= totalLimitSeconds) {
             QuestTicketItem.markAsFailed(stack);
+            io.github.apace100.origins.Origins.LOGGER.info("Квест {} автоматически помечен как проваленный из-за истечения времени", quest.getId());
         }
     }
 }
