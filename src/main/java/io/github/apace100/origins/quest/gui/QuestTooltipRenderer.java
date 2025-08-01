@@ -268,7 +268,17 @@ public class QuestTooltipRenderer {
      * Получает локализованное название класса
      */
     private static String getLocalizedClassName(String playerClass) {
-        switch (playerClass) {
+        if (playerClass == null) {
+            return "Неизвестный";
+        }
+        
+        // Убираем префикс "origins:" если есть
+        String cleanClass = playerClass;
+        if (cleanClass.startsWith("origins:")) {
+            cleanClass = cleanClass.substring(8);
+        }
+        
+        switch (cleanClass.toLowerCase()) {
             case "warrior":
                 return "Воин";
             case "miner":
@@ -284,7 +294,7 @@ public class QuestTooltipRenderer {
             case "human":
                 return "Человек";
             default:
-                return "Неизвестный";
+                return cleanClass; // Возвращаем очищенное название вместо "Неизвестный"
         }
     }
     

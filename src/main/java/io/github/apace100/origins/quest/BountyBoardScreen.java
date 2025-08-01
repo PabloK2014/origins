@@ -181,13 +181,30 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
                 renderQuestSelection(context, buttonX, buttonY);
             }
             
+            // Проверяем совместимость класса для визуальной индикации
+            boolean isClassCompatible = true;
+            if (button.getQuest() != null) {
+                String playerClass = getPlayerClass();
+                String questClass = button.getQuest().getPlayerClass();
+                isClassCompatible = isClassCompatibleClient(playerClass, questClass);
+            }
+            
             // Добавляем визуальные эффекты для drag-and-drop
             if (isDragging && draggedQuest != null && button.getQuest() != null && 
                 button.getQuest().getId().equals(draggedQuest.getId())) {
                 // Отрисовываем полупрозрачную версию исходного квеста
                 renderDragSourceQuest(context, button, buttonX, buttonY, false);
             } else {
+                // Отрисовываем кнопку с учетом совместимости класса
                 button.render(context, buttonX, buttonY, mouseX, mouseY, hovered, isSelected);
+                
+                // Если класс не подходит, накладываем красноватый оттенок
+                if (!isClassCompatible) {
+                    context.fill(buttonX, buttonY, buttonX + QuestButton.WIDTH, buttonY + QuestButton.HEIGHT, 0x40FF0000);
+                    
+                    // Добавляем иконку "запрещено" в правом верхнем углу
+                    context.drawText(textRenderer, "✗", buttonX + QuestButton.WIDTH - 10, buttonY + 2, 0xFFFF0000, false);
+                }
             }
             
             // Отрисовываем индикатор возможности сброса при drag-and-drop
@@ -525,7 +542,25 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
         }
         
         try {
-
+            // Проверяем совместимость класса игрока с квестом на клиенте
+            String playerClass = getPlayerClass();
+            String questClass = quest.getPlayerClass();
+            
+            Origins.LOGGER.info("Проверяем совместимость на клиенте: игрок '{}', квест '{}'", playerClass, questClass);
+            
+            if (!isClassCompatibleClient(playerClass, questClass)) {
+                Origins.LOGGER.warn("Класс игрока '{}' не подходит для квеста класса '{}'", playerClass, questClass);
+                
+                // Показываем сообщение об ошибке игроку
+                if (client.player != null) {
+                    client.player.sendMessage(
+                        net.minecraft.text.Text.literal("❌ Этот квест предназначен для класса: " + QuestItem.getClassDisplayName(questClass))
+                            .formatted(net.minecraft.util.Formatting.RED), 
+                        false
+                    );
+                }
+                return false;
+            }
             
             // Получаем BlockEntity доски объявлений
             BountyBoardBlockEntity boardEntity = handler.getBoardEntity();
@@ -534,28 +569,64 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
                 return false;
             }
             
-
-            
             // Используем QuestTicketAcceptanceHandler для принятия квеста
             QuestTicketAcceptanceHandler acceptanceHandler = QuestTicketAcceptanceHandler.getInstance();
             boolean result = acceptanceHandler.acceptQuestFromBoard(client.player, quest, boardEntity);
             
             if (result) {
-
                 // Обновляем экран локально
                 refreshQuestList();
                 return true;
             } else {
-                Origins.LOGGER.warn("ne udalos prinat {} cherez bilet", quest.getId());
+                Origins.LOGGER.warn("Не удалось принять квест {} через билет", quest.getId());
                 return false;
             }
             
         } catch (Exception e) {
-            Origins.LOGGER.error("oshibka pri prinyatii {}: {}", quest.getId(), e.getMessage());
+            Origins.LOGGER.error("Ошибка при принятии квеста {}: {}", quest.getId(), e.getMessage());
             e.printStackTrace();
         }
         
         return false;
+    }
+    
+    /**
+     * Проверяет совместимость классов на клиенте
+     */
+    private boolean isClassCompatibleClient(String playerClass, String questClass) {
+        if (playerClass == null || questClass == null) {
+            return false;
+        }
+        
+        // Нормализуем названия классов (убираем префиксы)
+        String normalizedPlayerClass = normalizeClassNameClient(playerClass);
+        String normalizedQuestClass = normalizeClassNameClient(questClass);
+        
+        Origins.LOGGER.info("Клиентская проверка совместимости: игрок '{}' -> '{}', квест '{}' -> '{}'", 
+            playerClass, normalizedPlayerClass, questClass, normalizedQuestClass);
+        
+        // Точное совпадение нормализованных классов
+        boolean compatible = normalizedPlayerClass.equals(normalizedQuestClass);
+        
+        Origins.LOGGER.info("Результат клиентской проверки совместимости: {}", compatible);
+        return compatible;
+    }
+    
+    /**
+     * Нормализует название класса на клиенте
+     */
+    private String normalizeClassNameClient(String className) {
+        if (className == null) {
+            return "human";
+        }
+        
+        // Убираем префикс "origins:" если есть
+        if (className.startsWith("origins:")) {
+            className = className.substring(8);
+        }
+        
+        // Приводим к нижнему регистру для единообразия
+        return className.toLowerCase();
     }
     
     /**

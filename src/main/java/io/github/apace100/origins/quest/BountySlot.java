@@ -6,11 +6,11 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.screen.slot.Slot;
 
 /**
- * Слот для квестов в стиле Bountiful
+ * Слот для квестов в центральной части доски объявлений (сетка 3x7)
  */
-public class BountifulQuestSlot extends Slot {
+public class BountySlot extends Slot {
     
-    public BountifulQuestSlot(Inventory inventory, int index, int x, int y) {
+    public BountySlot(Inventory inventory, int index, int x, int y) {
         super(inventory, index, x, y);
     }
     
@@ -18,18 +18,25 @@ public class BountifulQuestSlot extends Slot {
     public boolean canTakeItems(PlayerEntity player) {
         ItemStack stack = getStack();
         
-        // Проверяем, может ли игрок взять этот квест
-        if (stack.getItem() instanceof BountifulQuestItem) {
-            return BountifulQuestEventHandler.canPlayerTakeQuest(player, stack);
+        io.github.apace100.origins.Origins.LOGGER.info("BountySlot.canTakeItems вызван для игрока {} со стеком {}", 
+            player.getName().getString(), stack.isEmpty() ? "пустой" : stack.getItem().getClass().getSimpleName());
+        
+        // Если слот пустой, разрешаем взять
+        if (stack.isEmpty()) {
+            return super.canTakeItems(player);
         }
         
         // Для билетов квестов проверяем совместимость класса
         if (stack.getItem() instanceof QuestTicketItem) {
             Quest quest = QuestItem.getQuestFromStack(stack);
             if (quest != null) {
+                io.github.apace100.origins.Origins.LOGGER.info("Проверяем квест '{}' для игрока '{}'", quest.getTitle(), player.getName().getString());
+                
                 // Используем QuestTicketAcceptanceHandler для проверки
                 QuestTicketAcceptanceHandler handler = QuestTicketAcceptanceHandler.getInstance();
                 boolean canAccept = handler.canAcceptQuest(player, quest);
+                
+                io.github.apace100.origins.Origins.LOGGER.info("Результат проверки canAcceptQuest: {}", canAccept);
                 
                 if (!canAccept) {
                     // Отправляем сообщение игроку о том, почему нельзя взять квест
@@ -51,7 +58,41 @@ public class BountifulQuestSlot extends Slot {
             }
         }
         
+        // Для BountifulQuestItem используем существующую логику
+        if (stack.getItem() instanceof BountifulQuestItem) {
+            return BountifulQuestEventHandler.canPlayerTakeQuest(player, stack);
+        }
+        
         return super.canTakeItems(player);
+    }
+    
+    @Override
+    public boolean canInsert(ItemStack stack) {
+        io.github.apace100.origins.Origins.LOGGER.info("BountySlot.canInsert вызван для стека {}", 
+            stack.isEmpty() ? "пустой" : stack.getItem().getClass().getSimpleName());
+        
+        // Разрешаем вставку только билетов квестов и BountifulQuestItem
+        if (stack.getItem() instanceof QuestTicketItem || stack.getItem() instanceof BountifulQuestItem) {
+            return super.canInsert(stack);
+        }
+        
+        return false;
+    }
+    
+    @Override
+    public ItemStack takeStack(int amount) {
+        ItemStack stack = super.takeStack(amount);
+        
+        io.github.apace100.origins.Origins.LOGGER.info("BountySlot.takeStack вызван для стека {}", 
+            stack.isEmpty() ? "пустой" : stack.getItem().getClass().getSimpleName());
+        
+        // Если взяли билет квеста, можем добавить дополнительную логику
+        if (stack.getItem() instanceof QuestTicketItem) {
+            // Логика принятия квеста уже обработана в canTakeItems
+            // Здесь можем добавить дополнительные действия если нужно
+        }
+        
+        return stack;
     }
     
     /**
@@ -83,52 +124,5 @@ public class BountifulQuestSlot extends Slot {
         }
         
         return className.toLowerCase();
-    }
-    
-    @Override
-    public ItemStack takeStack(int amount) {
-        ItemStack stack = super.takeStack(amount);
-        
-        // Если взяли квест Bountiful, устанавливаем время начала
-        if (stack.getItem() instanceof BountifulQuestItem) {
-            BountifulQuestInfo info = BountifulQuestInfo.get(stack);
-            if (info != null && inventory != null) {
-                // Создаем новую информацию с текущим временем
-                BountifulQuestInfo newInfo = new BountifulQuestInfo(
-                    info.getRarity(),
-                    0L, // Время начала установим позже
-                    info.timeLeft(null),
-                    info.getProfession()
-                );
-                BountifulQuestInfo.set(stack, newInfo);
-            }
-        }
-        
-        return stack;
-    }
-    
-    @Override
-    public boolean canInsert(ItemStack stack) {
-        // В слоты квестов нельзя вставлять предметы
-        return false;
-    }
-    
-    /**
-     * Получает профессию игрока
-     */
-    private String getPlayerProfession(PlayerEntity player) {
-        try {
-            io.github.apace100.origins.component.OriginComponent originComponent = 
-                io.github.apace100.origins.registry.ModComponents.ORIGIN.get(player);
-            
-            if (originComponent != null) {
-                // Упрощенная версия - возвращаем "any"
-                return "any";
-            }
-        } catch (Exception e) {
-            // Если не удалось получить профессию, возвращаем "any"
-        }
-        
-        return "any";
     }
 }

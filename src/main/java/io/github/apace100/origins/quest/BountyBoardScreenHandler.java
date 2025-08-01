@@ -44,7 +44,7 @@ public class BountyBoardScreenHandler extends ScreenHandler {
         int adjustY = 0;
         for (int j = 0; j < 3; j++) {
             for (int k = 0; k < 7; k++) {
-                addSlot(new BountySlot(blockEntity.getBounties(), k + j * 7, 8 + k * bountySlotSize + adjustX, 18 + j * bountySlotSize + adjustY));
+                addSlot(new QuestSlot(blockEntity.getBounties(), k + j * 7, 8 + k * bountySlotSize + adjustX, 18 + j * bountySlotSize + adjustY));
             }
         }
 

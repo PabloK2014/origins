@@ -462,20 +462,35 @@ public class QuestTicketAcceptanceHandler {
             return false;
         }
         
-        // Точное совпадение
-        if (playerClass.equals(questClass)) {
-            return true;
+        // Нормализуем названия классов (убираем префиксы)
+        String normalizedPlayerClass = normalizeClassName(playerClass);
+        String normalizedQuestClass = normalizeClassName(questClass);
+        
+        Origins.LOGGER.info("Проверяем совместимость: игрок '{}' -> '{}', квест '{}' -> '{}'", 
+            playerClass, normalizedPlayerClass, questClass, normalizedQuestClass);
+        
+        // Точное совпадение нормализованных классов
+        boolean compatible = normalizedPlayerClass.equals(normalizedQuestClass);
+        
+        Origins.LOGGER.info("Результат проверки совместимости: {}", compatible);
+        return compatible;
+    }
+    
+    /**
+     * Нормализует название класса, убирая префиксы
+     */
+    private String normalizeClassName(String className) {
+        if (className == null) {
+            return "human";
         }
         
-        // Квесты для "human" могут брать все
-        if ("human".equals(questClass)) {
-            return true;
+        // Убираем префикс "origins:" если есть
+        if (className.startsWith("origins:")) {
+            className = className.substring(8);
         }
         
-        // Дополнительная логика совместимости (если нужна)
-        // Например, некоторые квесты могут быть доступны нескольким классам
-        
-        return false;
+        // Приводим к нижнему регистру для единообразия
+        return className.toLowerCase();
     }
     
     /**
