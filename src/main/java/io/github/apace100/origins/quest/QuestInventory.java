@@ -146,6 +146,39 @@ public class QuestInventory extends SimpleInventory {
     }
     
     /**
+     * Автоматически маскирует квесты, недоступные для игрока по классу
+     */
+    public void applyClassRestrictions(PlayerEntity player) {
+        if (player == null || blockEntity == null) return;
+        
+        String playerClass = getPlayerClass(player);
+        String boardClass = blockEntity.getBoardClass();
+        
+        // Если это обычная доска, не применяем ограничения
+        if ("general".equals(boardClass)) {
+            return;
+        }
+        
+        // Если класс игрока не соответствует классу доски, маскируем все квесты
+        if (!boardClass.equals(playerClass)) {
+            for (int i = 0; i < availableQuests.size(); i++) {
+                maskSlot(i);
+            }
+            return;
+        }
+        
+        // Маскируем квесты, которые не подходят по классу
+        for (int i = 0; i < availableQuests.size(); i++) {
+            Quest quest = availableQuests.get(i);
+            if (quest != null && quest.getPlayerClass() != null && 
+                !quest.getPlayerClass().equals("any") && 
+                !quest.getPlayerClass().equals(playerClass)) {
+                maskSlot(i);
+            }
+        }
+    }
+    
+    /**
      * Маскирует квесты аналогичные данному (для предотвращения дубликатов)
      */
     public void maskSimilarQuests(Quest quest) {
@@ -319,5 +352,31 @@ public class QuestInventory extends SimpleInventory {
             }
         }
         return -1;
+    }
+    
+    /**
+     * Устанавливает выбранный квест
+     */
+    public void setSelectedQuest(Quest quest) {
+        if (quest == null) {
+            selectedIndex = -1;
+            return;
+        }
+        
+        for (int i = 0; i < availableQuests.size(); i++) {
+            if (availableQuests.get(i) != null && availableQuests.get(i).getId().equals(quest.getId())) {
+                selectedIndex = i;
+                markDirty();
+                return;
+            }
+        }
+    }
+    
+    /**
+     * Очищает выбор квеста
+     */
+    public void clearSelection() {
+        selectedIndex = -1;
+        markDirty();
     }
 }

@@ -32,11 +32,19 @@ import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.serializer.ConfigSerializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemGroups;
+import net.minecraft.item.ItemStack;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.resource.ResourceType;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.JsonHelper;
 import org.apache.logging.log4j.LogManager;
@@ -51,6 +59,13 @@ public class Origins implements ModInitializer, OrderedResourceListenerInitializ
 
 	public static ServerConfig config;
 	private static ConfigSerializer<ServerConfig> configSerializer;
+	
+	// Креатив таб для Origins
+	public static final RegistryKey<ItemGroup> ORIGINS_GROUP_KEY = RegistryKey.of(RegistryKeys.ITEM_GROUP, new Identifier(MODID, "main"));
+	public static final ItemGroup ORIGINS_GROUP = FabricItemGroup.builder()
+		.icon(() -> new ItemStack(ModItems.ORB_OF_ORIGIN))
+		.displayName(Text.translatable("itemGroup.origins.main"))
+		.build();
 
 	@Override
 	public void onInitialize() {
@@ -92,6 +107,9 @@ public class Origins implements ModInitializer, OrderedResourceListenerInitializ
 		ModEntities.register();
 		ModLoot.registerLootTables();
 		Origin.init();
+		
+		// Регистрируем креатив таб
+		Registry.register(Registries.ITEM_GROUP, new Identifier(MODID, "main"), ORIGINS_GROUP);
 		
 		// Регистрируем квестовую систему
 		io.github.apace100.origins.quest.QuestRegistry.register();
@@ -143,8 +161,29 @@ public class Origins implements ModInitializer, OrderedResourceListenerInitializ
 			io.github.apace100.origins.command.ResetAllTicketTimesCommand.register(dispatcher, registryAccess);
 			io.github.apace100.origins.command.TestClassRestrictionCommand.register(dispatcher, registryAccess);
 		});
-		ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register((content) -> {
+		// Добавляем предметы в собственную вкладку Origins
+		ItemGroupEvents.modifyEntriesEvent(ORIGINS_GROUP_KEY).register((content) -> {
+			// Основные предметы Origins
 			content.add(ModItems.ORB_OF_ORIGIN);
+			
+			// Доски объявлений
+			content.add(io.github.apace100.origins.quest.QuestRegistry.BOUNTY_BOARD_ITEM);
+			content.add(io.github.apace100.origins.quest.QuestRegistry.COOK_BOUNTY_BOARD_ITEM);
+			content.add(io.github.apace100.origins.quest.QuestRegistry.WARRIOR_BOUNTY_BOARD_ITEM);
+			content.add(io.github.apace100.origins.quest.QuestRegistry.BLACKSMITH_BOUNTY_BOARD_ITEM);
+			content.add(io.github.apace100.origins.quest.QuestRegistry.BREWER_BOUNTY_BOARD_ITEM);
+			content.add(io.github.apace100.origins.quest.QuestRegistry.COURIER_BOUNTY_BOARD_ITEM);
+			content.add(io.github.apace100.origins.quest.QuestRegistry.MINER_BOUNTY_BOARD_ITEM);
+			
+			// Предметы квестов
+			content.add(io.github.apace100.origins.quest.QuestRegistry.SKILL_POINT_TOKEN_TIER1);
+			content.add(io.github.apace100.origins.quest.QuestRegistry.SKILL_POINT_TOKEN_TIER2);
+			content.add(io.github.apace100.origins.quest.QuestRegistry.SKILL_POINT_TOKEN_TIER3);
+			content.add(io.github.apace100.origins.quest.QuestRegistry.QUEST_TICKET_COMMON);
+			content.add(io.github.apace100.origins.quest.QuestRegistry.QUEST_TICKET_UNCOMMON);
+			content.add(io.github.apace100.origins.quest.QuestRegistry.QUEST_TICKET_RARE);
+			content.add(io.github.apace100.origins.quest.QuestRegistry.QUEST_TICKET_EPIC);
+			content.add(io.github.apace100.origins.quest.QuestRegistry.BOUNTIFUL_QUEST_ITEM);
 		});
 
 		CriteriaRegistryInvoker.callRegister(ChoseOriginCriterion.INSTANCE);

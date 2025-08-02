@@ -502,17 +502,10 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
                         highlightQuestInCenter(clickedQuest);
                     }
                     
-                    // Обработка принятия квеста через ЛКМ
+                    // Левый клик только для подсветки - НЕ принимаем квест
                     if (button == 0 && clickedQuest != null) { // Left click
-
-                        if (acceptQuestDirectly(clickedQuest)) {
-
-                            return true;
-                        }
-                  
-                        if (startDragFromButton(questButton, i, mouseX, mouseY)) {
-                            return true;
-                        }
+                        Origins.LOGGER.info("Левый клик по квесту в списке - только подсветка");
+                        // Квест уже выбран выше, больше ничего не делаем
                     }
                     questButton.mouseClicked(mouseX, mouseY, button);
                     return true;

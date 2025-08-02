@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "WWW",
+    "WBW",
+    "WWW"
+  ],
+  "key": {
+    "W": {
+      "item": "minecraft:oak_planks"
+    },
+    "B": {
+      "item": "minecraft:brewing_stand"
+    }
+  },
+  "result": {
+    "item": "origins:brewer_bounty_board"
+  }
+}

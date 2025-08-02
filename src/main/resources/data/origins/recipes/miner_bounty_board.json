@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "WWW",
+    "WPW",
+    "WWW"
+  ],
+  "key": {
+    "W": {
+      "item": "minecraft:oak_planks"
+    },
+    "P": {
+      "item": "minecraft:iron_pickaxe"
+    }
+  },
+  "result": {
+    "item": "origins:miner_bounty_board"
+  }
+}

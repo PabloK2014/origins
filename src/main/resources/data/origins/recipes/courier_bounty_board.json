@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "WWW",
+    "WCW",
+    "WWW"
+  ],
+  "key": {
+    "W": {
+      "item": "minecraft:oak_planks"
+    },
+    "C": {
+      "item": "minecraft:compass"
+    }
+  },
+  "result": {
+    "item": "origins:courier_bounty_board"
+  }
+}

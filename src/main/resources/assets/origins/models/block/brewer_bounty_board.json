@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "top": "origins:block/bounty_board/brewer_bounty_board",
+    "front": "origins:block/bounty_board/brewer_bounty_board",
+    "side": "origins:block/bounty_board/brewer_bounty_board"
+  }
+}

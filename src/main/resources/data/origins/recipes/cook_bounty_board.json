@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "WWW",
+    "WBW",
+    "WWW"
+  ],
+  "key": {
+    "W": {
+      "item": "minecraft:oak_planks"
+    },
+    "B": {
+      "item": "minecraft:bread"
+    }
+  },
+  "result": {
+    "item": "origins:cook_bounty_board"
+  }
+}

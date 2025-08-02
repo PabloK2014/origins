@@ -4,6 +4,7 @@ import io.github.apace100.origins.Origins;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
@@ -33,6 +34,11 @@ public class BountyBoardBlockEntity extends BlockEntity implements ExtendedScree
     private final Map<String, Set<Integer>> takenMask = new HashMap<>();
     private final Map<String, Integer> finishMap = new HashMap<>();
     private final List<Quest> availableQuests = new ArrayList<>();
+
+    public BountyBoardBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+        super(type, pos, state);
+        // Квесты будут сгенерированы в tryInitialPopulation() когда world будет доступен
+    }
 
     public BountyBoardBlockEntity(BlockPos pos, BlockState state) {
         super(QuestRegistry.BOUNTY_BOARD_BLOCK_ENTITY, pos, state);
@@ -444,6 +450,10 @@ public class BountyBoardBlockEntity extends BlockEntity implements ExtendedScree
 
     public int getTotalNumCompleted() {
         return getNumCompleted();
+    }
+
+    protected String getBoardClass() {
+        return "general";
     }
 
     @Override

@@ -3,9 +3,11 @@ package io.github.apace100.origins.networking;
 import io.github.apace100.origins.Origins;
 import io.github.apace100.origins.quest.BountyBoardScreenHandler;
 import io.github.apace100.origins.quest.Quest;
+import io.github.apace100.origins.quest.QuestTicketAcceptanceHandler;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
 /**
@@ -78,8 +80,9 @@ public class QuestPackets {
                         if (player.currentScreenHandler instanceof BountyBoardScreenHandler bountyHandler) {
                             Quest quest = bountyHandler.getSelectedQuest();
                             if (quest != null) {
-                                bountyHandler.completeQuest(quest, player);
-                                Origins.LOGGER.info("Игрок {} завершил квест: {}", player.getName().getString(), quest.getId());
+                                // Заглушка для завершения квеста - функциональность будет добавлена позже
+                                Origins.LOGGER.info("Игрок {} пытается завершить квест: {}", player.getName().getString(), quest.getId());
+                                player.sendMessage(Text.literal("Завершение квестов пока не реализовано"), false);
                             } else {
                                 Origins.LOGGER.warn("Нет выбранного квеста для завершения");
                             }
