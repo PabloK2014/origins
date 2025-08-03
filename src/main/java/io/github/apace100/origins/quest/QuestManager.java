@@ -96,7 +96,7 @@ public class QuestManager {
         
         // Проверяем соответствие класса
         String playerClass = QuestIntegration.getPlayerClass(player);
-        if (!isClassCompatible(playerClass, quest.getPlayerClass())) {
+        if (!QuestUtils.isClassCompatible(playerClass, quest.getPlayerClass())) {
             Origins.LOGGER.info("Класс игрока {} ({}) не подходит для квеста {} ({})", 
                 player.getName().getString(), playerClass, quest.getId(), quest.getPlayerClass());
             return false;
@@ -414,31 +414,7 @@ public class QuestManager {
         return 5; // Можно сделать конфигурируемым позже
     }
     
-    /**
-     * Проверяет совместимость классов игрока и квеста
-     */
-    private boolean isClassCompatible(String playerClass, String questClass) {
-        if (playerClass == null || questClass == null) {
-            return false;
-        }
-        
-        // Точное совпадение
-        if (playerClass.equals(questClass)) {
-            return true;
-        }
-        
-        // Квесты для "human" могут брать все
-        if ("human".equals(questClass)) {
-            return true;
-        }
-        
-        // Квесты для "any" могут брать все
-        if ("any".equals(questClass)) {
-            return true;
-        }
-        
-        return false;
-    }
+
     
     /**
      * Синхронизирует состояние квестов между QuestManager и QuestInventoryManager

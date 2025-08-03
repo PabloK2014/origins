@@ -388,36 +388,10 @@ public class QuestProgressTracker {
                 break;
         }
         
-        String target = getItemDisplayName(objective.getTarget());
+        String target = QuestUtils.getItemDisplayName(objective.getTarget());
         
         return action + " " + target;
     }
     
-    /**
-     * Получает отображаемое название предмета
-     */
-    private String getItemDisplayName(String itemId) {
-        if (itemId == null) {
-            return "неизвестно";
-        }
-        
-        // Убираем префикс minecraft:
-        String cleanId = itemId.replace("minecraft:", "");
-        
-        // Заменяем подчеркивания на пробелы и делаем первую букву заглавной
-        String[] parts = cleanId.split("_");
-        StringBuilder result = new StringBuilder();
-        
-        for (int i = 0; i < parts.length; i++) {
-            if (i > 0) {
-                result.append(" ");
-            }
-            if (!parts[i].isEmpty()) {
-                result.append(parts[i].substring(0, 1).toUpperCase())
-                      .append(parts[i].substring(1).toLowerCase());
-            }
-        }
-        
-        return result.toString();
-    }
+
 }

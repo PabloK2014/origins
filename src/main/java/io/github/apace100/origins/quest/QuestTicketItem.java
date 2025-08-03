@@ -180,7 +180,7 @@ public class QuestTicketItem extends Item {
                     default -> "Выполнить";
                 };
                 
-                tooltip.add(Text.literal("  " + statusIcon + actionText + ": " + getItemDisplayName(target) + " (" + progressText + ")")
+                tooltip.add(Text.literal("  " + statusIcon + actionText + ": " + QuestUtils.getItemDisplayName(target) + " (" + progressText + ")")
                     .formatted(progressColor));
                 
                 return; // Выходим, так как обработали новую систему
@@ -234,7 +234,7 @@ public class QuestTicketItem extends Item {
                 default -> "Выполнить";
             };
             
-            tooltip.add(Text.literal("  " + statusIcon + actionText + ": " + getItemDisplayName(target) + " (" + progressText + ")")
+            tooltip.add(Text.literal("  " + statusIcon + actionText + ": " + QuestUtils.getItemDisplayName(target) + " (" + progressText + ")")
                 .formatted(progressColor));
         }
         
@@ -325,33 +325,7 @@ public class QuestTicketItem extends Item {
         }
     }
     
-    /**
-     * Получает отображаемое название предмета
-     */
-    private static String getItemDisplayName(String itemId) {
-        if (itemId == null) {
-            return "Неизвестно";
-        }
-        
-        // Убираем префикс minecraft:
-        String cleanId = itemId.replace("minecraft:", "");
-        
-        // Заменяем подчеркивания на пробелы и делаем первую букву заглавной
-        String[] parts = cleanId.split("_");
-        StringBuilder result = new StringBuilder();
-        
-        for (int i = 0; i < parts.length; i++) {
-            if (i > 0) {
-                result.append(" ");
-            }
-            if (!parts[i].isEmpty()) {
-                result.append(parts[i].substring(0, 1).toUpperCase())
-                      .append(parts[i].substring(1).toLowerCase());
-            }
-        }
-        
-        return result.toString();
-    }
+
     
     public Quest.QuestRarity getRarity() {
         return rarity;
@@ -597,7 +571,7 @@ public class QuestTicketItem extends Item {
                     default -> "Выполнить";
                 };
                 
-                tooltip.add(Text.literal("  • " + actionText + ": " + getItemDisplayName(objective.getTarget()) + " x" + objective.getAmount())
+                tooltip.add(Text.literal("  • " + actionText + ": " + QuestUtils.getItemDisplayName(objective.getTarget()) + " x" + objective.getAmount())
                     .formatted(Formatting.WHITE));
             } else {
                 // Fallback к старой системе с множественными целями
@@ -611,7 +585,7 @@ public class QuestTicketItem extends Item {
                                 default -> "Выполнить";
                             };
                             
-                            tooltip.add(Text.literal("  • " + actionText + ": " + getItemDisplayName(obj.getTarget()) + " x" + obj.getAmount())
+                            tooltip.add(Text.literal("  • " + actionText + ": " + QuestUtils.getItemDisplayName(obj.getTarget()) + " x" + obj.getAmount())
                                 .formatted(Formatting.WHITE));
                         }
                     }

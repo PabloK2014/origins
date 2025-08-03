@@ -1,65 +1,46 @@
 package io.github.apace100.origins.quest;
 
 /**
- * Manages quest selection state for the bounty board UI
+ * Состояние выбора квеста в интерфейсе
  */
 public class QuestSelectionState {
     private int selectedIndex = -1;
-    private String selectedQuestId = null;
-    private long selectionTimestamp = 0;
+    private Quest selectedQuest = null;
     
-    /**
-     * Selects a quest by index and quest object
-     */
-    public void selectQuest(int index, Quest quest) {
-        this.selectedIndex = index;
-        this.selectedQuestId = quest != null ? quest.getId() : null;
-        this.selectionTimestamp = System.currentTimeMillis();
+    public QuestSelectionState() {
     }
     
-    /**
-     * Checks if the given quest is currently selected
-     */
-    public boolean isSelected(int index, Quest quest) {
-        return selectedIndex == index && 
-               quest != null && 
-               quest.getId().equals(selectedQuestId);
-    }
-    
-    /**
-     * Gets the currently selected quest index
-     */
     public int getSelectedIndex() {
         return selectedIndex;
     }
     
-    /**
-     * Gets the currently selected quest ID
-     */
-    public String getSelectedQuestId() {
-        return selectedQuestId;
+    public void setSelectedIndex(int index) {
+        this.selectedIndex = index;
     }
     
-    /**
-     * Gets the timestamp when the selection was made
-     */
-    public long getSelectionTimestamp() {
-        return selectionTimestamp;
+    public Quest getSelectedQuest() {
+        return selectedQuest;
     }
     
-    /**
-     * Clears the current selection
-     */
-    public void clearSelection() {
-        this.selectedIndex = -1;
-        this.selectedQuestId = null;
-        this.selectionTimestamp = 0;
+    public void setSelectedQuest(Quest quest) {
+        this.selectedQuest = quest;
     }
     
-    /**
-     * Checks if any quest is currently selected
-     */
     public boolean hasSelection() {
-        return selectedIndex >= 0 && selectedQuestId != null;
+        return selectedIndex >= 0 && selectedQuest != null;
+    }
+    
+    public void clearSelection() {
+        selectedIndex = -1;
+        selectedQuest = null;
+    }
+    
+    public boolean isSelected(int index, Quest quest) {
+        return selectedIndex == index && selectedQuest == quest;
+    }
+    
+    public void selectQuest(int index, Quest quest) {
+        this.selectedIndex = index;
+        this.selectedQuest = quest;
     }
 }

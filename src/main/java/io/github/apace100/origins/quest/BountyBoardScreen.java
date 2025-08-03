@@ -186,7 +186,7 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
             if (button.getQuest() != null) {
                 String playerClass = getPlayerClass();
                 String questClass = button.getQuest().getPlayerClass();
-                isClassCompatible = isClassCompatibleClient(playerClass, questClass);
+                isClassCompatible = QuestUtils.isClassCompatible(playerClass, questClass);
             }
             
             // Добавляем визуальные эффекты для drag-and-drop
@@ -541,8 +541,8 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
             
             Origins.LOGGER.info("Проверяем совместимость на клиенте: игрок '{}', квест '{}'", playerClass, questClass);
             
-            if (!isClassCompatibleClient(playerClass, questClass)) {
-                Origins.LOGGER.warn("Класс игрока '{}' не подходит для квеста класса '{}'", playerClass, questClass);
+            if (!QuestUtils.isClassCompatible(playerClass, questClass)) {
+                
                 
                 // Показываем сообщение об ошибке игроку
                 if (client.player != null) {
@@ -583,44 +583,7 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
         return false;
     }
     
-    /**
-     * Проверяет совместимость классов на клиенте
-     */
-    private boolean isClassCompatibleClient(String playerClass, String questClass) {
-        if (playerClass == null || questClass == null) {
-            return false;
-        }
-        
-        // Нормализуем названия классов (убираем префиксы)
-        String normalizedPlayerClass = normalizeClassNameClient(playerClass);
-        String normalizedQuestClass = normalizeClassNameClient(questClass);
-        
-        Origins.LOGGER.info("Клиентская проверка совместимости: игрок '{}' -> '{}', квест '{}' -> '{}'", 
-            playerClass, normalizedPlayerClass, questClass, normalizedQuestClass);
-        
-        // Точное совпадение нормализованных классов
-        boolean compatible = normalizedPlayerClass.equals(normalizedQuestClass);
-        
-        Origins.LOGGER.info("Результат клиентской проверки совместимости: {}", compatible);
-        return compatible;
-    }
-    
-    /**
-     * Нормализует название класса на клиенте
-     */
-    private String normalizeClassNameClient(String className) {
-        if (className == null) {
-            return "human";
-        }
-        
-        // Убираем префикс "origins:" если есть
-        if (className.startsWith("origins:")) {
-            className = className.substring(8);
-        }
-        
-        // Приводим к нижнему регистру для единообразия
-        return className.toLowerCase();
-    }
+
     
     /**
      * Обновляет список квестов на экране

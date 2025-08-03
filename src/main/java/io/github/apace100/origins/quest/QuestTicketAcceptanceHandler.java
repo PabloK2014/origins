@@ -151,7 +151,7 @@ public class QuestTicketAcceptanceHandler {
             String playerClass = getPlayerOriginClass(player);
             String questClass = quest.getPlayerClass();
             
-            if (!isClassCompatible(playerClass, questClass)) {
+            if (!QuestUtils.isClassCompatible(playerClass, questClass)) {
                 return QuestAcceptanceError.PROFESSION_MISMATCH;
             }
             
@@ -371,9 +371,9 @@ public class QuestTicketAcceptanceHandler {
             
             Origins.LOGGER.info("Класс игрока: {}, требуемый класс: {}", playerClass, questClass);
             
-            if (!isClassCompatible(playerClass, questClass)) {
+            if (!QuestUtils.isClassCompatible(playerClass, questClass)) {
                 Origins.LOGGER.warn("Класс игрока {} не подходит для квеста класса {}", playerClass, questClass);
-                sendErrorMessage(player, "Этот квест предназначен для класса: " + getLocalizedClassName(questClass));
+                sendErrorMessage(player, "Этот квест предназначен для класса: " + QuestUtils.getLocalizedClassName(questClass));
                 return false;
             }
             Origins.LOGGER.info("Класс игрока подходит");
@@ -454,44 +454,9 @@ public class QuestTicketAcceptanceHandler {
         return "human";
     }
     
-    /**
-     * Проверяет совместимость классов игрока и квеста
-     */
-    private boolean isClassCompatible(String playerClass, String questClass) {
-        if (playerClass == null || questClass == null) {
-            return false;
-        }
-        
-        // Нормализуем названия классов (убираем префиксы)
-        String normalizedPlayerClass = normalizeClassName(playerClass);
-        String normalizedQuestClass = normalizeClassName(questClass);
-        
-        Origins.LOGGER.info("Проверяем совместимость: игрок '{}' -> '{}', квест '{}' -> '{}'", 
-            playerClass, normalizedPlayerClass, questClass, normalizedQuestClass);
-        
-        // Точное совпадение нормализованных классов
-        boolean compatible = normalizedPlayerClass.equals(normalizedQuestClass);
-        
-        Origins.LOGGER.info("Результат проверки совместимости: {}", compatible);
-        return compatible;
-    }
+
     
-    /**
-     * Нормализует название класса, убирая префиксы
-     */
-    private String normalizeClassName(String className) {
-        if (className == null) {
-            return "human";
-        }
-        
-        // Убираем префикс "origins:" если есть
-        if (className.startsWith("origins:")) {
-            className = className.substring(8);
-        }
-        
-        // Приводим к нижнему регистру для единообразия
-        return className.toLowerCase();
-    }
+
     
     /**
      * Проверяет наличие места в инвентаре
@@ -608,21 +573,7 @@ public class QuestTicketAcceptanceHandler {
         }
     }
     
-    /**
-     * Получает локализованное название класса
-     */
-    private String getLocalizedClassName(String playerClass) {
-        return switch (playerClass) {
-            case "warrior" -> "Воин";
-            case "miner" -> "Шахтер";
-            case "blacksmith" -> "Кузнец";
-            case "courier" -> "Курьер";
-            case "brewer" -> "Пивовар";
-            case "cook" -> "Повар";
-            case "human" -> "Человек";
-            default -> "Неизвестный";
-        };
-    }
+
     
     /**
      * Проверяет готовность квеста к завершению

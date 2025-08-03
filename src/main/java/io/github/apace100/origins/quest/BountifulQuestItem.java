@@ -87,18 +87,18 @@ public class BountifulQuestItem extends Item {
         // Проверяем совместимость класса игрока с квестом
         String playerClass = getCurrentPlayerClass();
         String questClass = info.getProfession();
-        boolean isCompatible = isClassCompatible(playerClass, questClass);
+        boolean isCompatible = QuestUtils.isClassCompatible(playerClass, questClass);
         
         // Добавляем статус квеста
         if (isCompatible) {
             tooltip.add(Text.literal("Статус: Доступен для принятия").formatted(net.minecraft.util.Formatting.GREEN));
         } else {
-            tooltip.add(Text.literal("Статус: Недоступен (класс: " + getClassDisplayName(questClass) + ")").formatted(net.minecraft.util.Formatting.RED));
+            tooltip.add(Text.literal("Статус: Недоступен (класс: " + QuestUtils.getLocalizedClassName(questClass) + ")").formatted(net.minecraft.util.Formatting.RED));
         }
         
         // Добавляем информацию о профессии
         if (!questClass.equals("any")) {
-            tooltip.add(Text.literal("Требуемый класс: " + getClassDisplayName(questClass))
+            tooltip.add(Text.literal("Требуемый класс: " + QuestUtils.getLocalizedClassName(questClass))
                 .formatted(net.minecraft.util.Formatting.GOLD));
         }
         
@@ -139,53 +139,7 @@ public class BountifulQuestItem extends Item {
         return "human";
     }
     
-    /**
-     * Проверяет совместимость классов
-     */
-    private boolean isClassCompatible(String playerClass, String questClass) {
-        if (questClass == null || questClass.equals("any")) {
-            return true;
-        }
-        
-        // Нормализуем названия классов
-        String normalizedPlayerClass = normalizeClassName(playerClass);
-        String normalizedQuestClass = normalizeClassName(questClass);
-        
-        return normalizedPlayerClass.equals(normalizedQuestClass);
-    }
-    
-    /**
-     * Нормализует название класса
-     */
-    private String normalizeClassName(String className) {
-        if (className == null) {
-            return "human";
-        }
-        
-        // Убираем префикс "origins:" если есть
-        if (className.startsWith("origins:")) {
-            className = className.substring(8);
-        }
-        
-        return className.toLowerCase();
-    }
-    
-    /**
-     * Получает отображаемое название класса
-     */
-    private String getClassDisplayName(String className) {
-        String normalized = normalizeClassName(className);
-        return switch (normalized) {
-            case "warrior" -> "Воин";
-            case "miner" -> "Шахтер";
-            case "blacksmith" -> "Кузнец";
-            case "courier" -> "Курьер";
-            case "brewer" -> "Пивовар";
-            case "cook" -> "Повар";
-            case "any" -> "Любой";
-            default -> normalized;
-        };
-    }
+
     
     @Override
     public net.minecraft.util.TypedActionResult<ItemStack> use(net.minecraft.world.World world, net.minecraft.entity.player.PlayerEntity user, net.minecraft.util.Hand hand) {
@@ -200,7 +154,7 @@ public class BountifulQuestItem extends Item {
         String playerClass = io.github.apace100.origins.quest.QuestIntegration.getPlayerClass(user);
         String questClass = info.getProfession();
         
-        if (!isClassCompatible(playerClass, questClass)) {
+        if (!QuestUtils.isClassCompatible(playerClass, questClass)) {
             user.sendMessage(Text.literal("Этот квест недоступен для вашего класса!").formatted(net.minecraft.util.Formatting.RED), false);
             return net.minecraft.util.TypedActionResult.fail(stack);
         }

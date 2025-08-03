@@ -1,84 +1,55 @@
 package io.github.apace100.origins.quest;
 
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-
 /**
- * Класс для отслеживания прогресса квеста, аналогичный Progress из Bountiful
+ * Представляет прогресс выполнения квеста
  */
 public class QuestProgress {
-    private final double current;
-    private final double goal;
-    private final int precision;
+    private final int current;
+    private final int required;
+    private final boolean completed;
     
-    public QuestProgress(double current, double goal) {
-        this(current, goal, 0);
-    }
-    
-    public QuestProgress(int current, int goal) {
-        this(current, goal, 0);
-    }
-    
-    public QuestProgress(double current, double goal, int precision) {
+    public QuestProgress(int current, int required) {
         this.current = current;
-        this.goal = goal;
-        this.precision = precision;
+        this.required = required;
+        this.completed = current >= required;
     }
     
-    public QuestProgress(int current, int goal, int precision) {
-        this.current = current;
-        this.goal = goal;
-        this.precision = precision;
-    }
-    
-    /**
-     * Проверяет, завершена ли цель
-     */
-    public boolean isComplete() {
-        return current >= goal;
-    }
-    
-    /**
-     * Получает цвет для отображения прогресса
-     */
-    public Formatting getColor() {
-        return isComplete() ? Formatting.GREEN : Formatting.RED;
-    }
-    
-    /**
-     * Получает текст с прогрессом для отображения
-     */
-    public MutableText getProgressText() {
-        if (precision == 0) {
-            return Text.literal(" (" + (int)current + "/" + (int)goal + ")");
-        } else {
-            String format = " (%." + precision + "f/%." + precision + "f)";
-            return Text.literal(String.format(format, current, goal));
-        }
-    }
-    
-    /**
-     * Получает текст с количеством для награды
-     */
-    public MutableText getAmountText() {
-        if (precision == 0) {
-            return Text.literal((int)goal + "x ");
-        } else {
-            String format = "%." + precision + "fx ";
-            return Text.literal(String.format(format, goal));
-        }
-    }
-    
-    public double getCurrent() {
+    public int getCurrent() {
         return current;
     }
     
-    public double getGoal() {
-        return goal;
+    public int getRequired() {
+        return required;
     }
     
-    public int getPrecision() {
-        return precision;
+    public boolean isCompleted() {
+        return completed;
+    }
+    
+    public boolean isComplete() {
+        return completed;
+    }
+    
+    public double getPercentage() {
+        if (required <= 0) return 1.0;
+        return Math.min(1.0, (double) current / required);
+    }
+    
+    public net.minecraft.util.Formatting getColor() {
+        if (completed) {
+            return net.minecraft.util.Formatting.GREEN;
+        } else if (current > 0) {
+            return net.minecraft.util.Formatting.YELLOW;
+        } else {
+            return net.minecraft.util.Formatting.RED;
+        }
+    }
+    
+    public String getProgressText() {
+        return " (" + current + "/" + required + ")";
+    }
+    
+    public net.minecraft.text.MutableText getAmountText() {
+        return net.minecraft.text.Text.literal(String.valueOf(current));
     }
 }
