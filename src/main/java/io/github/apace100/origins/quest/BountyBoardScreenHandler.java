@@ -30,6 +30,23 @@ public class BountyBoardScreenHandler extends ScreenHandler {
         this.inventory = new SimpleInventory(3);
         setupSlots(playerInventory);
     }
+    
+    /**
+     * Проверяет, является ли эта доска классовой доской
+     */
+    public boolean isClassBoard() {
+        return blockEntity instanceof ClassBountyBoardBlockEntity;
+    }
+    
+    /**
+     * Получает BlockEntity как ClassBountyBoardBlockEntity если это возможно
+     */
+    public ClassBountyBoardBlockEntity getClassBoardEntity() {
+        if (blockEntity instanceof ClassBountyBoardBlockEntity) {
+            return (ClassBountyBoardBlockEntity) blockEntity;
+        }
+        return null;
+    }
 
     private void setupSlots(PlayerInventory playerInventory) {
         // Слоты для квестов (3x7 сетка)

@@ -3,10 +3,14 @@ package io.github.apace100.origins;
 import io.github.apace100.origins.client.SkillKeybinds;
 import io.github.apace100.origins.client.gui.OriginHudOverlay;
 import io.github.apace100.origins.quest.BountyBoardScreen;
+import io.github.apace100.origins.quest.BountyBoardScreenHandler;
+import io.github.apace100.origins.quest.ClassBountyBoardScreen;
 import io.github.apace100.origins.quest.QuestRegistry;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.text.Text;
 
 /**
  * Клиентский инициализатор Origins
@@ -24,8 +28,16 @@ public class OriginsClient implements ClientModInitializer {
         // Инициализируем клавиши навыков
         new SkillKeybinds().onInitializeClient();
         
-        // Регистрируем экран доски объявлений
-        HandledScreens.register(QuestRegistry.BOUNTY_BOARD_SCREEN_HANDLER, BountyBoardScreen::new);
+        // Регистрируем экран доски объявлений с проверкой типа доски
+        HandledScreens.register(QuestRegistry.BOUNTY_BOARD_SCREEN_HANDLER, 
+            (BountyBoardScreenHandler handler, PlayerInventory inventory, Text title) -> {
+                // Проверяем, является ли это классовой доской
+                if (handler.isClassBoard()) {
+                    return new ClassBountyBoardScreen(handler, inventory, title);
+                } else {
+                    return new BountyBoardScreen(handler, inventory, title);
+                }
+            });
         
         // Регистрируем HUD рендер
         HudRenderCallback.EVENT.register((drawContext, tickDelta) -> {

@@ -160,6 +160,7 @@ public class Origins implements ModInitializer, OrderedResourceListenerInitializ
 			io.github.apace100.origins.command.CheckTimeStatusCommand.register(dispatcher, registryAccess);
 			io.github.apace100.origins.command.ResetAllTicketTimesCommand.register(dispatcher, registryAccess);
 			io.github.apace100.origins.command.TestClassRestrictionCommand.register(dispatcher, registryAccess);
+			io.github.apace100.origins.command.TestQuestApiCommand.register(dispatcher, registryAccess);
 		});
 		// Добавляем предметы в собственную вкладку Origins
 		ItemGroupEvents.modifyEntriesEvent(ORIGINS_GROUP_KEY).register((content) -> {
@@ -197,6 +198,23 @@ public class Origins implements ModInitializer, OrderedResourceListenerInitializ
 				LOGGER.error("Failed to run startup JSON diagnostic: " + e.getMessage(), e);
 			}
 		}
+		
+		// Инициализируем API менеджер квестов при запуске сервера
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+			LOGGER.info("Server started, initializing Quest API Manager...");
+			for (net.minecraft.server.world.ServerWorld world : server.getWorlds()) {
+				io.github.apace100.origins.quest.QuestApiManager.getInstance().initialize(world);
+				break; // Инициализируем только для первого мира
+			}
+		});
+		
+		// Добавляем тик для API менеджера
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register(server -> {
+			for (net.minecraft.server.world.ServerWorld world : server.getWorlds()) {
+				io.github.apace100.origins.quest.QuestApiManager.getInstance().tick(world);
+				break; // Тикаем только для первого мира
+			}
+		});
 		
 		// Инициализируем службу постоянной валидации
 		try {

@@ -1,0 +1,554 @@
+{
+    "cook": [
+      {
+        "id": "cook_58e7e055",
+        "playerClass": "origins:cook",
+        "level": 1,
+        "title": "Пшеничный сбор",
+        "description": "Соберите пшеницу для приготовления муки.",
+        "objective": {
+          "type": "collect",
+          "target": "minecraft:wheat",
+          "amount": 5
+        },
+        "timeLimit": 20,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 1,
+          "experience": 500
+        }
+      },
+      {
+        "id": "cook_90948386",
+        "playerClass": "origins:cook",
+        "level": 1,
+        "title": "Морковный урожай",
+        "description": "Найдите и соберите морковку для тушеных блюд.",
+        "objective": {
+          "type": "collect",
+          "target": "minecraft:carrot",
+          "amount": 8
+        },
+        "timeLimit": 25,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 1,
+          "experience": 500
+        }
+      },
+      {
+        "id": "cook_85eab9ee",
+        "playerClass": "origins:cook",
+        "level": 2,
+        "title": "Картофельные запасы",
+        "description": "Соберите картофель для печёных блюд и супов.",
+        "objective": {
+          "type": "collect",
+          "target": "minecraft:potato",
+          "amount": 12
+        },
+        "timeLimit": 30,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 2,
+          "experience": 1000
+        }
+      },
+      {
+        "id": "cook_b0dc3633",
+        "playerClass": "origins:cook",
+        "level": 2,
+        "title": "Яичная заготовка",
+        "description": "Найдите куриные яйца для выпечки и омлетов.",
+        "objective": {
+          "type": "collect",
+          "target": "minecraft:egg",
+          "amount": 10
+        },
+        "timeLimit": 35,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 2,
+          "experience": 1000
+        }
+      },
+      {
+        "id": "cook_90ca5e16",
+        "playerClass": "origins:cook",
+        "level": 3,
+        "title": "Свежее молоко",
+        "description": "Добудьте натуральное молоко для рецептов десертов.",
+        "objective": {
+          "type": "collect",
+          "target": "minecraft:milk_bucket",
+          "amount": 4
+        },
+        "timeLimit": 40,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 3,
+          "experience": 1500
+        }
+      }
+    ],
+    "courier": [
+      {
+        "id": "courier_41c6164c",
+        "playerClass": "origins:courier",
+        "level": 1,
+        "title": "Бумажные документы",
+        "description": "Создайте бумагу для важных посылок и писем.",
+        "objective": {
+          "type": "craft",
+          "target": "minecraft:paper",
+          "amount": 6
+        },
+        "timeLimit": 20,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 1,
+          "experience": 500
+        }
+      },
+      {
+        "id": "courier_d89106c9",
+        "playerClass": "origins:courier",
+        "level": 1,
+        "title": "Перья для письма",
+        "description": "Найдите перья для изготовления инструментов.",
+        "objective": {
+          "type": "collect",
+          "target": "minecraft:feather",
+          "amount": 9
+        },
+        "timeLimit": 25,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 1,
+          "experience": 500
+        }
+      },
+      {
+        "id": "courier_6ce5c4f7",
+        "playerClass": "origins:courier",
+        "level": 2,
+        "title": "Картограф",
+        "description": "Создайте карты для навигации в дальних походах.",
+        "objective": {
+          "type": "craft",
+          "target": "minecraft:map",
+          "amount": 3
+        },
+        "timeLimit": 30,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 2,
+          "experience": 1000
+        }
+      },
+      {
+        "id": "courier_e8f404fd",
+        "playerClass": "origins:courier",
+        "level": 2,
+        "title": "Поиск седла",
+        "description": "Найдите седло для транспортировки грузов на животных.",
+        "objective": {
+          "type": "collect",
+          "target": "minecraft:saddle",
+          "amount": 1
+        },
+        "timeLimit": 35,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 2,
+          "experience": 1000
+        }
+      },
+      {
+        "id": "courier_912d6474",
+        "playerClass": "origins:courier",
+        "level": 3,
+        "title": "Направление пути",
+        "description": "Создайте компасы для ориентации в труднодоступных местах.",
+        "objective": {
+          "type": "craft",
+          "target": "minecraft:compass",
+          "amount": 4
+        },
+        "timeLimit": 45,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 3,
+          "experience": 1500
+        }
+      }
+    ],
+    "brewer": [
+      {
+        "id": "brewer_4a2ae2ae",
+        "playerClass": "origins:brewer",
+        "level": 1,
+        "title": "Сбор ростков",
+        "description": "Найдите и соберите адские наросты для зелий.",
+        "objective": {
+          "type": "collect",
+          "target": "minecraft:nether_wart",
+          "amount": 8
+        },
+        "timeLimit": 20,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 1,
+          "experience": 500
+        }
+      },
+      {
+        "id": "brewer_c1abadc4",
+        "playerClass": "origins:brewer",
+        "level": 1,
+        "title": "Глаз Гаста",
+        "description": "Найдите слезу Гаста для рецептов напитков.",
+        "objective": {
+          "type": "collect",
+          "target": "minecraft:ghast_tear",
+          "amount": 3
+        },
+        "timeLimit": 25,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 1,
+          "experience": 500
+        }
+      },
+      {
+        "id": "brewer_c7748ecc",
+        "playerClass": "origins:brewer",
+        "level": 2,
+        "title": "Порошок Ифрита",
+        "description": "Соберите порошок Ифритов.",
+        "objective": {
+          "type": "collect",
+          "target": "minecraft:blaze_powder",
+          "amount": 6
+        },
+        "timeLimit": 30,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 2,
+          "experience": 1000
+        }
+      },
+      {
+        "id": "brewer_0cb6efed",
+        "playerClass": "origins:brewer",
+        "level": 2,
+        "title": "Огненный крем",
+        "description": "Найдите крем магмы для заваривания.",
+        "objective": {
+          "type": "collect",
+          "target": "minecraft:magma_cream",
+          "amount": 7
+        },
+        "timeLimit": 35,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 2,
+          "experience": 1000
+        }
+      },
+      {
+        "id": "brewer_94c48617",
+        "playerClass": "origins:brewer",
+        "level": 3,
+        "title": "Пыль светокамня",
+        "description": "Соберите светящуюся пыль.",
+        "objective": {
+          "type": "collect",
+          "target": "minecraft:glowstone_dust",
+          "amount": 12
+        },
+        "timeLimit": 40,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 3,
+          "experience": 1500
+        }
+      }
+    ],
+    "blacksmith": [
+      {
+        "id": "blacksmith_06d0a0ce",
+        "playerClass": "origins:blacksmith",
+        "level": 1,
+        "title": "Железные слитки",
+        "description": "Соберите железные слитки для кузнечного дела.",
+        "objective": {
+          "type": "collect",
+          "target": "minecraft:iron_ingot",
+          "amount": 10
+        },
+        "timeLimit": 20,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 1,
+          "experience": 500
+        }
+      },
+      {
+        "id": "blacksmith_2f976658",
+        "playerClass": "origins:blacksmith",
+        "level": 1,
+        "title": "Запасы кремния",
+        "description": "Найдите кремни для создания инструментов.",
+        "objective": {
+          "type": "collect",
+          "target": "minecraft:flint",
+          "amount": 8
+        },
+        "timeLimit": 25,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 1,
+          "experience": 500
+        }
+      },
+      {
+        "id": "blacksmith_c028f3e0",
+        "playerClass": "origins:blacksmith",
+        "level": 2,
+        "title": "Мечи для защиты",
+        "description": "Выкуйте мечи для военного оборудования.",
+        "objective": {
+          "type": "craft",
+          "target": "minecraft:iron_sword",
+          "amount": 4
+        },
+        "timeLimit": 30,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 2,
+          "experience": 1000
+        }
+      },
+      {
+        "id": "blacksmith_11eec566",
+        "playerClass": "origins:blacksmith",
+        "level": 2,
+        "title": "Топливо для горна",
+        "description": "Соберите уголь для плавки руд.",
+        "objective": {
+          "type": "collect",
+          "target": "minecraft:coal",
+          "amount": 15
+        },
+        "timeLimit": 35,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 2,
+          "experience": 1000
+        }
+      },
+      {
+        "id": "blacksmith_c2971018",
+        "playerClass": "origins:blacksmith",
+        "level": 3,
+        "title": "Алмазная кирка",
+        "description": "Изготовьте надежную алмазную кирку.",
+        "objective": {
+          "type": "craft",
+          "target": "minecraft:diamond_pickaxe",
+          "amount": 1
+        },
+        "timeLimit": 50,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 3,
+          "experience": 1500
+        }
+      }
+    ],
+    "miner": [
+      {
+        "id": "miner_b529aee3",
+        "playerClass": "origins:miner",
+        "level": 1,
+        "title": "Добыча угля",
+        "description": "Соберите уголь как основной ресурс.",
+        "objective": {
+          "type": "collect",
+          "target": "minecraft:coal",
+          "amount": 10
+        },
+        "timeLimit": 20,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 1,
+          "experience": 500
+        }
+      },
+      {
+        "id": "miner_103e1f15",
+        "playerClass": "origins:miner",
+        "level": 1,
+        "title": "Железная руда",
+        "description": "Сломайте блоки железной руды для переплавки.",
+        "objective": {
+          "type": "mine",
+          "target": "minecraft:iron_ore",
+          "amount": 7
+        },
+        "timeLimit": 25,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 1,
+          "experience": 500
+        }
+      },
+      {
+        "id": "miner_fc6f97c2",
+        "playerClass": "origins:miner",
+        "level": 2,
+        "title": "Красная энергия",
+        "description": "Соберите пыль красного камня для механизмов.",
+        "objective": {
+          "type": "collect",
+          "target": "minecraft:redstone",
+          "amount": 15
+        },
+        "timeLimit": 30,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 2,
+          "experience": 1000
+        }
+      },
+      {
+        "id": "miner_1535737c",
+        "playerClass": "origins:miner",
+        "level": 2,
+        "title": "Нижний кварц",
+        "description": "Добывайте кварц в Нижнем мире.",
+        "objective": {
+          "type": "collect",
+          "target": "minecraft:nether_quartz",
+          "amount": 12
+        },
+        "timeLimit": 35,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 2,
+          "experience": 1000
+        }
+      },
+      {
+        "id": "miner_ee15fef6",
+        "playerClass": "origins:miner",
+        "level": 3,
+        "title": "Сокровища гор",
+        "description": "Найдите редкие изумруды в горах.",
+        "objective": {
+          "type": "collect",
+          "target": "minecraft:emerald",
+          "amount": 8
+        },
+        "timeLimit": 40,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 3,
+          "experience": 1500
+        }
+      }
+    ],
+    "warrior": [
+      {
+        "id": "warrior_29bafb96",
+        "playerClass": "origins:warrior",
+        "level": 1,
+        "title": "Охота на зомби",
+        "description": "Уничтожьте зомби для защиты поселений.",
+        "objective": {
+          "type": "kill",
+          "target": "zombie",
+          "amount": 8
+        },
+        "timeLimit": 20,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 1,
+          "experience": 500
+        }
+      },
+      {
+        "id": "warrior_7e39688a",
+        "playerClass": "origins:warrior",
+        "level": 1,
+        "title": "Трофеи сражений",
+        "description": "Соберите гнилую плоть после боев с нежитью.",
+        "objective": {
+          "type": "collect",
+          "target": "rotten_flesh",
+          "amount": 12
+        },
+        "timeLimit": 25,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 1,
+          "experience": 500
+        }
+      },
+      {
+        "id": "warrior_d7fffe3a",
+        "playerClass": "origins:warrior",
+        "level": 2,
+        "title": "Стрелометчики",
+        "description": "Победите скелетов в бою.",
+        "objective": {
+          "type": "kill",
+          "target": "skeleton",
+          "amount": 10
+        },
+        "timeLimit": 30,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 2,
+          "experience": 1000
+        }
+      },
+      {
+        "id": "warrior_59d58ad2",
+        "playerClass": "origins:warrior",
+        "level": 2,
+        "title": "Паучья нить",
+        "description": "Соберите паутину для тетивы и ловушек.",
+        "objective": {
+          "type": "collect",
+          "target": "string",
+          "amount": 15
+        },
+        "timeLimit": 35,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 2,
+          "experience": 1000
+        }
+      },
+      {
+        "id": "warrior_7897b9e2",
+        "playerClass": "origins:warrior",
+        "level": 3,
+        "title": "Укротитель взрывов",
+        "description": "Одолейте криперов для защиты от разрушений.",
+        "objective": {
+          "type": "kill",
+          "target": "creeper",
+          "amount": 12
+        },
+        "timeLimit": 45,
+        "reward": {
+          "type": "skill_point_token",
+          "tier": 3,
+          "experience": 1500
+        }
+      }
+    ]
+  }
