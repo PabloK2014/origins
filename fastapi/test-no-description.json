@@ -1,0 +1,44 @@
+{
+  "cook": [
+    {
+      "id": "cook_test_1",
+      "playerClass": "origins:cook",
+      "level": 1,
+      "title": "Тестовый квест повара",
+      "objective": {
+        "type": "collect",
+        "target": "minecraft:wheat",
+        "amount": 5
+      },
+      "timeLimit": 20,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    }
+  ],
+  "warrior": [
+    {
+      "id": "warrior_test_1",
+      "playerClass": "origins:warrior",
+      "level": 1,
+      "title": "Тестовый квест воина",
+      "objective": {
+        "type": "kill",
+        "target": "zombie",
+        "amount": 3
+      },
+      "timeLimit": 25,
+      "reward": {
+        "type": "skill_point_token",
+        "tier": 1,
+        "experience": 500
+      }
+    }
+  ],
+  "courier": [],
+  "brewer": [],
+  "blacksmith": [],
+  "miner": []
+}

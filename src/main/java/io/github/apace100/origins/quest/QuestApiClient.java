@@ -24,7 +24,7 @@ import java.util.concurrent.CompletableFuture;
 public class QuestApiClient {
     private static final String API_BASE_URL = "http://localhost:8000";
     private static final HttpClient httpClient = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(10))
+            .connectTimeout(Duration.ofSeconds(600)) // Увеличен таймаут до 10 минут
             .build();
     private static final Gson gson = new Gson();
     
@@ -41,10 +41,8 @@ public class QuestApiClient {
      */
     public static CompletableFuture<Map<String, List<Quest>>> getAllQuests() {
         return CompletableFuture.supplyAsync(() -> {
-            // Предотвращаем множественные одновременные запросы
             if (isLoadingAllQuests) {
                 Origins.LOGGER.info("⏳ Already loading all quests, waiting...");
-                // Ждем завершения текущего запроса
                 while (isLoadingAllQuests) {
                     try {
                         Thread.sleep(1000);
@@ -53,7 +51,6 @@ public class QuestApiClient {
                         return new HashMap<>();
                     }
                 }
-                // Возвращаем кэш после завершения загрузки
                 return allQuestsCache;
             }
             
@@ -65,12 +62,11 @@ public class QuestApiClient {
                 
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create(url))
-                        .timeout(Duration.ofSeconds(600)) // Увеличиваем таймаут до 10 минут
+                        .timeout(Duration.ofSeconds(600)) // Таймаут 10 минут
                         .GET()
                         .build();
                 
-                HttpResponse<String> response = httpClient.send(request, 
-                        HttpResponse.BodyHandlers.ofString());
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
                 
                 Origins.LOGGER.info("📡 API RESPONSE: Status " + response.statusCode());
                 
@@ -78,7 +74,6 @@ public class QuestApiClient {
                     Map<String, List<Quest>> allQuests = parseAllQuestsFromJson(response.body());
                     Origins.LOGGER.info("✅ API SUCCESS: Получено квестов для всех классов!");
                     
-                    // Обновляем кэш
                     allQuestsCache = allQuests;
                     lastAllQuestsFetch = System.currentTimeMillis();
                     
@@ -103,14 +98,12 @@ public class QuestApiClient {
      */
     public static CompletableFuture<List<Quest>> getQuestsForClass(String playerClass, int questCount) {
         return CompletableFuture.supplyAsync(() -> {
-            // Проверяем кэш
             if (allQuestsCache.containsKey(playerClass) && 
                 System.currentTimeMillis() - lastAllQuestsFetch < CACHE_DURATION) {
                 Origins.LOGGER.info("📦 CACHE HIT: Используем кэшированные квесты для " + playerClass);
                 return allQuestsCache.get(playerClass);
             }
             
-            // Если кэш пустой или устарел, загружаем все квесты
             Origins.LOGGER.info("🔄 CACHE MISS: Загружаем все квесты через оптимизированный API");
             try {
                 Map<String, List<Quest>> allQuests = getAllQuests().get();
@@ -129,32 +122,47 @@ public class QuestApiClient {
         Map<String, List<Quest>> allQuests = new HashMap<>();
         String[] classes = {"cook", "courier", "brewer", "blacksmith", "miner", "warrior"};
         
+        Origins.LOGGER.info("🔍 [QuestApiClient] Начинаем парсинг JSON ответа длиной: " + jsonResponse.length() + " символов");
+        
         try {
             JsonObject responseObj = JsonParser.parseString(jsonResponse).getAsJsonObject();
+            Origins.LOGGER.info("✅ [QuestApiClient] JSON успешно распарсен в объект");
             
             for (String className : classes) {
                 List<Quest> classQuests = new ArrayList<>();
+                Origins.LOGGER.info("🔍 [QuestApiClient] Обрабатываем класс: " + className);
                 
                 if (responseObj.has(className)) {
                     JsonArray questsArray = responseObj.getAsJsonArray(className);
+                    Origins.LOGGER.info("📋 [QuestApiClient] Найден массив квестов для " + className + " размером: " + questsArray.size());
                     
                     for (int i = 0; i < questsArray.size(); i++) {
                         JsonObject questObj = questsArray.get(i).getAsJsonObject();
+                        Origins.LOGGER.info("🔍 [QuestApiClient] Парсим квест " + (i+1) + " для " + className);
                         
                         Quest quest = parseQuestFromJsonObject(questObj);
                         if (quest != null) {
                             classQuests.add(quest);
+                            Origins.LOGGER.info("✅ [QuestApiClient] Квест успешно создан: " + quest.getTitle());
+                        } else {
+                            Origins.LOGGER.warn("❌ [QuestApiClient] Не удалось создать квест " + (i+1) + " для " + className);
                         }
                     }
+                } else {
+                    Origins.LOGGER.warn("❌ [QuestApiClient] Класс " + className + " не найден в JSON ответе");
                 }
                 
                 allQuests.put(className, classQuests);
-                Origins.LOGGER.info("📋 Parsed " + classQuests.size() + " quests for class: " + className);
+                Origins.LOGGER.info("📊 [QuestApiClient] Итого для " + className + ": " + classQuests.size() + " квестов");
             }
             
         } catch (Exception e) {
-            Origins.LOGGER.error("Failed to parse all quests from JSON response", e);
+            Origins.LOGGER.error("🔥 [QuestApiClient] Критическая ошибка при парсинге JSON", e);
+            Origins.LOGGER.error("🔥 [QuestApiClient] JSON содержимое: " + jsonResponse.substring(0, Math.min(500, jsonResponse.length())));
         }
+        
+        int totalQuests = allQuests.values().stream().mapToInt(List::size).sum();
+        Origins.LOGGER.info("🎯 [QuestApiClient] ИТОГО РАСПАРСЕНО: " + totalQuests + " квестов");
         
         return allQuests;
     }
@@ -171,7 +179,6 @@ public class QuestApiClient {
             
             for (int i = 0; i < questsArray.size(); i++) {
                 JsonObject questObj = questsArray.get(i).getAsJsonObject();
-                
                 Quest quest = parseQuestFromJsonObject(questObj);
                 if (quest != null) {
                     quests.add(quest);
@@ -194,10 +201,9 @@ public class QuestApiClient {
             String playerClass = questObj.get("playerClass").getAsString();
             int level = questObj.get("level").getAsInt();
             String title = questObj.get("title").getAsString();
-            String description = questObj.get("description").getAsString();
+            String description = ""; // Убираем парсинг description из API
             int timeLimit = questObj.get("timeLimit").getAsInt();
             
-            // Парсим objective
             JsonObject objectiveObj = questObj.getAsJsonObject("objective");
             String objectiveType = objectiveObj.get("type").getAsString();
             String target = objectiveObj.get("target").getAsString();
@@ -206,7 +212,6 @@ public class QuestApiClient {
             QuestObjective.ObjectiveType objType = parseObjectiveType(objectiveType);
             QuestObjective objective = new QuestObjective(objType, target, amount);
             
-            // Парсим reward
             JsonObject rewardObj = questObj.getAsJsonObject("reward");
             String rewardType = rewardObj.get("type").getAsString();
             int tier = rewardObj.get("tier").getAsInt();
@@ -215,10 +220,14 @@ public class QuestApiClient {
             QuestReward.RewardType rewType = parseRewardType(rewardType);
             QuestReward reward = new QuestReward(rewType, tier, experience);
             
-            return new Quest(id, playerClass, level, title, description, objective, timeLimit, reward);
+            Quest quest = new Quest(id, playerClass, level, title, description, objective, timeLimit, reward);
+            Origins.LOGGER.info("✅ [QuestApiClient] Quest создан: " + quest.getTitle() + " (ID: " + quest.getId() + ")");
+            
+            return quest;
             
         } catch (Exception e) {
-            Origins.LOGGER.error("Failed to parse individual quest from JSON", e);
+            Origins.LOGGER.error("🔥 [QuestApiClient] Ошибка при парсинге квеста из JSON", e);
+            Origins.LOGGER.error("🔥 [QuestApiClient] Проблемный JSON: " + questObj.toString());
             return null;
         }
     }
@@ -235,7 +244,6 @@ public class QuestApiClient {
             case "kill":
                 return QuestObjective.ObjectiveType.KILL;
             case "mine":
-                // Майнинг трактуем как сбор
                 return QuestObjective.ObjectiveType.COLLECT;
             default:
                 return QuestObjective.ObjectiveType.COLLECT;
@@ -264,15 +272,13 @@ public class QuestApiClient {
     public static CompletableFuture<Boolean> isApiAvailable() {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                // Используем простой health check эндпоинт вместо генерации квестов
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create(API_BASE_URL + "/"))
-                        .timeout(Duration.ofSeconds(10)) // Быстрый health check
+                        .timeout(Duration.ofSeconds(10))
                         .GET()
                         .build();
                 
-                HttpResponse<String> response = httpClient.send(request, 
-                        HttpResponse.BodyHandlers.ofString());
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
                 
                 boolean isAvailable = response.statusCode() == 200;
                 Origins.LOGGER.info("🔍 API Health Check: " + (isAvailable ? "✅ AVAILABLE" : "❌ UNAVAILABLE") + " (Status: " + response.statusCode() + ")");

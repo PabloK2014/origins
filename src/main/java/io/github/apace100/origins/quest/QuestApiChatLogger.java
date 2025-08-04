@@ -10,11 +10,23 @@ import net.minecraft.util.Formatting;
  */
 public class QuestApiChatLogger {
     
+    // Защита от спама сообщений
+    private static long lastRequestMessage = 0;
+    private static long lastSuccessMessage = 0;
+    private static long lastErrorMessage = 0;
+    private static final long MESSAGE_COOLDOWN = 30000L; // 30 секунд между одинаковыми сообщениями
+    
     /**
      * Отправляет сообщение о запросе к API всем игрокам
      */
     public static void logApiRequest(MinecraftServer server, String playerClass, int questCount) {
         if (server == null) return;
+        
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastRequestMessage < MESSAGE_COOLDOWN) {
+            return; // Пропускаем сообщение, если прошло меньше 30 секунд
+        }
+        lastRequestMessage = currentTime;
         
         Text message = Text.literal("🌐 [Quest API] Запрос квестов для класса: ")
                 .formatted(Formatting.BLUE)
@@ -30,13 +42,8 @@ public class QuestApiChatLogger {
     public static void logApiSuccess(MinecraftServer server, String playerClass, int questCount) {
         if (server == null) return;
         
-        Text message = Text.literal("✅ [Quest API] Получено ")
-                .formatted(Formatting.GREEN)
-                .append(Text.literal(String.valueOf(questCount)).formatted(Formatting.YELLOW))
-                .append(Text.literal(" квестов для класса ").formatted(Formatting.GREEN))
-                .append(Text.literal(playerClass).formatted(Formatting.YELLOW));
-        
-        broadcastToAllPlayers(server, message);
+        // Не спамим сообщениями об успехе для отдельных классов - только итоговое сообщение
+        // Это сообщение будет показано только через logQuestsAppeared
     }
     
     /**
@@ -44,6 +51,12 @@ public class QuestApiChatLogger {
      */
     public static void logApiError(MinecraftServer server, String playerClass, String error) {
         if (server == null) return;
+        
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastErrorMessage < MESSAGE_COOLDOWN) {
+            return; // Пропускаем сообщение, если прошло меньше 30 секунд
+        }
+        lastErrorMessage = currentTime;
         
         Text message = Text.literal("❌ [Quest API] Ошибка для класса ")
                 .formatted(Formatting.RED)
@@ -85,6 +98,20 @@ public class QuestApiChatLogger {
         
         Text message = Text.literal("🔄 [Quest API] Начинаем обновление квестов (каждые 30 минут)...")
                 .formatted(Formatting.AQUA);
+        
+        broadcastToAllPlayers(server, message);
+    }
+    
+    /**
+     * Отправляет сообщение о том, что API дал ответ и квесты появились
+     */
+    public static void logQuestsAppeared(MinecraftServer server, int totalQuests) {
+        if (server == null) return;
+        
+        Text message = Text.literal("🎯 [Quest API] API дал ответ, квесты появились! Загружено ")
+                .formatted(Formatting.GREEN)
+                .append(Text.literal(String.valueOf(totalQuests)).formatted(Formatting.YELLOW))
+                .append(Text.literal(" квестов для всех классов.").formatted(Formatting.GREEN));
         
         broadcastToAllPlayers(server, message);
     }

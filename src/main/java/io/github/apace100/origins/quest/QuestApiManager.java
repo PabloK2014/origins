@@ -27,6 +27,9 @@ public class QuestApiManager {
     private long lastApiCheck = 0;
     private static final long API_CHECK_INTERVAL = 12000L; // Проверяем API каждые 10 минут (12000 тиков)
     private boolean isCheckingApi = false; // Флаг для предотвращения множественных проверок
+    private boolean isLoadingQuests = false; // Флаг для предотвращения множественных загрузок квестов
+    private long lastQuestLoadAttempt = 0; // Время последней попытки загрузки квестов
+    private static final long MIN_LOAD_INTERVAL = 1200L; // Минимальный интервал между попытками загрузки (1 минута)
     
     // Классы игроков
     private static final String[] PLAYER_CLASSES = {
@@ -55,8 +58,10 @@ public class QuestApiManager {
         String boardClass = board.getBoardClass();
         List<Quest> quests = questCache.get(boardClass);
         
+        // ВСЕГДА очищаем доску сначала
+        board.getBounties().clear();
+        
         if (quests != null && !quests.isEmpty()) {
-            board.getBounties().clear();
             for (int i = 0; i < Math.min(quests.size(), 21); i++) {
                 Quest quest = quests.get(i);
                 ItemStack questTicket = QuestTicketItem.createQuestTicket(quest);
@@ -67,8 +72,8 @@ public class QuestApiManager {
             board.markDirty();
             Origins.LOGGER.info("Updated board for class: " + boardClass + " with " + quests.size() + " quests");
         } else {
-            board.getBounties().clear(); // Очищаем доску, если квестов нет
-            Origins.LOGGER.info("No quests available for board class: " + boardClass);
+            // Доска остается пустой до получения квестов от API
+            Origins.LOGGER.info("Board for class " + boardClass + " remains empty - waiting for API response");
         }
     }
     
@@ -98,38 +103,72 @@ public class QuestApiManager {
      * Загружает квесты для всех классов одним оптимизированным запросом
      */
     private void loadAllQuests(ServerWorld world) {
+        long currentTime = world.getTime();
+        
+        // Проверяем, не загружаем ли мы уже квесты
+        if (isLoadingQuests) {
+            Origins.LOGGER.info("⏳ Already loading quests, skipping...");
+            return;
+        }
+        
+        // Проверяем минимальный интервал между попытками загрузки
+        if (currentTime - lastQuestLoadAttempt < MIN_LOAD_INTERVAL) {
+            Origins.LOGGER.info("⏳ Too soon to load quests again, waiting...");
+            return;
+        }
+        
+        isLoadingQuests = true;
+        lastQuestLoadAttempt = currentTime;
+        
         Origins.LOGGER.info("🚀 Loading quests for ALL classes with optimized API...");
         
         QuestApiChatLogger.logApiRequest(world.getServer(), "ALL CLASSES", 30); // 6 классов * 5 квестов
         
         QuestApiClient.getAllQuests()
             .thenAccept(allQuests -> {
-                if (!allQuests.isEmpty()) {
-                    long currentTime = world.getTime();
-                    int totalQuests = 0;
-                    
-                    questCache.clear(); // Очищаем кэш перед обновлением
-                    for (String playerClass : PLAYER_CLASSES) {
-                        List<Quest> classQuests = allQuests.getOrDefault(playerClass, new ArrayList<>());
-                        questCache.put(playerClass, classQuests);
-                        lastUpdateTime.put(playerClass, currentTime);
-                        totalQuests += classQuests.size();
+                try {
+                    if (!allQuests.isEmpty()) {
+                        long updateTime = world.getTime();
+                        int totalQuests = 0;
                         
-                        Origins.LOGGER.info("📋 Loaded " + classQuests.size() + " quests for class: " + playerClass);
-                        QuestApiChatLogger.logApiSuccess(world.getServer(), playerClass, classQuests.size());
-                        updateBoardsForClass(playerClass, world);
+                        questCache.clear(); // Очищаем кэш перед обновлением
+                        for (String playerClass : PLAYER_CLASSES) {
+                            List<Quest> classQuests = allQuests.getOrDefault(playerClass, new ArrayList<>());
+                            questCache.put(playerClass, classQuests);
+                            lastUpdateTime.put(playerClass, updateTime);
+                            totalQuests += classQuests.size();
+                            
+                            Origins.LOGGER.info("📋 Loaded " + classQuests.size() + " quests for class: " + playerClass);
+                            
+                            // Детальный лог каждого квеста для отладки
+                            for (int i = 0; i < classQuests.size(); i++) {
+                                Quest quest = classQuests.get(i);
+                                Origins.LOGGER.info("  Quest " + (i+1) + ": " + quest.getTitle() + " (ID: " + quest.getId() + ")");
+                            }
+                            
+                            QuestApiChatLogger.logApiSuccess(world.getServer(), playerClass, classQuests.size());
+                            updateBoardsForClass(playerClass, world);
+                        }
+                        
+                        Origins.LOGGER.info("🎯 TOTAL: Loaded " + totalQuests + " quests for all classes!");
+                        
+                        // Отправляем специальное сообщение о том, что квесты появились
+                        QuestApiChatLogger.logQuestsAppeared(world.getServer(), totalQuests);
+                    } else {
+                        Origins.LOGGER.warn("❌ No quests received from optimized API");
+                        QuestApiChatLogger.logApiError(world.getServer(), "ALL CLASSES", "Не получено квестов");
                     }
-                    
-                    Origins.LOGGER.info("🎯 TOTAL: Loaded " + totalQuests + " quests for all classes!");
-                    QuestApiChatLogger.logApiSuccess(world.getServer(), "ALL CLASSES", totalQuests); // Сообщение о завершении
-                } else {
-                    Origins.LOGGER.warn("❌ No quests received from optimized API");
-                    QuestApiChatLogger.logApiError(world.getServer(), "ALL CLASSES", "Не получено квестов");
+                } finally {
+                    isLoadingQuests = false; // Сбрасываем флаг в любом случае
                 }
             })
             .exceptionally(throwable -> {
-                Origins.LOGGER.error("🔥 Failed to load quests from optimized API", throwable);
-                QuestApiChatLogger.logApiError(world.getServer(), "ALL CLASSES", throwable.getMessage());
+                try {
+                    Origins.LOGGER.error("🔥 Failed to load quests from optimized API", throwable);
+                    QuestApiChatLogger.logApiError(world.getServer(), "ALL CLASSES", throwable.getMessage());
+                } finally {
+                    isLoadingQuests = false; // Сбрасываем флаг в случае ошибки
+                }
                 return null;
             });
     }
@@ -140,12 +179,17 @@ public class QuestApiManager {
     private void updateBoardsForClass(String playerClass, ServerWorld world) {
         List<Quest> quests = questCache.get(playerClass);
         if (quests == null || quests.isEmpty()) {
+            Origins.LOGGER.warn("No quests to update boards for class: " + playerClass);
             return;
         }
         
-        // Здесь должна быть логика поиска всех досок в мире
-        Origins.LOGGER.info("Updated boards for class: " + playerClass + " with " + quests.size() + " quests");
-        // Пример: предполагаем, что доски обновляются через событие или другой механизм
+        Origins.LOGGER.info("Updating boards for class: " + playerClass + " with " + quests.size() + " quests");
+        
+        // Поиск всех досок в мире и их обновление
+        // Пока что просто логируем - доски должны обновляться через метод updateBoard при обращении к ним
+        for (Quest quest : quests) {
+            Origins.LOGGER.info("  Available quest: " + quest.getTitle() + " (ID: " + quest.getId() + ")");
+        }
     }
     
     /**
