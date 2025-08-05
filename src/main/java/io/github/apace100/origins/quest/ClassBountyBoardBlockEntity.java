@@ -71,6 +71,12 @@ public abstract class ClassBountyBoardBlockEntity extends BountyBoardBlockEntity
         apiQuestsLoaded = true;
         lastApiUpdate = world.getTime();
         
+        // Уведомляем клиентов об изменениях в интерфейсе
+        markDirty();
+        if (world instanceof ServerWorld) {
+            ((ServerWorld) world).getChunkManager().markForUpdate(pos);
+        }
+        
         Origins.LOGGER.info("Updated " + getBoardClass() + " board via API manager");
     }
     
@@ -88,20 +94,24 @@ public abstract class ClassBountyBoardBlockEntity extends BountyBoardBlockEntity
      * Получает время до следующего обновления в минутах
      */
     public int getMinutesUntilUpdate() {
-        if (world == null) return 0;
+        if (world == null || !(world instanceof ServerWorld)) return 0;
         
         QuestApiManager manager = QuestApiManager.getInstance();
-        return manager.getMinutesUntilNextUpdate(getBoardClass());
+        return manager.getMinutesUntilNextUpdate(getBoardClass(), (ServerWorld) world);
     }
     
     /**
      * Получает время до следующего обновления в секундах
      */
     public int getSecondsUntilUpdate() {
-        if (world == null) return 0;
+        if (world == null || !(world instanceof ServerWorld)) return 0;
         
-        long ticksUntilUpdate = 36000L - (world.getTime() - lastApiUpdate);
-        return (int) Math.max(0, ticksUntilUpdate / 20);
+        QuestApiManager manager = QuestApiManager.getInstance();
+        long ticksUntilUpdate = manager.getTimeUntilNextUpdate(getBoardClass(), (ServerWorld) world);
+        int totalSeconds = (int) (ticksUntilUpdate / 20);
+        
+        // Возвращаем только секунды (остаток от деления на 60)
+        return totalSeconds % 60;
     }
     
     /**
@@ -125,9 +135,8 @@ public abstract class ClassBountyBoardBlockEntity extends BountyBoardBlockEntity
         
         // Проверяем обновления API каждые 20 тиков (1 секунда)
         if (world.getTime() % 20L == 0L) {
-            if (entity.shouldUpdateFromApi()) {
-                entity.loadQuestsFromApi();
-            }
+            // Принудительно обновляем доску каждую секунду, чтобы подхватить новые квесты
+            entity.loadQuestsFromApi();
         }
         
         // Обработка декретов (если нужно)

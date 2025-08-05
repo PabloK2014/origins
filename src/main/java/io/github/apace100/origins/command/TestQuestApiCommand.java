@@ -86,9 +86,10 @@ public class TestQuestApiCommand {
                 .formatted(Formatting.GREEN), false);
             
             // Показываем информацию о кэшированных квестах
+            ServerWorld world = source.getWorld();
             for (String playerClass : manager.getAvailableClasses()) {
                 int questCount = manager.getQuestsForClass(playerClass).size();
-                int minutesUntilUpdate = manager.getMinutesUntilNextUpdate(playerClass);
+                int minutesUntilUpdate = manager.getMinutesUntilNextUpdate(playerClass, world);
                 
                 source.sendFeedback(() -> Text.literal("  📋 " + playerClass + ": " + questCount + " квестов")
                     .formatted(Formatting.AQUA)

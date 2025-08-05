@@ -19,7 +19,7 @@ public class QuestApiChatLogger {
     /**
      * Отправляет сообщение о запросе к API всем игрокам
      */
-    public static void logApiRequest(MinecraftServer server, String playerClass, int questCount) {
+    public static void logApiRequest(MinecraftServer server, String requestType, int questCount) {
         if (server == null) return;
         
         long currentTime = System.currentTimeMillis();
@@ -28,10 +28,10 @@ public class QuestApiChatLogger {
         }
         lastRequestMessage = currentTime;
         
-        Text message = Text.literal("🌐 [Quest API] Запрос квестов для класса: ")
+        Text message = Text.literal("🌐 [Quest API] Отправляем запросы: ")
                 .formatted(Formatting.BLUE)
-                .append(Text.literal(playerClass).formatted(Formatting.YELLOW))
-                .append(Text.literal(" (количество: " + questCount + ")").formatted(Formatting.GRAY));
+                .append(Text.literal(requestType).formatted(Formatting.YELLOW))
+                .append(Text.literal(" (ожидаем " + questCount + " квестов)").formatted(Formatting.GRAY));
         
         broadcastToAllPlayers(server, message);
     }
@@ -132,5 +132,127 @@ public class QuestApiChatLogger {
         if (player != null) {
             player.sendMessage(message, false);
         }
+    }
+    
+    /**
+     * Отправляет предупреждение о скором обновлении квестов
+     */
+    public static void logQuestUpdateWarning(MinecraftServer server, int minutesLeft) {
+        if (server == null) return;
+        
+        Text message = Text.literal("⏰ [Quest API] Обновление квестов через ")
+                .formatted(Formatting.YELLOW)
+                .append(Text.literal(String.valueOf(minutesLeft)).formatted(Formatting.GOLD))
+                .append(Text.literal(" минуту!").formatted(Formatting.YELLOW));
+        
+        broadcastToAllPlayers(server, message);
+    }
+    
+    /**
+     * Отправляет уведомление о количестве накопленных квестов
+     */
+    public static void logQuestAccumulation(MinecraftServer server, String playerClass, int newQuests, int totalQuests, int requestNumber, int maxRequests) {
+        if (server == null) return;
+        
+        Text message = Text.literal("📋 [Quest API] Класс ")
+                .formatted(Formatting.AQUA)
+                .append(Text.literal(playerClass).formatted(Formatting.YELLOW))
+                .append(Text.literal(": получено ").formatted(Formatting.AQUA))
+                .append(Text.literal(String.valueOf(newQuests)).formatted(Formatting.GREEN))
+                .append(Text.literal(" новых квестов. Всего: ").formatted(Formatting.AQUA))
+                .append(Text.literal(String.valueOf(totalQuests)).formatted(Formatting.GOLD))
+                .append(Text.literal(" (запрос ").formatted(Formatting.GRAY))
+                .append(Text.literal(requestNumber + "/" + maxRequests).formatted(Formatting.WHITE))
+                .append(Text.literal(")").formatted(Formatting.GRAY));
+        
+        broadcastToAllPlayers(server, message);
+    }
+    
+    /**
+     * Отправляет уведомление об очистке доски квестов
+     */
+    public static void logBoardCleared(MinecraftServer server, String playerClass) {
+        if (server == null) return;
+        
+        Text message = Text.literal("🗑️ [Quest API] Доска класса ")
+                .formatted(Formatting.GOLD)
+                .append(Text.literal(playerClass).formatted(Formatting.YELLOW))
+                .append(Text.literal(" очищена после 3 запросов. Начинаем новый цикл накопления.").formatted(Formatting.GOLD));
+        
+        broadcastToAllPlayers(server, message);
+    }
+    
+    /**
+     * Отправляет детальное сообщение об ошибке с предложением повторить запрос
+     */
+    public static void logDetailedApiError(MinecraftServer server, String playerClass, String error, boolean willRetry) {
+        if (server == null) return;
+        
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastErrorMessage < MESSAGE_COOLDOWN) {
+            return;
+        }
+        lastErrorMessage = currentTime;
+        
+        Text message = Text.literal("❌ [Quest API] Ошибка для класса ")
+                .formatted(Formatting.RED)
+                .append(Text.literal(playerClass).formatted(Formatting.YELLOW))
+                .append(Text.literal(": ").formatted(Formatting.RED))
+                .append(Text.literal(error).formatted(Formatting.GRAY));
+        
+        if (willRetry) {
+            message = message.copy().append(Text.literal(" Повторим запрос через минуту.").formatted(Formatting.YELLOW));
+        }
+        
+        broadcastToAllPlayers(server, message);
+    }
+    
+    /**
+     * Отправляет обратный отсчет до следующего запроса
+     */
+    public static void logCountdownToNextRequest(MinecraftServer server, int minutesLeft) {
+        if (server == null) return;
+        
+        // Показываем обратный отсчет только на определенных интервалах
+        if (minutesLeft == 10 || minutesLeft == 5 || minutesLeft == 1) {
+            Text message = Text.literal("⏳ [Quest API] До следующего обновления квестов: ")
+                    .formatted(Formatting.GRAY)
+                    .append(Text.literal(String.valueOf(minutesLeft)).formatted(Formatting.YELLOW))
+                    .append(Text.literal(" мин.").formatted(Formatting.GRAY));
+            
+            broadcastToAllPlayers(server, message);
+        }
+    }
+    
+    /**
+     * Отправляет сообщение о результатах отдельных запросов
+     */
+    public static void logSeparateRequestsResult(MinecraftServer server, int successfulClasses, int totalClasses, int totalQuests) {
+        if (server == null) return;
+        
+        Text message = Text.literal("📊 [Quest API] Результат отдельных запросов: ")
+                .formatted(Formatting.AQUA)
+                .append(Text.literal(successfulClasses + "/" + totalClasses).formatted(Formatting.YELLOW))
+                .append(Text.literal(" классов получили квесты, всего ").formatted(Formatting.AQUA))
+                .append(Text.literal(String.valueOf(totalQuests)).formatted(Formatting.GREEN))
+                .append(Text.literal(" квестов").formatted(Formatting.AQUA));
+        
+        broadcastToAllPlayers(server, message);
+    }
+    
+    /**
+     * Отправляет сообщение о генерации квестов для конкретного класса
+     */
+    public static void logClassQuestsGenerated(MinecraftServer server, String playerClass, int questCount) {
+        if (server == null) return;
+        
+        Text message = Text.literal("✅ [Quest API] Квесты для класса ")
+                .formatted(Formatting.GREEN)
+                .append(Text.literal(playerClass).formatted(Formatting.YELLOW))
+                .append(Text.literal(" сгенерированы! Получено ").formatted(Formatting.GREEN))
+                .append(Text.literal(String.valueOf(questCount)).formatted(Formatting.GOLD))
+                .append(Text.literal(" квестов.").formatted(Formatting.GREEN));
+        
+        broadcastToAllPlayers(server, message);
     }
 }
