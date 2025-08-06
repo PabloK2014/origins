@@ -94,24 +94,29 @@ public abstract class ClassBountyBoardBlockEntity extends BountyBoardBlockEntity
      * Получает время до следующего обновления в минутах
      */
     public int getMinutesUntilUpdate() {
-        if (world == null || !(world instanceof ServerWorld)) return 0;
+        if (world == null) return 0;
         
-        QuestApiManager manager = QuestApiManager.getInstance();
-        return manager.getMinutesUntilNextUpdate(getBoardClass(), (ServerWorld) world);
+        // Обновления происходят каждые 30 минут (36000 тиков)
+        long currentTime = world.getTime();
+        long timeSinceLastUpdate = currentTime - lastApiUpdate;
+        long ticksUntilUpdate = Math.max(0, 36000L - timeSinceLastUpdate);
+        
+        return (int) (ticksUntilUpdate / (20 * 60)); // Конвертируем тики в минуты
     }
     
     /**
      * Получает время до следующего обновления в секундах
      */
     public int getSecondsUntilUpdate() {
-        if (world == null || !(world instanceof ServerWorld)) return 0;
+        if (world == null) return 0;
         
-        QuestApiManager manager = QuestApiManager.getInstance();
-        long ticksUntilUpdate = manager.getTimeUntilNextUpdate(getBoardClass(), (ServerWorld) world);
-        int totalSeconds = (int) (ticksUntilUpdate / 20);
+        // Обновления происходят каждые 30 минут (36000 тиков)
+        long currentTime = world.getTime();
+        long timeSinceLastUpdate = currentTime - lastApiUpdate;
+        long ticksUntilUpdate = Math.max(0, 36000L - timeSinceLastUpdate);
         
-        // Возвращаем только секунды (остаток от деления на 60)
-        return totalSeconds % 60;
+        int totalSeconds = (int) (ticksUntilUpdate / 20); // Конвертируем тики в секунды
+        return totalSeconds % 60; // Возвращаем только секунды (остаток от деления на 60)
     }
     
     /**
@@ -133,10 +138,13 @@ public abstract class ClassBountyBoardBlockEntity extends BountyBoardBlockEntity
         // Инициализация если нужно
         entity.tryInitialPopulation();
         
-        // Проверяем обновления API каждые 20 тиков (1 секунда)
-        if (world.getTime() % 20L == 0L) {
-            // Принудительно обновляем доску каждую секунду, чтобы подхватить новые квесты
-            entity.loadQuestsFromApi();
+        // Проверяем обновления API каждые 5 минут (6000 тиков), а не каждую секунду
+        if (world.getTime() % 6000L == 0L) {
+            // Обновляем доску только если нужно подхватить новые квесты
+            // НЕ обновляем постоянно, чтобы не восстанавливать взятые квесты
+            if (entity.shouldUpdateFromApi()) {
+                entity.loadQuestsFromApi();
+            }
         }
         
         // Обработка декретов (если нужно)

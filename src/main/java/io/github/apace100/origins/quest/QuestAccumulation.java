@@ -145,6 +145,48 @@ public class QuestAccumulation {
     }
     
     /**
+     * Удаляет конкретный квест из накопления
+     */
+    public boolean removeQuest(String playerClass, String questId) {
+        List<Quest> accumulated = accumulatedQuests.get(playerClass);
+        if (accumulated == null) {
+            Origins.LOGGER.warn("🔄 [QuestAccumulation] Нет накопленных квестов для класса: " + playerClass);
+            return false;
+        }
+        
+        Origins.LOGGER.info("🔍 [QuestAccumulation] Попытка удалить квест " + questId + " из класса " + playerClass);
+        Origins.LOGGER.info("📋 [QuestAccumulation] Квестов до удаления: " + accumulated.size());
+        
+        // Логируем все квесты перед удалением
+        for (int i = 0; i < accumulated.size(); i++) {
+            Quest quest = accumulated.get(i);
+            Origins.LOGGER.info("  " + (i+1) + ". " + quest.getTitle() + " (ID: " + quest.getId() + ")");
+        }
+        
+        boolean removed = accumulated.removeIf(quest -> quest.getId().equals(questId));
+        
+        if (removed) {
+            Origins.LOGGER.info("✅ [QuestAccumulation] Удален квест " + questId + " из накопления класса " + playerClass);
+            Origins.LOGGER.info("📊 [QuestAccumulation] Осталось квестов для " + playerClass + ": " + accumulated.size());
+            
+            // Логируем оставшиеся квесты
+            for (int i = 0; i < accumulated.size(); i++) {
+                Quest quest = accumulated.get(i);
+                Origins.LOGGER.info("  Остался " + (i+1) + ". " + quest.getTitle() + " (ID: " + quest.getId() + ")");
+            }
+        } else {
+            Origins.LOGGER.warn("❌ [QuestAccumulation] Квест " + questId + " не найден в накоплении класса " + playerClass);
+            Origins.LOGGER.warn("📋 [QuestAccumulation] Доступные квесты:");
+            for (int i = 0; i < accumulated.size(); i++) {
+                Quest quest = accumulated.get(i);
+                Origins.LOGGER.warn("  " + (i+1) + ". " + quest.getTitle() + " (ID: " + quest.getId() + ")");
+            }
+        }
+        
+        return removed;
+    }
+    
+    /**
      * Получает статистику накопления квестов
      */
     public Map<String, String> getAccumulationStats() {

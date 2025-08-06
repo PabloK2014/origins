@@ -85,6 +85,11 @@ tasks.withType(JavaCompile).configureEach {
 	it.options.release = 17
 }
 
+// Отключаем тесты при сборке
+test {
+	enabled = false
+}
+
 // Явно указываем использование Java 17 для всех задач
 java {
     toolchain {

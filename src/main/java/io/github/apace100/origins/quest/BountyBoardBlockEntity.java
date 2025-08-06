@@ -103,15 +103,49 @@ public class BountyBoardBlockEntity extends BlockEntity implements ExtendedScree
 
     public void removeQuest(Quest quest) {
         if (quest != null) {
+            Origins.LOGGER.info("🗑️ Removing quest from board: " + quest.getTitle() + " (ID: " + quest.getId() + ")");
+            
+            // Удаляем из списка доступных квестов
             availableQuests.remove(quest);
+            
+            // Удаляем из инвентаря bounties
+            for (int i = 0; i < bounties.size(); i++) {
+                ItemStack stack = bounties.getStack(i);
+                if (!stack.isEmpty() && stack.getItem() instanceof QuestTicketItem) {
+                    Quest stackQuest = QuestItem.getQuestFromStack(stack);
+                    if (stackQuest != null && stackQuest.getId().equals(quest.getId())) {
+                        bounties.setStack(i, ItemStack.EMPTY);
+                        Origins.LOGGER.info("✅ Removed quest from bounties slot " + i);
+                        break;
+                    }
+                }
+            }
+            
+            // Удаляем из системы накопления через API менеджер (он сам вызовет QuestAccumulation)
+            String questClass = quest.getPlayerClass().replace("origins:", "");
+            QuestApiManager.getInstance().removeQuestFromAccumulation(questClass, quest.getId());
+            Origins.LOGGER.info("✅ Removed quest from accumulation system via API manager");
+            
             markDirty();
         }
     }
     
     public void removeQuest(int slot) {
-        if (slot >= 0 && slot < availableQuests.size()) {
-            availableQuests.remove(slot);
-            markDirty();
+        if (slot >= 0 && slot < bounties.size()) {
+            ItemStack stack = bounties.getStack(slot);
+            if (!stack.isEmpty() && stack.getItem() instanceof QuestTicketItem) {
+                Quest quest = QuestItem.getQuestFromStack(stack);
+                if (quest != null) {
+                    removeQuest(quest); // Используем основной метод удаления
+                    return;
+                }
+            }
+            
+            // Fallback для старой логики
+            if (slot < availableQuests.size()) {
+                availableQuests.remove(slot);
+                markDirty();
+            }
         }
     }
     
@@ -308,7 +342,7 @@ public class BountyBoardBlockEntity extends BlockEntity implements ExtendedScree
     }
 
     public void tryInitialPopulation() {
-        System.out.println("tryInitialPopulation() вызван. world: " + world + ", isPristine: " + isPristine());
+        
         
         // Проверяем, что мир доступен и это серверная сторона
         if (world == null || world.isClient) {
@@ -318,7 +352,6 @@ public class BountyBoardBlockEntity extends BlockEntity implements ExtendedScree
         
         // Проверяем количество валидных квестов
         int validQuestCount = getValidQuestCount();
-        System.out.println("Валидных квестов на доске: " + validQuestCount);
         
         if (isPristine() || validQuestCount == 0) {
             System.out.println("Доска пустая или нет валидных квестов, начинаем инициализацию...");

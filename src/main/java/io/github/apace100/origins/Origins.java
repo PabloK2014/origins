@@ -161,6 +161,7 @@ public class Origins implements ModInitializer, OrderedResourceListenerInitializ
 			io.github.apace100.origins.command.ResetAllTicketTimesCommand.register(dispatcher, registryAccess);
 			io.github.apace100.origins.command.TestClassRestrictionCommand.register(dispatcher, registryAccess);
 			io.github.apace100.origins.command.TestQuestApiCommand.register(dispatcher, registryAccess);
+			io.github.apace100.origins.command.TestQuestApiExtraCommand.register(dispatcher, registryAccess);
 			io.github.apace100.origins.command.MinecraftChatAssistant.register(dispatcher, registryAccess);
 			io.github.apace100.origins.command.TestChatAssistantCommand.register(dispatcher, registryAccess);
 		});
@@ -204,10 +205,20 @@ public class Origins implements ModInitializer, OrderedResourceListenerInitializ
 		// Инициализируем API менеджер квестов при запуске сервера
 		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			LOGGER.info("Server started, initializing Quest API Manager...");
+			
+			// Устанавливаем ссылку на сервер
+			setServer(server);
+			
 			for (net.minecraft.server.world.ServerWorld world : server.getWorlds()) {
 				io.github.apace100.origins.quest.QuestApiManager.getInstance().initialize(world);
 				break; // Инициализируем только для первого мира
 			}
+		});
+		
+		// Очищаем ссылку на сервер при его остановке
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
+			LOGGER.info("Server stopped, clearing server reference...");
+			setServer(null);
 		});
 		
 		// Добавляем тик для API менеджера
@@ -236,6 +247,23 @@ public class Origins implements ModInitializer, OrderedResourceListenerInitializ
 
 	public static Identifier identifier(String path) {
 		return new Identifier(Origins.MODID, path);
+	}
+	
+	// Статическая ссылка на сервер
+	private static net.minecraft.server.MinecraftServer currentServer = null;
+	
+	/**
+	 * Получает текущий сервер (для использования в QuestApiManager)
+	 */
+	public static net.minecraft.server.MinecraftServer getServer() {
+		return currentServer;
+	}
+	
+	/**
+	 * Устанавливает текущий сервер (вызывается при запуске сервера)
+	 */
+	public static void setServer(net.minecraft.server.MinecraftServer server) {
+		currentServer = server;
 	}
 
 	@Override

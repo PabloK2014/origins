@@ -58,14 +58,55 @@ OBJECTIVE_TYPES = {
     "warrior": ["kill", "collect"]
 }
 
-TARGETS = {
-    "cook": ["wheat", "carrot", "potato", "beetroot", "egg", "milk_bucket", "sugar", "cocoa_beans", "honey_bottle", "bread", "cake", "cookie", "pumpkin_pie", "mushroom_stew", "beetroot_soup", "rabbit_stew", "golden_carrot", "golden_apple"],
-    "courier": ["paper", "leather", "feather", "sugar", "emerald", "map", "compass", "saddle", "boat", "banner", "firework_rocket"],
-    "brewer": ["nether_wart", "blaze_powder", "ghast_tear", "spider_eye", "magma_cream", "glowstone_dust", "redstone", "rabbit_foot", "glistering_melon_slice", "pufferfish", "turtle_helmet"],
-    "blacksmith": ["iron_ingot", "gold_ingot", "diamond", "coal", "flint", "iron_sword", "diamond_pickaxe", "iron_axe", "iron_armor", "anvil", "shield", "crossbow"],
-    "miner": ["coal", "iron_ore", "gold_ore", "diamond", "redstone", "lapis_lazuli", "emerald", "nether_quartz", "ancient_debris", "obsidian"],
-    "warrior": ["zombie", "skeleton", "creeper", "spider", "rotten_flesh", "bone", "gunpowder", "string"]
-}
+# Загружаем targets из JSON файла
+def load_targets_from_json():
+    """Загружает targets из target.json файла"""
+    try:
+        with open('target.json', 'r', encoding='utf-8') as f:
+            targets_data = json.load(f)
+            print(f"📋 [FastAPI] Загружено targets из target.json:")
+            for class_name, targets in targets_data.items():
+                print(f"  {class_name}: {len(targets)} предметов")
+            return targets_data
+    except FileNotFoundError:
+        print("❌ [FastAPI] Файл target.json не найден, используем стандартные targets")
+        return get_default_targets()
+    except json.JSONDecodeError as e:
+        print(f"❌ [FastAPI] Ошибка парсинга target.json: {e}")
+        return get_default_targets()
+
+def get_default_targets():
+    """Возвращает стандартные targets как fallback"""
+    return {
+        "cook": ["minecraft:wheat", "minecraft:carrot", "minecraft:potato", "minecraft:beetroot", "minecraft:egg", "minecraft:milk_bucket", "minecraft:sugar", "minecraft:cocoa_beans", "minecraft:honey_bottle", "minecraft:bread", "minecraft:cake", "minecraft:cookie", "minecraft:pumpkin_pie", "minecraft:mushroom_stew", "minecraft:beetroot_soup", "minecraft:rabbit_stew", "minecraft:golden_carrot", "minecraft:golden_apple"],
+        "courier": ["minecraft:paper", "minecraft:leather", "minecraft:feather", "minecraft:sugar", "minecraft:emerald", "minecraft:map", "minecraft:compass", "minecraft:saddle", "minecraft:boat", "minecraft:banner", "minecraft:firework_rocket"],
+        "brewer": ["minecraft:nether_wart", "minecraft:blaze_powder", "minecraft:ghast_tear", "minecraft:spider_eye", "minecraft:magma_cream", "minecraft:glowstone_dust", "minecraft:redstone", "minecraft:rabbit_foot", "minecraft:glistering_melon_slice", "minecraft:pufferfish", "minecraft:turtle_helmet"],
+        "blacksmith": ["minecraft:iron_ingot", "minecraft:gold_ingot", "minecraft:diamond", "minecraft:coal", "minecraft:flint", "minecraft:iron_sword", "minecraft:diamond_pickaxe", "minecraft:iron_axe", "minecraft:iron_armor", "minecraft:anvil", "minecraft:shield", "minecraft:crossbow"],
+        "miner": ["minecraft:coal", "minecraft:iron_ore", "minecraft:gold_ore", "minecraft:diamond", "minecraft:redstone", "minecraft:lapis_lazuli", "minecraft:emerald", "minecraft:nether_quartz", "minecraft:ancient_debris", "minecraft:obsidian"],
+        "warrior": ["minecraft:zombie", "minecraft:skeleton", "minecraft:creeper", "minecraft:spider", "minecraft:rotten_flesh", "minecraft:bone", "minecraft:gunpowder", "minecraft:string"]
+    }
+
+# Загружаем targets при запуске
+TARGETS = load_targets_from_json()
+
+def get_random_targets_for_class(player_class, count=15):
+    """Получает случайные targets для класса"""
+    import random
+    
+    available_targets = TARGETS.get(player_class, [])
+    if not available_targets:
+        print(f"❌ [FastAPI] Нет targets для класса {player_class}")
+        return []
+    
+    # Берем случайные targets (не больше чем доступно)
+    random_count = min(count, len(available_targets))
+    selected_targets = random.sample(available_targets, random_count)
+    
+    print(f"🎲 [FastAPI] Выбрано {len(selected_targets)} случайных targets для {player_class}:")
+    for target in selected_targets:
+        print(f"  - {target}")
+    
+    return selected_targets
 
 # Модель для ответа API
 class Quest(BaseModel):
@@ -89,9 +130,13 @@ class AllQuestsResponse(BaseModel):
     miner: List[Quest]
     warrior: List[Quest]
 
-# Промпт для генерации всех квестов
-@lru_cache(maxsize=1)
+# Промпт для генерации всех квестов (НЕ кэшируем, так как targets меняются)
 def get_all_quests_prompt(quest_count_per_class: int = 5) -> str:
+    # Получаем случайные targets для каждого класса
+    class_targets = {}
+    for cls in CLASSES:
+        class_targets[cls] = get_random_targets_for_class(cls, 15)
+    
     return f"""Generate {quest_count_per_class} quests for EACH of the following Minecraft classes: {', '.join(CLASSES)}.
 
 Return a JSON with separate arrays for each class. Each quest must have a unique ID, be in Russian, and strictly follow the structure below. Use ONLY the provided objective types and targets for each class, and NEVER use 'minecraft:air' or any invalid targets.
@@ -108,7 +153,7 @@ Quest structure for each:
   "description": "<Russian description>",
   "objective": {{
     "type": "<objective_type>",
-    "target": "minecraft:<target>",
+    "target": "<target>",
     "amount": <1-20>
   }},
   "timeLimit": <20-50>,
@@ -120,13 +165,15 @@ Quest structure for each:
 }}
 
 Class objectives and targets (use ONLY these, no exceptions):
-{chr(10).join([f"- {cls}: objective types {OBJECTIVE_TYPES[cls]}, targets {TARGETS[cls]}" for cls in CLASSES])}
+{chr(10).join([f"- {cls}: objective types {OBJECTIVE_TYPES[cls]}, targets {class_targets[cls]}" for cls in CLASSES])}
 
 Return ONLY the JSON, no additional text."""
 
-# Промпт для DeepSeek
-@lru_cache(maxsize=1)
+# Промпт для одного класса (НЕ кэшируем, так как targets меняются)
 def get_quests_prompt(player_class: str, quest_count: int) -> str:
+    # Получаем случайные targets для этого класса
+    random_targets = get_random_targets_for_class(player_class, 15)
+    
     return f"""Generate {quest_count} quests for the Minecraft class "{player_class}" in JSON format, compatible with the following structure. Ensure the quests are unique, have a level from 1 to 3, and use ONLY the provided objective types and targets. The title and description must be in Russian, creative, and match the class theme. Do not include a separate localization file; title and description are in the JSON. Use the provided template and valid values. NEVER use 'minecraft:air' or any invalid targets.
 
 Template:
@@ -140,7 +187,7 @@ Template:
       "description": "<Russian description>",
       "objective": {{
         "type": "<objective_type>",
-        "target": "minecraft:<target>",
+        "target": "<target>",
         "amount": <1-20>
       }},
       "timeLimit": <20-50>,
@@ -154,7 +201,7 @@ Template:
 }}
 
 Valid objective types: {', '.join(OBJECTIVE_TYPES[player_class])}
-Valid targets: {', '.join(TARGETS[player_class])}
+Valid targets: {random_targets}
 
 Return ONLY the JSON, no additional text."""
 
@@ -172,8 +219,16 @@ def validate_quest_structure(quest):
     
     # Проверка, что target не "minecraft:air" и входит в список TARGETS для класса
     player_class = quest["playerClass"].split(":")[1]
-    target = quest["objective"]["target"].replace("minecraft:", "")
-    if target == "air" or target not in TARGETS.get(player_class, []):
+    target = quest["objective"]["target"]
+    
+    # Проверяем что target не air
+    if "air" in target.lower():
+        return False
+    
+    # Проверяем что target есть в списке доступных для класса
+    available_targets = TARGETS.get(player_class, [])
+    if target not in available_targets:
+        print(f"❌ [Validation] Target '{target}' не найден в списке для класса {player_class}")
         return False
     
     return True
@@ -412,19 +467,20 @@ async def ask_question(request: ChatRequest):
 @app.post("/quest_api/reload")
 async def reload_quest_api():
     """Перезагрузка API квестов."""
+    global TARGETS
+    
     print("\n" + "="*60)
     print("🔄 [RELOAD] Перезагрузка Quest API...")
     print("="*60)
     
-    # Очищаем кэш промптов
-    get_all_quests_prompt.cache_clear()
-    get_quests_prompt.cache_clear()
+    # Перезагружаем targets из JSON файла
+    TARGETS = load_targets_from_json()
     
-    print("✅ Кэш промптов очищен")
+    print("✅ Targets перезагружены из target.json")
     print("✅ Quest API перезагружен")
     print("="*60 + "\n")
     
-    return {"status": "reloaded", "message": "Quest API успешно перезагружен"}
+    return {"status": "reloaded", "message": "Quest API успешно перезагружен, targets обновлены"}
 
 @app.get("/quest_api/reload")
 async def reload_quest_api_get():

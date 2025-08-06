@@ -332,12 +332,18 @@ public class QuestTicketItem extends Item {
     }
     
     /**
-     * Создает ItemStack билета квеста
+     * Создает ItemStack билета квеста с валидацией модовых предметов
      */
     public static ItemStack createQuestTicket(Quest quest) {
         if (quest == null) return ItemStack.EMPTY;
         
         io.github.apace100.origins.Origins.LOGGER.info("Создаем билет для квеста: {} (редкость: {})", quest.getId(), quest.getRarity());
+        
+        // Валидируем target предмет квеста
+        String targetItem = quest.getObjective().getTarget();
+        if (!ModItemValidator.isValidItem(targetItem)) {
+            io.github.apace100.origins.Origins.LOGGER.warn("⚠️ Предмет {} не найден, будет использован fallback", targetItem);
+        }
         
         // Выбираем подходящий предмет в зависимости от редкости
         Item ticketItem;

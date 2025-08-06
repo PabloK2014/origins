@@ -73,9 +73,9 @@ public class QuestApiClient {
     }
 
     /**
-     * Получает квесты для всех классов через отдельные асинхронные запросы
+     * Получает квесты для всех классов через отдельные асинхронные запросы с немедленным обновлением досок
      */
-    public static CompletableFuture<Map<String, List<Quest>>> getAllQuestsSeparately(int questCount) {
+    public static CompletableFuture<Map<String, List<Quest>>> getAllQuestsSeparately(int questCount, QuestApiManager manager) {
         String[] classes = {"cook", "courier", "brewer", "blacksmith", "miner", "warrior"};
         
         Origins.LOGGER.info("🚀 Starting " + classes.length + " separate API requests for quest generation...");
@@ -85,7 +85,13 @@ public class QuestApiClient {
         
         for (String playerClass : classes) {
             CompletableFuture<Map.Entry<String, List<Quest>>> future = getQuestsForSingleClass(playerClass, questCount)
-                .thenApply(quests -> Map.entry(playerClass, quests));
+                .thenApply(quests -> {
+                    // НЕМЕДЛЕННО обновляем доски для этого класса, как только получили квесты
+                    if (!quests.isEmpty() && manager != null) {
+                        manager.updateClassImmediately(playerClass, quests);
+                    }
+                    return Map.entry(playerClass, quests);
+                });
             futures.add(future);
         }
         

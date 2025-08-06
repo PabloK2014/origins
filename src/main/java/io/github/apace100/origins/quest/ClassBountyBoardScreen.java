@@ -37,30 +37,27 @@ public class ClassBountyBoardScreen extends BountyBoardScreen {
         int minutesUntilUpdate = classBoard.getMinutesUntilUpdate();
         int secondsUntilUpdate = classBoard.getSecondsUntilUpdate();
         
-        // Позиция в низу экрана, чтобы не мешать
-        // Хотбар игрока на Y=142, размещаем таймер ниже
-        int timerX = 240; // Центр правой части экрана
-        int timerY = 180; // Ниже хотбара игрока
+        // Позиция еще ниже - под всем интерфейсом
+        int timerX = 8; // Левая часть экрана
+        int timerY = backgroundHeight + 5; // Под интерфейсом доски
         
-        // Формируем текст таймера
+        // Формируем текст таймера с более подробной информацией
         String timerText;
-        if (minutesUntilUpdate > 0) {
-            timerText = String.format("Обновление: %d мин", minutesUntilUpdate);
-        } else if (secondsUntilUpdate > 0) {
-            timerText = String.format("Обновление: %d сек", secondsUntilUpdate);
+        if (minutesUntilUpdate > 0 || secondsUntilUpdate > 0) {
+            timerText = String.format("Обновление через: %d:%02d", minutesUntilUpdate, secondsUntilUpdate);
         } else {
             timerText = "Обновление...";
         }
         
-        // Отрисовываем текст по центру
-        int textWidth = textRenderer.getWidth(timerText);
-        context.drawText(textRenderer, timerText, timerX - textWidth/2, timerY, 0xEADAB5, false);
+        // Отрисовываем текст
+        context.drawText(textRenderer, timerText, timerX, timerY, 0xEADAB5, false);
         
-        // Отрисовываем индикатор API статуса
-        drawApiStatus(context, timerX - 50, timerY + 12);
+        // Отрисовываем индикатор API статуса рядом с таймером
+        int statusX = timerX + textRenderer.getWidth(timerText) + 10;
+        drawApiStatus(context, statusX, timerY);
         
-        // Отрисовываем прогресс-бар обновления
-        drawUpdateProgressBar(context, timerX - 50, timerY + 24, minutesUntilUpdate, secondsUntilUpdate);
+        // Отрисовываем прогресс-бар под таймером
+        drawUpdateProgressBar(context, timerX, timerY + 12, minutesUntilUpdate, secondsUntilUpdate);
     }
     
     /**
@@ -133,11 +130,11 @@ public class ClassBountyBoardScreen extends BountyBoardScreen {
         int x = (width - backgroundWidth) / 2;
         int y = (height - backgroundHeight) / 2;
         
-        // Область таймера (соответствует новой позиции в низу экрана)
-        int timerX = x + 190; // Соответствует timerX - 50
-        int timerY = y + 150; // Соответствует новой позиции таймера в низу
-        int timerWidth = 120;
-        int timerHeight = 40;
+        // Область таймера (соответствует новой позиции под интерфейсом)
+        int timerX = x + 8; // Левая часть экрана
+        int timerY = y + backgroundHeight + 5; // Под интерфейсом доски
+        int timerWidth = 250; // Ширина области для таймера и статуса API
+        int timerHeight = 25; // Высота области включая прогресс-бар
         
         if (mouseX >= timerX && mouseX < timerX + timerWidth && 
             mouseY >= timerY && mouseY < timerY + timerHeight) {

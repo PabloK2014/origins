@@ -52,18 +52,13 @@ public class QuestApiManager {
     }
     
     /**
-     * Обновляет конкретную доску объявлений квестами из кэша (с поддержкой накопления)
+     * Обновляет конкретную доску объявлений квестами ТОЛЬКО из системы накопления
      */
     public void updateBoard(ClassBountyBoardBlockEntity board) {
         String boardClass = board.getBoardClass();
         
-        // Получаем накопленные квесты из системы накопления
+        // Получаем накопленные квесты ТОЛЬКО из системы накопления
         List<Quest> accumulatedQuests = QuestAccumulation.getInstance().getAccumulatedQuests(boardClass);
-        
-        // Если в системе накопления нет квестов, используем кэш
-        if (accumulatedQuests.isEmpty()) {
-            accumulatedQuests = questCache.getOrDefault(boardClass, new ArrayList<>());
-        }
         
         // ВСЕГДА очищаем доску сначала
         board.getBounties().clear();
@@ -72,11 +67,14 @@ public class QuestApiManager {
             // Отображаем до 21 квеста (размер доски)
             int questsToShow = Math.min(accumulatedQuests.size(), 21);
             
+            Origins.LOGGER.info("🔄 Updating board for class: " + boardClass + " with " + questsToShow + " quests from accumulation");
+            
             for (int i = 0; i < questsToShow; i++) {
                 Quest quest = accumulatedQuests.get(i);
                 ItemStack questTicket = QuestTicketItem.createQuestTicket(quest);
                 if (!questTicket.isEmpty()) {
                     board.getBounties().setStack(i, questTicket);
+                    Origins.LOGGER.info("  Added quest to slot " + i + ": " + quest.getTitle() + " (ID: " + quest.getId() + ")");
                 }
             }
             
@@ -86,11 +84,11 @@ public class QuestApiManager {
             int requestCount = QuestAccumulation.getInstance().getRequestCount(boardClass);
             int maxRequests = QuestAccumulation.getInstance().getMaxRequests();
             
-            Origins.LOGGER.info("Updated board for class: " + boardClass + " with " + questsToShow + " quests " +
+            Origins.LOGGER.info("✅ Board updated for class: " + boardClass + " with " + questsToShow + " quests " +
                 "(накоплено: " + accumulatedQuests.size() + ", запрос " + requestCount + "/" + maxRequests + ")");
         } else {
             // Доска остается пустой до получения квестов от API
-            Origins.LOGGER.info("Board for class " + boardClass + " remains empty - waiting for API response");
+            Origins.LOGGER.info("📋 Board for class " + boardClass + " remains empty - no accumulated quests");
         }
     }
     
@@ -166,7 +164,7 @@ public class QuestApiManager {
         QuestApiChatLogger.logApiRequest(world.getServer(), "ALL CLASSES (6 separate requests)", 30); // 6 классов * 5 квестов
         
         // Используем новый метод с отдельными запросами
-        QuestApiClient.getAllQuestsSeparately(5)
+        QuestApiClient.getAllQuestsSeparately(5, this)
             .thenCompose(allQuests -> {
                 // Проверяем, есть ли классы без квестов, и повторяем запросы для них
                 return QuestApiClient.retryMissingClasses(allQuests, 5);
@@ -187,11 +185,10 @@ public class QuestApiManager {
                                 // Отправляем сообщение о генерации квестов для класса
                                 QuestApiChatLogger.logClassQuestsGenerated(world.getServer(), playerClass, classQuests.size());
                                 
-                                // Используем систему накопления квестов с уведомлениями
+                                // Используем ТОЛЬКО систему накопления квестов с уведомлениями
                                 List<Quest> accumulatedQuests = QuestAccumulation.getInstance().addQuestsForClass(playerClass, classQuests, world.getServer());
                                 
-                                // Обновляем кэш с накопленными квестами
-                                questCache.put(playerClass, accumulatedQuests);
+                                // НЕ обновляем кэш - используем только систему накопления
                                 lastUpdateTime.put(playerClass, updateTime);
                                 totalQuests += accumulatedQuests.size();
                                 
@@ -246,16 +243,17 @@ public class QuestApiManager {
     }
 
     /**
-     * Обновляет все доски объявлений указанного класса
+     * Обновляет все доски объявлений указанного класса (используем ТОЛЬКО систему накопления)
      */
     private void updateBoardsForClass(String playerClass, ServerWorld world) {
-        List<Quest> quests = questCache.get(playerClass);
+        // Получаем квесты из системы накопления, а НЕ из кэша
+        List<Quest> quests = QuestAccumulation.getInstance().getAccumulatedQuests(playerClass);
         if (quests == null || quests.isEmpty()) {
-            Origins.LOGGER.warn("No quests to update boards for class: " + playerClass);
+            Origins.LOGGER.warn("No accumulated quests to update boards for class: " + playerClass);
             return;
         }
         
-        Origins.LOGGER.info("Updating boards for class: " + playerClass + " with " + quests.size() + " quests");
+        Origins.LOGGER.info("Updating boards for class: " + playerClass + " with " + quests.size() + " accumulated quests");
         
         // Доски будут автоматически обновлены при следующем обращении к ним
         // через метод updateBoard в ClassBountyBoardBlockEntity
@@ -299,8 +297,89 @@ public class QuestApiManager {
      * Принудительно обновляет квесты для указанного класса
      */
     public void forceUpdateClass(String playerClass, ServerWorld world) {
-        Origins.LOGGER.info("Force updating quests for class: " + playerClass);
-        loadAllQuests(world); // Используем один запрос для всех классов
+        if ("all".equals(playerClass)) {
+            Origins.LOGGER.info("Force updating quests for ALL classes");
+            loadAllQuests(world);
+        } else {
+            Origins.LOGGER.info("Force updating quests for single class: " + playerClass);
+            loadQuestsForSingleClass(playerClass, world);
+        }
+    }
+    
+    /**
+     * Загружает квесты только для одного класса
+     */
+    private void loadQuestsForSingleClass(String playerClass, ServerWorld world) {
+        long currentTime = world.getTime();
+        
+        // Проверяем, не загружаем ли мы уже квесты
+        if (isLoadingQuests) {
+            Origins.LOGGER.info("⏳ Already loading quests, skipping single class request...");
+            return;
+        }
+        
+        // Проверяем минимальный интервал между попытками загрузки
+        if (currentTime - lastQuestLoadAttempt < MIN_LOAD_INTERVAL) {
+            Origins.LOGGER.info("⏳ Too soon to load quests again, waiting...");
+            return;
+        }
+        
+        isLoadingQuests = true;
+        lastQuestLoadAttempt = currentTime;
+        
+        Origins.LOGGER.info("🚀 Loading quests for single class: " + playerClass);
+        
+        QuestApiChatLogger.logApiRequest(world.getServer(), "CLASS " + playerClass.toUpperCase(), 5);
+        
+        // Используем прямой запрос для одного класса
+        QuestApiClient.getQuestsForSingleClass(playerClass, 5)
+            .thenAccept(newQuests -> {
+                try {
+                    if (!newQuests.isEmpty()) {
+                        long updateTime = world.getTime();
+                        
+                        // Отправляем сообщение о генерации квестов для класса
+                        QuestApiChatLogger.logClassQuestsGenerated(world.getServer(), playerClass, newQuests.size());
+                        
+                        // Используем ТОЛЬКО систему накопления квестов с уведомлениями
+                        List<Quest> accumulatedQuests = QuestAccumulation.getInstance().addQuestsForClass(playerClass, newQuests, world.getServer());
+                        
+                        // НЕ обновляем кэш - используем только систему накопления
+                        lastUpdateTime.put(playerClass, updateTime);
+                        
+                        Origins.LOGGER.info("📋 Loaded " + newQuests.size() + " new quests for class: " + playerClass);
+                        Origins.LOGGER.info("📊 Total accumulated quests for " + playerClass + ": " + accumulatedQuests.size());
+                        
+                        // Детальный лог новых квестов
+                        for (int i = 0; i < newQuests.size(); i++) {
+                            Quest quest = newQuests.get(i);
+                            Origins.LOGGER.info("  New Quest " + (i+1) + ": " + quest.getTitle() + " (ID: " + quest.getId() + ")");
+                        }
+                        
+                        updateBoardsForClass(playerClass, world);
+                        
+                        // Отправляем сообщение о том, что квесты появились
+                        QuestApiChatLogger.logQuestsAppeared(world.getServer(), newQuests.size());
+                    } else {
+                        Origins.LOGGER.warn("❌ No quests received for class: " + playerClass);
+                        QuestApiChatLogger.logApiError(world.getServer(), playerClass.toUpperCase(), "Не получено квестов");
+                    }
+                } finally {
+                    isLoadingQuests = false; // Сбрасываем флаг в любом случае
+                }
+            })
+            .exceptionally(throwable -> {
+                try {
+                    Origins.LOGGER.error("🔥 Failed to load quests for class " + playerClass, throwable);
+                    QuestApiChatLogger.logDetailedApiError(world.getServer(), playerClass.toUpperCase(), throwable.getMessage(), true);
+                    
+                    Origins.LOGGER.info("🔄 Will retry quest loading after minimum interval");
+                    
+                } finally {
+                    isLoadingQuests = false; // Сбрасываем флаг в случае ошибки
+                }
+                return null;
+            });
     }
     
     /**
@@ -366,5 +445,56 @@ public class QuestApiManager {
      */
     public String[] getAvailableClasses() {
         return PLAYER_CLASSES.clone();
+    }
+    
+    /**
+     * Немедленно обновляет класс при получении квестов (вызывается из QuestApiClient)
+     */
+    public void updateClassImmediately(String playerClass, List<Quest> newQuests) {
+        if (newQuests == null || newQuests.isEmpty()) {
+            Origins.LOGGER.warn("No quests to update immediately for class: " + playerClass);
+            return;
+        }
+        
+        Origins.LOGGER.info("🚀 IMMEDIATE UPDATE for class " + playerClass + ": " + newQuests.size() + " quests");
+        
+        // Используем ТОЛЬКО систему накопления квестов (убираем кэш)
+        List<Quest> accumulatedQuests = QuestAccumulation.getInstance().addQuestsForClass(playerClass, newQuests, null);
+        
+        // Отправляем сообщение о генерации квестов для класса
+        try {
+            if (Origins.getServer() != null) {
+                QuestApiChatLogger.logClassQuestsGenerated(Origins.getServer(), playerClass, newQuests.size());
+            }
+        } catch (Exception e) {
+            Origins.LOGGER.warn("Could not send chat message for immediate update: " + e.getMessage());
+        }
+        
+        Origins.LOGGER.info("✅ Class " + playerClass + " updated immediately with " + accumulatedQuests.size() + " total quests");
+    }
+    
+    /**
+     * Удаляет квест из системы накопления (вызывается при принятии квеста)
+     */
+    public void removeQuestFromAccumulation(String playerClass, String questId) {
+        // Удаляем квест из системы накопления (НЕ из кэша)
+        boolean removed = QuestAccumulation.getInstance().removeQuest(playerClass, questId);
+        if (removed) {
+            Origins.LOGGER.info("✅ Removed quest " + questId + " from accumulation for class " + playerClass);
+            
+            // Принудительно обновляем все доски этого класса
+            refreshBoardsForClass(playerClass);
+        } else {
+            Origins.LOGGER.warn("❌ Failed to remove quest " + questId + " from accumulation for class " + playerClass);
+        }
+    }
+    
+    /**
+     * Принудительно обновляет все доски указанного класса
+     */
+    private void refreshBoardsForClass(String playerClass) {
+        Origins.LOGGER.info("🔄 Refreshing all boards for class: " + playerClass);
+        // Этот метод будет вызван автоматически при следующем обращении к доске
+        // через метод updateBoard в ClassBountyBoardBlockEntity
     }
 }
