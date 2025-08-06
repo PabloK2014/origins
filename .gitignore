@@ -15,7 +15,7 @@ classes/
 *.iml
 *.ipr
 *.iws
-
+.env
 # vscode
 
 .settings/
@@ -27,3 +27,5 @@ bin/
 # fabric
 
 run/
+fastapi/.env
+**/.env
