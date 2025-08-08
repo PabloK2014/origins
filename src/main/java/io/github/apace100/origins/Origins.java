@@ -164,6 +164,7 @@ public class Origins implements ModInitializer, OrderedResourceListenerInitializ
 			io.github.apace100.origins.command.TestQuestApiExtraCommand.register(dispatcher, registryAccess);
 			io.github.apace100.origins.command.MinecraftChatAssistant.register(dispatcher, registryAccess);
 			io.github.apace100.origins.command.TestChatAssistantCommand.register(dispatcher, registryAccess);
+			io.github.apace100.origins.command.TestQuestSystemCommand.register(dispatcher, registryAccess, environment);
 		});
 		// Добавляем предметы в собственную вкладку Origins
 		ItemGroupEvents.modifyEntriesEvent(ORIGINS_GROUP_KEY).register((content) -> {

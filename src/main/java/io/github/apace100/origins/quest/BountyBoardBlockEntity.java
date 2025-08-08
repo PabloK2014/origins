@@ -200,6 +200,12 @@ public class BountyBoardBlockEntity extends BlockEntity implements ExtendedScree
             return;
         }
         
+        // ВАЖНО: Классовые доски НЕ должны генерировать случайные квесты!
+        if (isClassBoard()) {
+            Origins.LOGGER.info("🚫 Пропускаем генерацию случайных квестов для классовой доски: " + getBoardClass());
+            return;
+        }
+        
         // Очищаем старые квесты
         availableQuests.clear();
         bounties.clear(); // Очищаем также инвентарь квестов
@@ -342,11 +348,15 @@ public class BountyBoardBlockEntity extends BlockEntity implements ExtendedScree
     }
 
     public void tryInitialPopulation() {
-        
-        
         // Проверяем, что мир доступен и это серверная сторона
         if (world == null || world.isClient) {
             System.out.println("Мир недоступен или это клиентская сторона, пропускаем инициализацию");
+            return;
+        }
+        
+        // ВАЖНО: Классовые доски инициализируются по-другому!
+        if (isClassBoard()) {
+            Origins.LOGGER.info("🔄 Классовая доска " + getBoardClass() + " будет инициализирована через API");
             return;
         }
         
@@ -487,6 +497,13 @@ public class BountyBoardBlockEntity extends BlockEntity implements ExtendedScree
 
     protected String getBoardClass() {
         return "general";
+    }
+    
+    /**
+     * Проверяет, является ли эта доска классовой (переопределяется в ClassBountyBoardBlockEntity)
+     */
+    protected boolean isClassBoard() {
+        return false;
     }
 
     @Override

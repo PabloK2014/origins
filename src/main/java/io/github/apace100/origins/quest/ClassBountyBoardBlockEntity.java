@@ -31,6 +31,14 @@ public abstract class ClassBountyBoardBlockEntity extends BountyBoardBlockEntity
      */
     protected abstract String getBoardClass();
     
+    /**
+     * Переопределяем для обозначения, что это классовая доска
+     */
+    @Override
+    protected boolean isClassBoard() {
+        return true;
+    }
+    
     @Override
     public Text getDisplayName() {
         String className = getBoardClass();
@@ -46,17 +54,17 @@ public abstract class ClassBountyBoardBlockEntity extends BountyBoardBlockEntity
             return;
         }
         
-        // Проверяем, нужно ли загрузить квесты через API
-        if (!apiQuestsLoaded || shouldUpdateFromApi()) {
-            loadQuestsFromApi();
-        }
+        // ВАЖНО: Классовые доски НЕ загружают квесты из JSON файлов!
+        // Они получают квесты ТОЛЬКО через API и систему накопления
         
-        // Классовые доски НЕ используют fallback - только API квесты
-        // Если API недоступен, доска остается пустой
+        // Всегда обновляем доску из системы накопления
+        loadQuestsFromApi();
+        
+        // НЕ вызываем super.tryInitialPopulation() чтобы избежать загрузки JSON квестов
     }
     
     /**
-     * Загружает квесты через API
+     * Загружает квесты через API (только из системы накопления)
      */
     private void loadQuestsFromApi() {
         if (!(world instanceof ServerWorld)) {
@@ -65,7 +73,7 @@ public abstract class ClassBountyBoardBlockEntity extends BountyBoardBlockEntity
         
         QuestApiManager manager = QuestApiManager.getInstance();
         
-        // Используем новый метод updateBoard для обновления этой доски
+        // ВСЕГДА обновляем доску из системы накопления (не проверяем флаги)
         manager.updateBoard(this);
         
         apiQuestsLoaded = true;
@@ -77,7 +85,7 @@ public abstract class ClassBountyBoardBlockEntity extends BountyBoardBlockEntity
             ((ServerWorld) world).getChunkManager().markForUpdate(pos);
         }
         
-        Origins.LOGGER.info("Updated " + getBoardClass() + " board via API manager");
+        Origins.LOGGER.info("🔄 Updated " + getBoardClass() + " board from accumulation system");
     }
     
     /**
@@ -138,13 +146,18 @@ public abstract class ClassBountyBoardBlockEntity extends BountyBoardBlockEntity
         // Инициализация если нужно
         entity.tryInitialPopulation();
         
-        // Проверяем обновления API каждые 5 минут (6000 тиков), а не каждую секунду
-        if (world.getTime() % 6000L == 0L) {
-            // Обновляем доску только если нужно подхватить новые квесты
-            // НЕ обновляем постоянно, чтобы не восстанавливать взятые квесты
-            if (entity.shouldUpdateFromApi()) {
-                entity.loadQuestsFromApi();
+        // Проверяем нужность новых запросов к API каждые 30 секунд (600 тиков)
+        if (world.getTime() % 600L == 0L) {
+            String boardClass = entity.getBoardClass();
+            
+            // Проверяем, нужен ли новый запрос к API для этого класса
+            if (QuestAccumulation.getInstance().needsNewApiRequest(boardClass)) {
+                Origins.LOGGER.info("🔄 Доска " + boardClass + " нуждается в новых квестах, запрашиваем через API Manager");
+                QuestApiManager.getInstance().forceUpdateClass(boardClass, (net.minecraft.server.world.ServerWorld) world);
             }
+            
+            // Всегда обновляем доску из системы накопления
+            entity.loadQuestsFromApi();
         }
         
         // Обработка декретов (если нужно)

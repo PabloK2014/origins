@@ -107,7 +107,20 @@ public class QuestApiManager {
             return;
         }
         
-        // Проверяем время до следующего обновления
+        // Проверяем, есть ли классы, которым нужны новые запросы к API
+        List<String> classesNeedingRequests = QuestAccumulation.getInstance().getClassesNeedingApiRequests();
+        
+        if (!classesNeedingRequests.isEmpty()) {
+            Origins.LOGGER.info("🔄 Классы нуждающиеся в новых запросах к API: " + classesNeedingRequests);
+            
+            // Загружаем квесты для классов, которым они нужны
+            for (String playerClass : classesNeedingRequests) {
+                loadQuestsForSingleClass(playerClass, world);
+            }
+            return;
+        }
+        
+        // Проверяем время до следующего обновления (только если нет срочных запросов)
         Long firstClassLastUpdate = lastUpdateTime.get(PLAYER_CLASSES[0]);
         if (firstClassLastUpdate != null) {
             long timeSinceLastUpdate = currentTime - firstClassLastUpdate;

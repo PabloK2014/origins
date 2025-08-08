@@ -187,6 +187,47 @@ public class QuestAccumulation {
     }
     
     /**
+     * Проверяет, нужен ли новый запрос к API для указанного класса
+     * Возвращает true если:
+     * 1. Нет накопленных квестов И нет активных запросов
+     * 2. Завершен цикл из 3 запросов И доска пустая
+     */
+    public boolean needsNewApiRequest(String playerClass) {
+        List<Quest> accumulated = getAccumulatedQuests(playerClass);
+        int requestCount = getRequestCount(playerClass);
+        
+        // Если нет квестов и нет запросов - нужен первый запрос
+        if (accumulated.isEmpty() && requestCount == 0) {
+            Origins.LOGGER.info("🔄 [QuestAccumulation] Класс " + playerClass + " нуждается в первом запросе к API");
+            return true;
+        }
+        
+        // Если завершен цикл (3 запроса) и доска пустая - нужен новый цикл
+        if (requestCount >= MAX_REQUESTS && accumulated.isEmpty()) {
+            Origins.LOGGER.info("🔄 [QuestAccumulation] Класс " + playerClass + " завершил цикл и нуждается в новом запросе к API");
+            return true;
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Проверяет, есть ли классы, которым нужны новые запросы к API
+     */
+    public List<String> getClassesNeedingApiRequests() {
+        List<String> needingRequests = new ArrayList<>();
+        String[] classes = {"cook", "courier", "brewer", "blacksmith", "miner", "warrior"};
+        
+        for (String playerClass : classes) {
+            if (needsNewApiRequest(playerClass)) {
+                needingRequests.add(playerClass);
+            }
+        }
+        
+        return needingRequests;
+    }
+    
+    /**
      * Получает статистику накопления квестов
      */
     public Map<String, String> getAccumulationStats() {
