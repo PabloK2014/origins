@@ -132,6 +132,9 @@ public class Origins implements ModInitializer, OrderedResourceListenerInitializ
 		
 		// Регистрируем обновлятель времени билетов квестов
 		io.github.apace100.origins.quest.QuestTicketTimeUpdater.register();
+		
+		// Регистрируем систему заказов курьера
+		io.github.apace100.origins.courier.CourierPacketHandler.registerServerHandlers();
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			OriginCommand.register(dispatcher);
@@ -158,6 +161,11 @@ public class Origins implements ModInitializer, OrderedResourceListenerInitializ
 			io.github.apace100.origins.command.TestTimeUpdateCommand.register(dispatcher, registryAccess);
 			io.github.apace100.origins.command.TestAutoTimeCommand.register(dispatcher, registryAccess);
 			io.github.apace100.origins.command.CheckTimeStatusCommand.register(dispatcher, registryAccess);
+			
+			// Регистрируем команды системы заказов курьера
+			io.github.apace100.origins.courier.CourierCommand.register(dispatcher, registryAccess);
+			io.github.apace100.origins.command.CourierOrdersCommand.register(dispatcher, registryAccess);
+			io.github.apace100.origins.command.CourierUICommands.register(dispatcher, registryAccess);
 			io.github.apace100.origins.command.ResetAllTicketTimesCommand.register(dispatcher, registryAccess);
 			io.github.apace100.origins.command.TestClassRestrictionCommand.register(dispatcher, registryAccess);
 			io.github.apace100.origins.command.TestQuestApiCommand.register(dispatcher, registryAccess);

@@ -1,0 +1,322 @@
+// Файлы клиента для красивого интерфейса заказов (Fabric 1.20.1, Yarn mappings)
+// Помести их в пакет, например: com.example.courier.client
+
+// =====================================================
+// ClientPackets.java
+// Регистрирует клиентский обработчик NEW_ORDER_NOTIFY — показывает toast и кнопку открыть.
+// =====================================================
+package com.example.courier.client;
+
+import com.example.courier.CourierNetworking;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.toast.SystemToast;
+import net.minecraft.client.toast.ToastManager;
+import net.minecraft.client.toast.Toast;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.text.Text;
+import net.minecraft.util.Util;
+
+import java.util.UUID;
+
+public class ClientPackets {
+    public static void register() {
+        ClientPlayNetworking.registerGlobalReceiver(CourierNetworking.NEW_ORDER_NOTIFY, (client, handler, buf, responseSender) -> {
+            // Ожидаем, что пакет содержит: UUID заказа (asUuid) и краткое имя заказчика и, при возможности, строку описания.
+            UUID orderId = buf.readUuid();
+            String ownerName = buf.readString(32767);
+            String shortDesc = "";
+            if (buf.readableBytes() > 0) {
+                shortDesc = buf.readString(32767);
+            }
+
+            client.execute(() -> {
+                ToastManager toasts = client.getToastManager();
+                Text title = Text.of("Новый заказ от " + ownerName);
+                Text description = shortDesc.isEmpty() ? Text.of("Нажмите, чтобы открыть список заказов") : Text.of(shortDesc);
+                // SystemToast удобен — используем его. Он не даёт callback на click, поэтому добавим временную проверку: при клике по экрану — откроется OrdersListScreen.
+                toasts.add(new SystemToast(SystemToast.Type.TUTORIAL_HINT, title, description));
+
+                // Также можно автоматически открывать экран (если игрок держит Shift — автозакрытие не нужно).
+                // Открываем список заказов и попросим подсветить заказ orderId
+                // Передаём orderId в экран — он отобразит и попытается выделить.
+                Screen s = new OrdersListScreen(orderId);
+                client.setScreen(s);
+            });
+        });
+    }
+}
+
+
+// =====================================================
+// OrdersListScreen.java
+// Экран со списком заказов (скролл). Для рендеринга используется ElementListWidget.
+// При открытии экран запрашивает синхронизацию заказов с сервером (если реализован SYNC handler),
+// но экран также может работать если клиент уже получил список заранее.
+// =====================================================
+package com.example.courier.client;
+
+import com.example.courier.CourierNetworking;
+import com.example.courier.Order;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.gui.widget.ElementListWidget;
+import net.minecraft.client.gui.widget.EntryListWidget;
+import net.minecraft.client.item.TooltipContext;
+import net.minecraft.client.render.item.ItemRenderer;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.PacketByteBuf;
+import io.netty.buffer.Unpooled;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+public class OrdersListScreen extends Screen {
+    private OrdersListWidget listWidget;
+    private final UUID highlightOrderId; // может быть null
+    private final List<ClientOrder> orders = new ArrayList<>();
+
+    public OrdersListScreen(UUID highlightOrderId) {
+        super(Text.of("Список заказов"));
+        this.highlightOrderId = highlightOrderId;
+    }
+
+    public OrdersListScreen() { this(null); }
+
+    @Override
+    protected void init() {
+        this.client.keyboard.setRepeatEvents(true);
+        int left = (this.width - 300) / 2;
+        int top = (this.height - 200) / 2;
+
+        this.listWidget = new OrdersListWidget(this.client, 300, 180, top + 10, top + 10 + 180, 24);
+        this.addSelectableChild(this.listWidget);
+
+        // Кнопка "Обновить"
+        this.addDrawableChild(new ButtonWidget(left + 10, top + 190, 70, 20, Text.of("Обновить"), btn -> requestSyncFromServer()));
+        // Кнопка "Закрыть"
+        this.addDrawableChild(new ButtonWidget(left + 220, top + 190, 70, 20, Text.of("Закрыть"), btn -> onClose()));
+
+        // Если у нас есть highlightOrderId — попытаемся выделить его после получения данных
+        requestSyncFromServer();
+    }
+
+    private void requestSyncFromServer() {
+        // Отправляем пустой пакет запроса синхронизации. Сервер должен на него ответить пакетом SYNC_ORDERS.
+        PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
+        ClientPlayNetworking.send(CourierNetworking.SYNC_ORDERS, buf);
+    }
+
+    // Вызывается извне, чтобы обновить список (например, клиент-сайд handler после получения SYNC)
+    public void setOrders(List<ClientOrder> newOrders) {
+        this.orders.clear();
+        this.orders.addAll(newOrders);
+        this.listWidget.clearEntries();
+        for (ClientOrder o : newOrders) this.listWidget.addEntry(new OrderEntry(o));
+
+        // если нужно — выделяем
+        if (highlightOrderId != null) {
+            for (int i = 0; i < newOrders.size(); i++) {
+                if (newOrders.get(i).id.equals(highlightOrderId)) {
+                    this.listWidget.setSelected(newOrders.get(i));
+                    this.client.setScreen(new OrderDetailsScreen(newOrders.get(i)));
+                    break;
+                }
+            }
+        }
+    }
+
+    @Override
+    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        this.renderBackground(context);
+        int left = (this.width - 300) / 2;
+        int top = (this.height - 200) / 2;
+        context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, top - 8, 0xFFFFFF);
+        this.listWidget.render(context, mouseX, mouseY, delta);
+        super.render(context, mouseX, mouseY, delta);
+    }
+
+    @Override
+    public void onClose() {
+        this.client.keyboard.setRepeatEvents(false);
+        this.client.setScreen(null);
+    }
+
+    // ----------------- Inner classes: ClientOrder, OrdersListWidget, OrderEntry -----------------
+    public static class ClientOrder {
+        public final UUID id;
+        public final String ownerName;
+        public final String description;
+        public final List<ItemStack> requestItems;
+        public final List<ItemStack> rewardItems;
+        public final Order.Status status;
+        public final String acceptedByName;
+
+        public ClientOrder(UUID id, String ownerName, String description, List<ItemStack> req, List<ItemStack> rew, Order.Status status, String acceptedBy) {
+            this.id = id; this.ownerName = ownerName; this.description = description; this.requestItems = req; this.rewardItems = rew; this.status = status; this.acceptedByName = acceptedBy;
+        }
+    }
+
+    private class OrdersListWidget extends ElementListWidget<OrderEntry> {
+        public OrdersListWidget(MinecraftClient client, int width, int height, int top, int bottom, int itemHeight) {
+            super(client, width, height, top, bottom, itemHeight);
+            this.setLeftPos((OrdersListScreen.this.width - 300) / 2 + 10);
+        }
+
+        @Override
+        protected int getScrollbarPositionX() {
+            return super.getScrollbarPositionX() + 140;
+        }
+    }
+
+    private class OrderEntry extends ElementListWidget.Entry<OrderEntry> {
+        private final ClientOrder order;
+        private final ButtonWidget openBtn;
+        public OrderEntry(ClientOrder o) {
+            this.order = o;
+            this.openBtn = new ButtonWidget(0,0,50,20, Text.of("Открыть"), b -> MinecraftClient.getInstance().setScreen(new OrderDetailsScreen(order)));
+        }
+
+        @Override
+        public void render(DrawContext context, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
+            int left = (OrdersListScreen.this.width - 300) / 2 + 12;
+            context.drawText(OrdersListScreen.this.textRenderer, Text.of(order.ownerName + " — " + (order.description.length() > 40 ? order.description.substring(0,40) + "..." : order.description)), left, y + 2, 0xFFFFFF);
+            // отрисуем первую иконку запрошенного предмета, если есть
+            if (!order.requestItems.isEmpty()) {
+                ItemStack s = order.requestItems.get(0);
+                MinecraftClient.getInstance().getItemRenderer().renderGuiItem(s, left + entryWidth - 60, y);
+            }
+            // кнопка "Открыть"
+            this.openBtn.x = left + entryWidth - 50;
+            this.openBtn.y = y;
+            this.openBtn.render(context, mouseX, mouseY, tickDelta);
+        }
+
+        @Override
+        public List<? extends net.minecraft.client.gui.Drawable> children() {
+            List<ButtonWidget> list = new ArrayList<>(); list.add(openBtn); return list;
+        }
+
+        @Override
+        public boolean mouseClicked(double mouseX, double mouseY, int button) {
+            return openBtn.mouseClicked(mouseX, mouseY, button);
+        }
+    }
+}
+
+
+// =====================================================
+// OrderDetailsScreen.java
+// Подробный экран заказа: список request/reward items (иконки + количество), описание, приняты/отклонить
+// =====================================================
+package com.example.courier.client;
+
+import com.example.courier.CourierNetworking;
+import com.example.courier.Order;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.render.item.ItemRenderer;
+import net.minecraft.item.ItemStack;
+import net.minecraft.network.PacketByteBuf;
+import io.netty.buffer.Unpooled;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
+
+import java.util.List;
+import java.util.UUID;
+
+public class OrderDetailsScreen extends Screen {
+    private final OrdersListScreen.ClientOrder order;
+
+    public OrderDetailsScreen(OrdersListScreen.ClientOrder order) {
+        super(Text.of("Заказ — " + (order.ownerName)));
+        this.order = order;
+    }
+
+    @Override
+    protected void init() {
+        int left = (this.width - 300) / 2;
+        int top = (this.height - 200) / 2;
+        // Кнопки Принять / Отклонить
+        this.addDrawableChild(new ButtonWidget(left + 40, top + 160, 100, 20, Text.of("Принять"), b -> sendAccept()));
+        this.addDrawableChild(new ButtonWidget(left + 160, top + 160, 100, 20, Text.of("Отклонить"), b -> sendDecline()));
+        this.addDrawableChild(new ButtonWidget(left + 220, top + 10, 60, 20, Text.of("Назад"), b -> MinecraftClient.getInstance().setScreen(new OrdersListScreen())));
+    }
+
+    @Override
+    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        this.renderBackground(context);
+        int left = (this.width - 300) / 2;
+        int top = (this.height - 200) / 2;
+        context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width/2, top - 8, 0xFFFFFF);
+
+        context.drawText(this.textRenderer, Text.of("Заказчик: ").formatted(Formatting.YELLOW).append(Text.of(order.ownerName)), left + 10, top + 10, 0xFFFFFF);
+        context.drawText(this.textRenderer, Text.of("Статус: ").formatted(Formatting.YELLOW).append(Text.of(order.status.name())), left + 10, top + 24, 0xFFFFFF);
+
+        // Описание
+        context.drawText(this.textRenderer, Text.of("Описание:"), left + 10, top + 40, 0xAAAAAA);
+        context.drawText(this.textRenderer, Text.of(order.description), left + 10, top + 52, 0xFFFFFF);
+
+        // Список request items
+        context.drawText(this.textRenderer, Text.of("Запрошено:"), left + 10, top + 80, 0xFFFFAA);
+        int sx = left + 10;
+        int sy = top + 94;
+        ItemRenderer ir = this.client.getItemRenderer();
+        for (ItemStack s : order.requestItems) {
+            ir.renderGuiItem(s, sx, sy);
+            context.drawText(this.textRenderer, Text.of(String.valueOf(s.getCount())), sx + 20, sy + 18, 0xFFFFFF);
+            sx += 30;
+            if (sx > left + 260) { sx = left + 10; sy += 30; }
+        }
+
+        // Список rewards
+        context.drawText(this.textRenderer, Text.of("Награда:"), left + 10, sy + 10, 0xAAFFAA);
+        sx = left + 10;
+        sy = sy + 24;
+        for (ItemStack s : order.rewardItems) {
+            ir.renderGuiItem(s, sx, sy);
+            context.drawText(this.textRenderer, Text.of(String.valueOf(s.getCount())), sx + 20, sy + 18, 0xFFFFFF);
+            sx += 30;
+            if (sx > left + 260) { sx = left + 10; sy += 30; }
+        }
+
+        super.render(context, mouseX, mouseY, delta);
+    }
+
+    private void sendAccept() {
+        PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
+        buf.writeUuid(order.id);
+        ClientPlayNetworking.send(CourierNetworking.ACCEPT_ORDER, buf);
+        MinecraftClient.getInstance().setScreen(null);
+    }
+    private void sendDecline() {
+        PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
+        buf.writeUuid(order.id);
+        ClientPlayNetworking.send(CourierNetworking.DECLINE_ORDER, buf);
+        MinecraftClient.getInstance().setScreen(null);
+    }
+}
+
+
+// =====================================================
+// Additional notes (внутри этого же файла для удобства):
+// 1) Текстура background: resources/assets/courier/textures/gui/orders_bg.png — используем как фон в экранах, если хочешь.
+// 2) Для работы полного потока сервер должен отправлять SYNC_ORDERS и/или NEW_ORDER_NOTIFY с достаточными данными (UUID + owner + description + список предметов в NBT).
+//    В клиентском обработчике (ClientPackets.register) мы ожидаем UUID + ownerName + optional shortDesc. Чтобы автоматически показать детали при уведомлении, сервер может отправлять полную сериализацию заказа (NBT) в NEW_ORDER_NOTIFY.
+// 3) Зарегистрируй ClientPackets.register() в клиентском мод-инициализаторе (ClientModInitializer).
+// 4) Пример регистрации: ClientPlayNetworking.registerGlobalReceiver(...) — уже используется в ClientPackets.register().
+// 5) Если нужен — могу добавить полноценную реализацию SYNC_ORDERS (парсер списка заказов из пакета) и поиск/страницы в OrdersPicker.
+
+// Конец документа.

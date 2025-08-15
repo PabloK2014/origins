@@ -58,17 +58,23 @@ public class ProfessionComponent implements AutoSyncedComponent, ServerTickingCo
      * Получает идентификатор текущей профессии игрока
      */
     public Identifier getCurrentProfessionId() {
-        OriginComponent originComponent = ModComponents.ORIGIN.get(player);
-        OriginLayer mainLayer = OriginLayers.getLayer(new Identifier(Origins.MODID, "origin"));
-        
-        if (mainLayer == null) return null;
-        
-        Origin origin = originComponent.getOrigin(mainLayer);
-        if (origin == null || origin == Origin.EMPTY) return null;
-        
-        // Преобразуем идентификатор происхождения в идентификатор профессии
-        String originPath = origin.getIdentifier().getPath();
-        return new Identifier(Origins.MODID, originPath);
+        try {
+            OriginComponent originComponent = ModComponents.ORIGIN.get(player);
+            if (originComponent == null) return null;
+            
+            OriginLayer mainLayer = OriginLayers.getLayer(new Identifier(Origins.MODID, "origin"));
+            if (mainLayer == null) return null;
+            
+            Origin origin = originComponent.getOrigin(mainLayer);
+            if (origin == null || origin == Origin.EMPTY) return null;
+            
+            // Преобразуем идентификатор происхождения в идентификатор профессии
+            String originPath = origin.getIdentifier().getPath();
+            return new Identifier(Origins.MODID, originPath);
+        } catch (Exception e) {
+            // Если слой не существует или произошла другая ошибка, возвращаем null
+            return null;
+        }
     }
 
     /**

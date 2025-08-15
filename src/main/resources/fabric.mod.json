@@ -21,7 +21,8 @@
     ],
     "client": [
       "io.github.apace100.origins.OriginsClient",
-      "io.github.apace100.origins.client.SkillKeybinds"
+      "io.github.apace100.origins.client.SkillKeybinds",
+      "io.github.apace100.origins.courier.client.CourierClientInitializer"
     ],
     "modmenu": [
       "io.github.apace100.origins.integration.ModMenuIntegration"
