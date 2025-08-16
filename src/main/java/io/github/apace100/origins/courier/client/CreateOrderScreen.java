@@ -21,7 +21,26 @@ import java.util.List;
  */
 public class CreateOrderScreen extends Screen {
     
+    // Статические поля для сохранения состояния между экранами
+    private static String savedDescription = "";
+    private static final ItemStack[] savedRequestItems = new ItemStack[CourierNetworking.MAX_ITEMS_PER_CATEGORY];
+    private static final int[] savedRequestCounts = new int[CourierNetworking.MAX_ITEMS_PER_CATEGORY];
+    private static final ItemStack[] savedRewardItems = new ItemStack[CourierNetworking.MAX_ITEMS_PER_CATEGORY];
+    private static final int[] savedRewardCounts = new int[CourierNetworking.MAX_ITEMS_PER_CATEGORY];
+    private static int savedExperienceReward = 0;
+    
+    static {
+        // Инициализируем массивы
+        for (int i = 0; i < CourierNetworking.MAX_ITEMS_PER_CATEGORY; i++) {
+            savedRequestItems[i] = ItemStack.EMPTY;
+            savedRequestCounts[i] = 1;
+            savedRewardItems[i] = ItemStack.EMPTY;
+            savedRewardCounts[i] = 1;
+        }
+    }
+    
     private TextFieldWidget descriptionField;
+    private TextFieldWidget experienceField;
     private final List<ItemSlot> requestSlots = new ArrayList<>();
     private final List<ItemSlot> rewardSlots = new ArrayList<>();
     private ButtonWidget createButton;
@@ -38,7 +57,7 @@ public class CreateOrderScreen extends Screen {
         int centerX = this.width / 2;
         int centerY = this.height / 2;
         int screenWidth = CourierNetworking.CREATE_ORDER_WIDTH;
-        int screenHeight = CourierNetworking.CREATE_ORDER_HEIGHT;
+        int screenHeight = CourierNetworking.CREATE_ORDER_HEIGHT + 30; // Увеличиваем высоту
         
         int left = centerX - screenWidth / 2;
         int top = centerY - screenHeight / 2;
@@ -47,7 +66,10 @@ public class CreateOrderScreen extends Screen {
         descriptionField = new TextFieldWidget(this.textRenderer, left + 20, top + 30, screenWidth - 40, 20, Text.literal("Описание"));
         descriptionField.setPlaceholder(Text.literal("Опишите ваш заказ...").formatted(Formatting.GRAY));
         descriptionField.setMaxLength(CourierNetworking.MAX_DESCRIPTION_LENGTH);
+        descriptionField.setText(savedDescription);
         this.addSelectableChild(descriptionField);
+        
+        // Поле опыта\n        experienceField = new TextFieldWidget(this.textRenderer, left + 20, top + 55, 100, 20, Text.literal(\"Опыт для курьера\"));\n        experienceField.setPlaceholder(Text.literal(\"0\").formatted(Formatting.GRAY));\n        experienceField.setMaxLength(5); // Максимум 5 символов (до 99999)\n        experienceField.setText(String.valueOf(savedExperienceReward));\n        // Разрешаем только цифры\n        experienceField.setTextPredicate(text -> text.matches(\"\\\\d*\"));\n        this.addSelectableChild(experienceField);\n        \n        // Добавляем визуальный индикатор для поля опыта\n        // Это будет сделано в методе render
         
         // Создаем слоты для предметов запроса
         requestSlots.clear();
@@ -55,9 +77,12 @@ public class CreateOrderScreen extends Screen {
             int row = i / 5;
             int col = i % 5;
             int x = left + 20 + col * 45;
-            int y = top + 80 + row * 45;
+            int y = top + 95 + row * 45;
             
             ItemSlot slot = new ItemSlot(x, y, i, true);
+            // Восстанавливаем сохраненные предметы
+            slot.itemStack = savedRequestItems[i].copy();
+            slot.count = savedRequestCounts[i];
             requestSlots.add(slot);
         }
         
@@ -67,9 +92,12 @@ public class CreateOrderScreen extends Screen {
             int row = i / 5;
             int col = i % 5;
             int x = left + 270 + col * 45;
-            int y = top + 80 + row * 45;
+            int y = top + 95 + row * 45;
             
             ItemSlot slot = new ItemSlot(x, y, i, false);
+            // Восстанавливаем сохраненные предметы
+            slot.itemStack = savedRewardItems[i].copy();
+            slot.count = savedRewardCounts[i];
             rewardSlots.add(slot);
         }
         
@@ -93,6 +121,27 @@ public class CreateOrderScreen extends Screen {
         super.tick();
         animationTicks++;
         
+        // Сохраняем описание
+        if (descriptionField != null) {
+            savedDescription = descriptionField.getText();
+        }
+        
+        // Сохраняем опыт
+        if (experienceField != null) {
+            try {
+                int exp = Integer.parseInt(experienceField.getText());
+                // Ограничиваем значение
+                exp = Math.max(0, Math.min(exp, 10000));
+                savedExperienceReward = exp;
+                // Обновляем текст в поле, если значение было изменено
+                if (exp != Integer.parseInt(experienceField.getText())) {
+                    experienceField.setText(String.valueOf(exp));
+                }
+            } catch (NumberFormatException e) {
+                savedExperienceReward = 0;
+            }
+        }
+        
         // Обновляем состояние кнопки создания
         updateCreateButtonState();
     }
@@ -104,8 +153,31 @@ public class CreateOrderScreen extends Screen {
         boolean hasDescription = descriptionField.getText().trim().length() > 0;
         boolean hasRequestItems = requestSlots.stream().anyMatch(slot -> !slot.itemStack.isEmpty());
         boolean hasRewardItems = rewardSlots.stream().anyMatch(slot -> !slot.itemStack.isEmpty());
+        boolean hasValidExperience = true;
         
-        createButton.active = hasDescription && hasRequestItems && hasRewardItems;
+        // Проверяем корректность ввода опыта
+        try {
+            int exp = Integer.parseInt(experienceField.getText());
+            hasValidExperience = exp >= 0 && exp <= 10000;
+        } catch (NumberFormatException e) {
+            hasValidExperience = false;
+        }
+        
+        createButton.active = hasDescription && hasRequestItems && hasRewardItems && hasValidExperience;
+    }
+    
+    /**
+     * Очищает сохраненное состояние
+     */
+    private static void clearSavedState() {
+        savedDescription = "";
+        savedExperienceReward = 0;
+        for (int i = 0; i < CourierNetworking.MAX_ITEMS_PER_CATEGORY; i++) {
+            savedRequestItems[i] = ItemStack.EMPTY;
+            savedRequestCounts[i] = 1;
+            savedRewardItems[i] = ItemStack.EMPTY;
+            savedRewardCounts[i] = 1;
+        }
     }
     
     /**
@@ -117,6 +189,17 @@ public class CreateOrderScreen extends Screen {
             
             // Описание
             buf.writeString(descriptionField.getText().trim());
+            
+            // Опыт для курьера
+            int experienceReward = 0;
+            try {
+                experienceReward = Integer.parseInt(experienceField.getText());
+            } catch (NumberFormatException e) {
+                experienceReward = 0;
+            }
+            // Ограничиваем значение
+            experienceReward = Math.max(0, Math.min(experienceReward, 10000));
+            buf.writeInt(experienceReward);
             
             // Предметы запроса
             List<ItemStack> requestItems = new ArrayList<>();
@@ -149,6 +232,9 @@ public class CreateOrderScreen extends Screen {
             // Отправляем пакет
             ClientPlayNetworking.send(CourierNetworking.CREATE_ORDER, buf);
             
+            // Очищаем сохраненное состояние
+            clearSavedState();
+            
             // Закрываем экран
             this.close();
             
@@ -169,7 +255,7 @@ public class CreateOrderScreen extends Screen {
         int centerX = this.width / 2;
         int centerY = this.height / 2;
         int screenWidth = CourierNetworking.CREATE_ORDER_WIDTH;
-        int screenHeight = CourierNetworking.CREATE_ORDER_HEIGHT;
+        int screenHeight = CourierNetworking.CREATE_ORDER_HEIGHT + 30; // Увеличиваем высоту
         
         int left = centerX - screenWidth / 2;
         int top = centerY - screenHeight / 2;
@@ -187,11 +273,21 @@ public class CreateOrderScreen extends Screen {
         
         // Подзаголовки секций
         context.drawText(this.textRenderer, Text.literal("Описание:"), left + 20, top + 18, CourierNetworking.COLOR_TEXT, false);
-        context.drawText(this.textRenderer, Text.literal("Запрашиваемые предметы:"), left + 20, top + 65, CourierNetworking.COLOR_ACCENT, false);
-        context.drawText(this.textRenderer, Text.literal("Награда:"), left + 270, top + 65, CourierNetworking.COLOR_WARNING, false);
+        context.drawText(this.textRenderer, Text.literal("Опыт для курьера (0-10000):").formatted(Formatting.BOLD), left + 20, top + 43, CourierNetworking.COLOR_TEXT, false);
+        context.drawText(this.textRenderer, Text.literal("Запрашиваемые предметы:"), left + 20, top + 80, CourierNetworking.COLOR_ACCENT, false);
+        context.drawText(this.textRenderer, Text.literal("Награда:"), left + 270, top + 80, CourierNetworking.COLOR_WARNING, false);
         
         // Рендерим поле описания
         descriptionField.render(context, mouseX, mouseY, delta);
+        
+        // Рендерим поле опыта с визуальным индикатором
+        if (experienceField != null) {
+            // Рисуем рамку вокруг поля опыта
+            int expFieldX = left + 20;
+            int expFieldY = top + 55;
+            context.drawBorder(expFieldX - 2, expFieldY - 2, 104, 24, CourierNetworking.COLOR_WARNING);
+            experienceField.render(context, mouseX, mouseY, delta);
+        }
         
         // Рендерим слоты предметов
         for (ItemSlot slot : requestSlots) {
@@ -210,6 +306,29 @@ public class CreateOrderScreen extends Screen {
             context.drawCenteredTextWithShadow(this.textRenderer, 
                 Text.literal(hint).formatted(Formatting.GRAY), 
                 centerX, top + screenHeight - 65, CourierNetworking.COLOR_TEXT_SECONDARY);
+        }
+        
+        // Подсказка для поля опыта
+        String experienceHint = "Опыт, который получит курьер за выполнение заказа (0-10000)";
+        context.drawText(this.textRenderer, 
+            Text.literal(experienceHint).formatted(Formatting.GRAY), 
+            left + 130, top + 60, CourierNetworking.COLOR_TEXT_SECONDARY, false);
+        
+        // Показываем ошибку при неверном вводе опыта
+        try {
+            int exp = Integer.parseInt(experienceField.getText());
+            if (exp < 0 || exp > 10000) {
+                String errorText = "Опыт должен быть от 0 до 10000!";
+                context.drawText(this.textRenderer, 
+                    Text.literal(errorText).formatted(Formatting.RED, Formatting.BOLD), 
+                    left + 20, top + 75, CourierNetworking.COLOR_ERROR, false);
+            }
+        } catch (NumberFormatException e) {
+            if (!experienceField.getText().isEmpty()) {
+                context.drawText(this.textRenderer, 
+                    Text.literal("Введите число!").formatted(Formatting.RED, Formatting.BOLD), 
+                    left + 20, top + 75, CourierNetworking.COLOR_ERROR, false);
+            }
         }
         
         // Рендерим подсказки для слотов
@@ -283,18 +402,26 @@ public class CreateOrderScreen extends Screen {
                 context.drawCenteredTextWithShadow(CreateOrderScreen.this.textRenderer, 
                     Text.literal("+"), x + 20, y + 16, CourierNetworking.COLOR_ACCENT);
             } else {
-                // Отладка: проверяем, что предмет не пустой при рендеринге
-                System.out.println("DEBUG: Rendering item in slot " + index + " (" + (isRequest ? "request" : "reward") + "): " + itemStack.getName().getString() + " (isEmpty: " + itemStack.isEmpty() + ")");
-                
                 // Рендерим предмет
-                context.drawItem(itemStack, x + 12, y + 12);
-                
-                // Рендерим количество
-                if (count > 1) {
-                    String countText = String.valueOf(count);
-                    context.drawText(CreateOrderScreen.this.textRenderer, countText, 
-                        x + 32 - CreateOrderScreen.this.textRenderer.getWidth(countText), 
-                        y + 32, CourierNetworking.COLOR_TEXT, true);
+                try {
+                    context.drawItem(itemStack, x + 12, y + 12);
+                    
+                    // Рендерим количество
+                    if (count > 1) {
+                        String countText = String.valueOf(count);
+                        context.drawText(CreateOrderScreen.this.textRenderer, countText, 
+                            x + 32 - CreateOrderScreen.this.textRenderer.getWidth(countText), 
+                            y + 32, CourierNetworking.COLOR_TEXT, true);
+                    }
+                } catch (Exception e) {
+                    System.out.println("DEBUG: Error rendering item in slot " + index + ": " + e.getMessage());
+                    // Если не можем отрендерить предмет, показываем его название
+                    String itemName = itemStack.getName().getString();
+                    if (itemName.length() > 6) {
+                        itemName = itemName.substring(0, 6) + "...";
+                    }
+                    context.drawText(CreateOrderScreen.this.textRenderer, itemName, 
+                        x + 2, y + 16, CourierNetworking.COLOR_TEXT, false);
                 }
             }
         }
@@ -307,6 +434,7 @@ public class CreateOrderScreen extends Screen {
                 List<Text> tooltip = new ArrayList<>();
                 tooltip.add(itemStack.getName());
                 tooltip.add(Text.literal("Количество: " + count).formatted(Formatting.GRAY));
+                tooltip.add(Text.literal("ЛКМ - изменить количество").formatted(Formatting.GRAY));
                 tooltip.add(Text.literal("ПКМ - изменить количество").formatted(Formatting.GRAY));
                 tooltip.add(Text.literal("Shift+ПКМ - удалить").formatted(Formatting.GRAY));
                 context.drawTooltip(CreateOrderScreen.this.textRenderer, tooltip, mouseX, mouseY);
@@ -322,6 +450,10 @@ public class CreateOrderScreen extends Screen {
                 if (itemStack.isEmpty()) {
                     // Открываем экран выбора предмета с ссылкой на родительский экран
                     MinecraftClient.getInstance().setScreen(new ItemPickerScreen(this::setItem, CreateOrderScreen.this));
+                } else {
+                    // Если предмет уже выбран, открываем диалог изменения количества
+                    String itemName = itemStack.getName().getString();
+                    MinecraftClient.getInstance().setScreen(new QuantityInputScreen(itemName, count, this::setQuantity, CreateOrderScreen.this));
                 }
             } else if (button == 1) { // Правая кнопка
                 if (!itemStack.isEmpty()) {
@@ -329,12 +461,19 @@ public class CreateOrderScreen extends Screen {
                         // Удаляем предмет
                         itemStack = ItemStack.EMPTY;
                         count = 1;
-                    } else {
-                        // Изменяем количество
-                        count++;
-                        if (count > CourierNetworking.MAX_ITEM_COUNT) {
-                            count = 1;
+                        
+                        // Сохраняем изменения в статических полях
+                        if (isRequest) {
+                            savedRequestItems[index] = this.itemStack.copy();
+                            savedRequestCounts[index] = this.count;
+                        } else {
+                            savedRewardItems[index] = this.itemStack.copy();
+                            savedRewardCounts[index] = this.count;
                         }
+                    } else {
+                        // Открываем диалог изменения количества
+                        String itemName = itemStack.getName().getString();
+                        MinecraftClient.getInstance().setScreen(new QuantityInputScreen(itemName, count, this::setQuantity, CreateOrderScreen.this));
                     }
                 }
             }
@@ -345,12 +484,35 @@ public class CreateOrderScreen extends Screen {
             this.itemStack = item.copy();
             this.count = 1;
             
+            // Сохраняем состояние в статических полях
+            if (isRequest) {
+                savedRequestItems[index] = this.itemStack.copy();
+                savedRequestCounts[index] = this.count;
+            } else {
+                savedRewardItems[index] = this.itemStack.copy();
+                savedRewardCounts[index] = this.count;
+            }
+            
             // Принудительно обновляем состояние кнопки создания
             CreateOrderScreen.this.updateCreateButtonState();
+            
             System.out.println("DEBUG: Item set successfully. ItemStack empty: " + this.itemStack.isEmpty());
             System.out.println("DEBUG: Item name: " + this.itemStack.getName().getString());
             System.out.println("DEBUG: Item object: " + this.itemStack);
             System.out.println("DEBUG: Item count: " + this.itemStack.getCount());
+        }
+        
+        public void setQuantity(int newQuantity) {
+            this.count = Math.max(1, Math.min(newQuantity, CourierNetworking.MAX_ITEM_COUNT));
+            
+            // Сохраняем изменения в статических полях
+            if (isRequest) {
+                savedRequestCounts[index] = this.count;
+            } else {
+                savedRewardCounts[index] = this.count;
+            }
+            
+            System.out.println("DEBUG: Quantity set to " + this.count + " for slot " + index);
         }
     }
 }

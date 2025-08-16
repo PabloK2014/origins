@@ -31,14 +31,10 @@ public class OriginsClient implements ClientModInitializer {
         // Регистрируем кейбинды курьера
         io.github.apace100.origins.courier.CourierKeybinds.register();
         
-        // Регистрируем обработчик кейбиндов курьера
-        net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            while (io.github.apace100.origins.courier.CourierKeybinds.openOrdersScreen.wasPressed()) {
-                if (client.player != null) {
-                    client.setScreen(new io.github.apace100.origins.courier.client.OrdersListScreen());
-                }
-            }
-        });
+        // Регистрируем клиентские обработчики пакетов курьера
+        io.github.apace100.origins.courier.client.CourierClientPacketHandler.registerClientHandlers();
+        
+        // Кейбинд убран по запросу
         
         // Регистрируем экран доски объявлений с проверкой типа доски
         HandledScreens.register(QuestRegistry.BOUNTY_BOARD_SCREEN_HANDLER, 

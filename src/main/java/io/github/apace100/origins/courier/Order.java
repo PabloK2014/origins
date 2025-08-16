@@ -35,6 +35,7 @@ public class Order {
     private final long createdTime;
     private long acceptedTime;
     private long completedTime;
+    private int experienceReward; // Опыт для курьера
 
     public Order(UUID id, String ownerName, UUID ownerUuid) {
         this.id = id;
@@ -47,6 +48,7 @@ public class Order {
         this.createdTime = System.currentTimeMillis();
         this.acceptedTime = 0;
         this.completedTime = 0;
+        this.experienceReward = 0;
     }
 
     // Геттеры
@@ -62,6 +64,7 @@ public class Order {
     public long getCreatedTime() { return createdTime; }
     public long getAcceptedTime() { return acceptedTime; }
     public long getCompletedTime() { return completedTime; }
+    public int getExperienceReward() { return experienceReward; }
 
     // Сеттеры
     public void setDescription(String description) {
@@ -81,6 +84,10 @@ public class Order {
     public void setCompleted() {
         this.status = Status.COMPLETED;
         this.completedTime = System.currentTimeMillis();
+    }
+    
+    public void setExperienceReward(int experience) {
+        this.experienceReward = Math.max(0, experience);
     }
 
     /**
@@ -123,9 +130,13 @@ public class Order {
     public boolean canBeAcceptedBy(ServerPlayerEntity player) {
         if (status != Status.OPEN) return false;
         
+        // Проверяем, что игрок не является владельцем заказа
+        if (player.getUuid().equals(ownerUuid)) {
+            return false;
+        }
+        
         // Проверяем, что игрок - курьер
-        String playerClass = CourierUtils.getPlayerClass(player);
-        return "courier".equals(playerClass);
+        return CourierUtils.isCourier(player);
     }
 
     // Сериализация в NBT
@@ -140,6 +151,7 @@ public class Order {
         nbt.putLong("createdTime", createdTime);
         nbt.putLong("acceptedTime", acceptedTime);
         nbt.putLong("completedTime", completedTime);
+        nbt.putInt("experienceReward", experienceReward);
         
         if (acceptedByName != null) {
             nbt.putString("acceptedByName", acceptedByName);

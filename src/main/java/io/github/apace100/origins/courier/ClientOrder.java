@@ -18,10 +18,12 @@ public class ClientOrder {
     public final Order.Status status;
     public final String acceptedByName;
     public final long createdTime;
+    public final int experienceReward;
 
     public ClientOrder(UUID id, String ownerName, String description, 
                       List<ItemStack> requestItems, List<ItemStack> rewardItems, 
-                      Order.Status status, String acceptedByName, long createdTime) {
+                      Order.Status status, String acceptedByName, long createdTime,
+                      int experienceReward) {
         this.id = id;
         this.ownerName = ownerName;
         this.description = description;
@@ -30,6 +32,7 @@ public class ClientOrder {
         this.status = status;
         this.acceptedByName = acceptedByName;
         this.createdTime = createdTime;
+        this.experienceReward = experienceReward;
     }
 
     /**
@@ -44,7 +47,8 @@ public class ClientOrder {
             order.getRewardItems(),
             order.getStatus(),
             order.getAcceptedByName(),
-            order.getCreatedTime()
+            order.getCreatedTime(),
+            order.getExperienceReward()
         );
     }
 
@@ -98,6 +102,13 @@ public class ClientOrder {
      */
     public boolean isCompleted() {
         return status == Order.Status.COMPLETED;
+    }
+
+    /**
+     * Получает количество опыта для курьера
+     */
+    public int getExperienceReward() {
+        return experienceReward;
     }
 
     /**

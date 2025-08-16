@@ -229,7 +229,10 @@ public class ItemPickerScreen extends Screen {
             
             // Возвращаемся к родительскому экрану, если он есть
             if (parentScreen != null) {
-                this.client.setScreen(parentScreen);
+                // Принудительно обновляем родительский экран
+                this.client.execute(() -> {
+                    this.client.setScreen(parentScreen);
+                });
             } else {
                 this.close();
             }

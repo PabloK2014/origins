@@ -131,7 +131,8 @@ public class ClientOrderManager {
             ClientOrder updatedOrder = new ClientOrder(
                 order.id, order.ownerName, order.description,
                 order.requestItems, order.rewardItems,
-                newStatus, order.acceptedByName, order.createdTime
+                newStatus, order.acceptedByName, order.createdTime,
+                order.experienceReward
             );
             
             orders.put(orderId, updatedOrder);

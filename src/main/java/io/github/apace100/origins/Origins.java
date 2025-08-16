@@ -166,6 +166,9 @@ public class Origins implements ModInitializer, OrderedResourceListenerInitializ
 			io.github.apace100.origins.courier.CourierCommand.register(dispatcher, registryAccess);
 			io.github.apace100.origins.command.CourierOrdersCommand.register(dispatcher, registryAccess);
 			io.github.apace100.origins.command.CourierUICommands.register(dispatcher, registryAccess);
+			io.github.apace100.origins.command.CourierDebugCommand.register(dispatcher, registryAccess, environment);
+			io.github.apace100.origins.command.TestCreateOrderCommand.register(dispatcher, registryAccess, environment);
+			io.github.apace100.origins.command.OpenOrdersUICommand.register(dispatcher, registryAccess, environment);
 			io.github.apace100.origins.command.ResetAllTicketTimesCommand.register(dispatcher, registryAccess);
 			io.github.apace100.origins.command.TestClassRestrictionCommand.register(dispatcher, registryAccess);
 			io.github.apace100.origins.command.TestQuestApiCommand.register(dispatcher, registryAccess);

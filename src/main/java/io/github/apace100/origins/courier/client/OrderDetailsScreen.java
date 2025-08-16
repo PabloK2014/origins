@@ -27,6 +27,7 @@ public class OrderDetailsScreen extends Screen {
     private ButtonWidget declineButton;
     private ButtonWidget completeButton;
     private ButtonWidget cancelButton;
+    private ButtonWidget deleteButton;
     private ButtonWidget backButton;
     
     private int animationTicks = 0;
@@ -50,10 +51,10 @@ public class OrderDetailsScreen extends Screen {
         // Кнопки действий (показываем в зависимости от статуса заказа)
         setupActionButtons(left, top, screenWidth, screenHeight);
         
-        // Кнопка "Назад"
+        // Кнопка "Назад" - размещаем справа
         backButton = ButtonWidget.builder(Text.literal("Назад"), 
             button -> MinecraftClient.getInstance().setScreen(new OrdersListScreen()))
-            .dimensions(left + 10, top + screenHeight - 35, 80, 25)
+            .dimensions(left + screenWidth - 90, top + screenHeight - 35, 80, 25)
             .build();
         this.addDrawableChild(backButton);
     }
@@ -93,6 +94,17 @@ public class OrderDetailsScreen extends Screen {
                 this.addDrawableChild(cancelButton);
             }
         }
+        
+        // Кнопка удаления (для владельца заказа или завершенных заказов)
+        if (isOwnerOfOrder() || order.status == Order.Status.COMPLETED || 
+            order.status == Order.Status.DECLINED || order.status == Order.Status.CANCELLED) {
+            
+            int deleteButtonX = left + screenWidth - 220; // Размещаем слева от кнопки "Назад"
+            deleteButton = ButtonWidget.builder(Text.literal("Удалить"), button -> deleteOrder())
+                .dimensions(deleteButtonX, buttonY, buttonWidth, 25)
+                .build();
+            this.addDrawableChild(deleteButton);
+        }
     }
     
     /**
@@ -102,6 +114,15 @@ public class OrderDetailsScreen extends Screen {
         if (this.client == null || this.client.player == null) return false;
         String playerName = this.client.player.getName().getString();
         return playerName.equals(order.acceptedByName);
+    }
+    
+    /**
+     * Проверяет, является ли игрок владельцем заказа
+     */
+    private boolean isOwnerOfOrder() {
+        if (this.client == null || this.client.player == null) return false;
+        String playerName = this.client.player.getName().getString();
+        return playerName.equals(order.ownerName);
     }
     
     @Override
@@ -128,6 +149,9 @@ public class OrderDetailsScreen extends Screen {
         }
         if (cancelButton != null) {
             cancelButton.active = !isProcessing;
+        }
+        if (deleteButton != null) {
+            deleteButton.active = !isProcessing;
         }
     }
     
@@ -167,6 +191,15 @@ public class OrderDetailsScreen extends Screen {
     private void completeOrder() {
         if (isProcessing) return;
         
+        // Проверяем, есть ли у игрока необходимые предметы
+        if (!hasRequiredItemsInInventory()) {
+            if (this.client != null && this.client.player != null) {
+                this.client.player.sendMessage(Text.literal("У вас нет необходимых предметов для выполнения заказа!")
+                    .formatted(Formatting.RED), false);
+            }
+            return;
+        }
+        
         isProcessing = true;
         PacketByteBuf buf = PacketByteBufs.create();
         buf.writeUuid(order.id);
@@ -174,6 +207,37 @@ public class OrderDetailsScreen extends Screen {
         
         // Закрываем экран после отправки
         this.close();
+    }
+    
+    /**
+     * Проверяет, есть ли у игрока необходимые предметы в инвентаре
+     */
+    private boolean hasRequiredItemsInInventory() {
+        if (this.client == null || this.client.player == null) return false;
+        
+        for (ItemStack requiredItem : order.requestItems) {
+            if (requiredItem.isEmpty()) continue;
+            
+            int requiredCount = requiredItem.getCount();
+            int foundCount = 0;
+            
+            // Проверяем все слоты инвентаря
+            for (int i = 0; i < this.client.player.getInventory().size(); i++) {
+                ItemStack slotItem = this.client.player.getInventory().getStack(i);
+                if (ItemStack.canCombine(requiredItem, slotItem)) {
+                    foundCount += slotItem.getCount();
+                    if (foundCount >= requiredCount) {
+                        break;
+                    }
+                }
+            }
+            
+            if (foundCount < requiredCount) {
+                return false;
+            }
+        }
+        
+        return true;
     }
     
     /**
@@ -186,6 +250,21 @@ public class OrderDetailsScreen extends Screen {
         PacketByteBuf buf = PacketByteBufs.create();
         buf.writeUuid(order.id);
         ClientPlayNetworking.send(CourierNetworking.CANCEL_ORDER, buf);
+        
+        // Закрываем экран после отправки
+        this.close();
+    }
+    
+    /**
+     * Удаляет заказ
+     */
+    private void deleteOrder() {
+        if (isProcessing) return;
+        
+        isProcessing = true;
+        PacketByteBuf buf = PacketByteBufs.create();
+        buf.writeUuid(order.id);
+        ClientPlayNetworking.send(CourierNetworking.DELETE_ORDER, buf);
         
         // Закрываем экран после отправки
         this.close();
@@ -245,6 +324,14 @@ public class OrderDetailsScreen extends Screen {
             infoY += 15;
         }
         
+        // Опыт для курьера
+        if (order.experienceReward > 0) {
+            context.drawText(this.textRenderer, 
+                Text.literal("Опыт для курьера: ").formatted(Formatting.YELLOW).append(Text.literal(String.valueOf(order.experienceReward))), 
+                left + 20, infoY, CourierNetworking.COLOR_TEXT, false);
+            infoY += 15;
+        }
+        
         infoY += 10;
         
         // Описание
@@ -265,7 +352,9 @@ public class OrderDetailsScreen extends Screen {
             left + 20, infoY, CourierNetworking.COLOR_WARNING, false);
         infoY += 20;
         
-        infoY = renderItemList(context, order.requestItems, left + 20, infoY, screenWidth - 40);
+        // Показываем проверку инвентаря только если заказ принят нами
+        boolean showInventoryCheck = isOurOrder() && (order.status == Order.Status.ACCEPTED || order.status == Order.Status.IN_PROGRESS);
+        infoY = renderItemList(context, order.requestItems, left + 20, infoY, screenWidth - 40, showInventoryCheck);
         
         infoY += 15;
         
@@ -296,6 +385,13 @@ public class OrderDetailsScreen extends Screen {
      * Рендерит список предметов
      */
     private int renderItemList(DrawContext context, List<ItemStack> items, int x, int y, int maxWidth) {
+        return renderItemList(context, items, x, y, maxWidth, false);
+    }
+    
+    /**
+     * Рендерит список предметов с опциональной проверкой наличия в инвентаре
+     */
+    private int renderItemList(DrawContext context, List<ItemStack> items, int x, int y, int maxWidth, boolean checkInventory) {
         int currentX = x;
         int currentY = y;
         int itemSize = 20;
@@ -309,15 +405,45 @@ public class OrderDetailsScreen extends Screen {
                     currentY += itemSize + 5;
                 }
                 
+                // Проверяем наличие предмета в инвентаре (только для запрашиваемых предметов)
+                boolean hasEnough = true;
+                if (checkInventory && this.client != null && this.client.player != null) {
+                    int requiredCount = item.getCount();
+                    int foundCount = 0;
+                    
+                    for (int i = 0; i < this.client.player.getInventory().size(); i++) {
+                        ItemStack slotItem = this.client.player.getInventory().getStack(i);
+                        if (ItemStack.canCombine(item, slotItem)) {
+                            foundCount += slotItem.getCount();
+                        }
+                    }
+                    
+                    hasEnough = foundCount >= requiredCount;
+                }
+                
+                // Рендерим фон для предмета (красный если не хватает)
+                if (checkInventory && !hasEnough) {
+                    context.fill(currentX - 1, currentY - 1, currentX + itemSize + 1, currentY + itemSize + 1, 0x80FF0000);
+                }
+                
                 // Рендерим предмет
                 context.drawItem(item, currentX, currentY);
                 
                 // Рендерим количество
                 if (item.getCount() > 1) {
                     String countText = String.valueOf(item.getCount());
+                    int textColor = (checkInventory && !hasEnough) ? CourierNetworking.COLOR_ERROR : CourierNetworking.COLOR_TEXT;
                     context.drawText(this.textRenderer, countText, 
                         currentX + itemSize - this.textRenderer.getWidth(countText), 
-                        currentY + itemSize - 8, CourierNetworking.COLOR_TEXT, true);
+                        currentY + itemSize - 8, textColor, true);
+                }
+                
+                // Добавляем галочку или крестик для запрашиваемых предметов
+                if (checkInventory) {
+                    String indicator = hasEnough ? "✓" : "✗";
+                    int indicatorColor = hasEnough ? 0xFF00FF00 : 0xFFFF0000;
+                    context.drawText(this.textRenderer, indicator, 
+                        currentX + itemSize + 2, currentY, indicatorColor, false);
                 }
                 
                 currentX += itemSpacing;

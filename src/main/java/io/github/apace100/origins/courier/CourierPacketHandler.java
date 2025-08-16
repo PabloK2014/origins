@@ -44,6 +44,10 @@ public class CourierPacketHandler {
         ServerPlayNetworking.registerGlobalReceiver(CourierNetworking.CANCEL_ORDER, 
             CourierPacketHandler::handleCancelOrder);
         
+        // Удаление заказа
+        ServerPlayNetworking.registerGlobalReceiver(CourierNetworking.DELETE_ORDER, 
+            CourierPacketHandler::handleDeleteOrder);
+        
         // Запрос синхронизации заказов
         ServerPlayNetworking.registerGlobalReceiver(CourierNetworking.REQUEST_ORDERS_SYNC, 
             CourierPacketHandler::handleRequestOrdersSync);
@@ -61,14 +65,20 @@ public class CourierPacketHandler {
                                         net.fabricmc.fabric.api.networking.v1.PacketSender responseSender) {
         try {
             // Проверяем, может ли игрок создавать заказы
+            // Курьеры не могут создавать заказы - они их принимают и выполняют
             if (CourierUtils.isCourier(player)) {
-                player.sendMessage(Text.literal("Курьеры не могут создавать заказы!")
+                player.sendMessage(Text.literal("Курьеры не могут создавать заказы! Вы можете только принимать и выполнять заказы других игроков.")
                     .formatted(Formatting.RED), false);
                 return;
             }
             
             // Читаем данные из пакета
             String description = buf.readString(CourierNetworking.MAX_DESCRIPTION_LENGTH);
+            
+            // Читаем опыт для курьера
+            int experienceReward = buf.readInt();
+            // Ограничиваем значение
+            final int finalExperienceReward = Math.max(0, Math.min(experienceReward, 10000));
             
             // Читаем предметы запроса
             int requestItemsCount = buf.readInt();
@@ -102,9 +112,24 @@ public class CourierPacketHandler {
                         return;
                     }
                     
+                    // Проверяем, есть ли у игрока предметы для награды
+                    if (!CourierUtils.hasRequiredItems(player, rewardItems)) {
+                        player.sendMessage(Text.literal("У вас нет необходимых предметов для награды!")
+                            .formatted(Formatting.RED), false);
+                        return;
+                    }
+                    
+                    // Забираем предметы награды у заказчика
+                    if (!CourierUtils.takeItemsFromPlayer(player, rewardItems)) {
+                        player.sendMessage(Text.literal("Не удалось забрать предметы награды из инвентаря!")
+                            .formatted(Formatting.RED), false);
+                        return;
+                    }
+                    
                     // Создаем заказ
                     Order order = new Order(UUID.randomUUID(), player.getName().getString(), player.getUuid());
                     order.setDescription(CourierNetworking.truncateDescription(description));
+                    order.setExperienceReward(finalExperienceReward);
                     
                     // Добавляем предметы
                     for (ItemStack item : requestItems) {
@@ -116,7 +141,7 @@ public class CourierPacketHandler {
                     
                     // Валидируем и сохраняем заказ
                     if (order.isValid() && manager.createOrder(order)) {
-                        player.sendMessage(Text.literal("Заказ успешно создан!")
+                        player.sendMessage(Text.literal("Заказ успешно создан! Предметы награды забраны из вашего инвентаря и будут переданы курьеру при выполнении заказа.")
                             .formatted(Formatting.GREEN), false);
                         
                         // Уведомляем всех курьеров о новом заказе
@@ -227,8 +252,8 @@ public class CourierPacketHandler {
                     ServerWorld world = player.getServerWorld();
                     CourierOrderManager manager = CourierOrderManager.get(world);
                     
-                    if (manager.completeOrder(orderId)) {
-                        player.sendMessage(Text.literal("Заказ завершен!")
+                    if (manager.completeOrder(orderId, player)) {
+                        player.sendMessage(Text.literal("Заказ завершен! Вы получили награду.")
                             .formatted(Formatting.GREEN), false);
                         
                         // Уведомляем об изменении статуса
@@ -284,6 +309,42 @@ public class CourierPacketHandler {
     }
     
     /**
+     * Обработка удаления заказа
+     */
+    private static void handleDeleteOrder(net.minecraft.server.MinecraftServer server, 
+                                        ServerPlayerEntity player, 
+                                        net.minecraft.server.network.ServerPlayNetworkHandler handler, 
+                                        PacketByteBuf buf,
+                                        net.fabricmc.fabric.api.networking.v1.PacketSender responseSender) {
+        try {
+            UUID orderId = buf.readUuid();
+            
+            server.execute(() -> {
+                try {
+                    ServerWorld world = player.getServerWorld();
+                    CourierOrderManager manager = CourierOrderManager.get(world);
+                    
+                    if (manager.deleteOrder(orderId, player)) {
+                        player.sendMessage(Text.literal("Заказ удален.")
+                            .formatted(Formatting.YELLOW), false);
+                        
+                        // Уведомляем об изменении статуса
+                        notifyOrderStatusUpdate(world, orderId);
+                    } else {
+                        player.sendMessage(Text.literal("Не удалось удалить заказ.")
+                            .formatted(Formatting.RED), false);
+                    }
+                } catch (Exception e) {
+                    Origins.LOGGER.error("Ошибка при удалении заказа: " + e.getMessage(), e);
+                }
+            });
+            
+        } catch (Exception e) {
+            Origins.LOGGER.error("Ошибка при обработке пакета удаления заказа: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
      * Обработка запроса синхронизации заказов
      */
     private static void handleRequestOrdersSync(net.minecraft.server.MinecraftServer server, 
@@ -297,13 +358,21 @@ public class CourierPacketHandler {
                 CourierOrderManager manager = CourierOrderManager.get(world);
                 
                 List<Order> orders;
+                String playerClass = CourierUtils.getPlayerClass(player);
+                
                 if (CourierUtils.isCourier(player)) {
-                    // Курьеры видят только активные заказы
-                    orders = manager.getActiveOrders();
+                    // Курьеры видят все открытые заказы + свои принятые заказы
+                    orders = manager.getAllOrders().stream()
+                        .filter(order -> order.getStatus() == Order.Status.OPEN || 
+                                        (order.getAcceptedByUuid() != null && order.getAcceptedByUuid().equals(player.getUuid())))
+                        .collect(java.util.stream.Collectors.toList());
                 } else {
                     // Другие игроки видят только свои заказы
                     orders = manager.getOrdersByPlayer(player.getUuid());
                 }
+                
+                Origins.LOGGER.info("Игрок {} (класс: {}) получает {} заказов", 
+                    player.getName().getString(), playerClass, orders.size());
                 
                 sendOrdersToPlayer(player, orders);
                 

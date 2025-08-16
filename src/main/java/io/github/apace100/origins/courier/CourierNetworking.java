@@ -14,6 +14,8 @@ public class CourierNetworking {
     public static final Identifier DECLINE_ORDER = Origins.identifier("courier_decline_order");
     public static final Identifier COMPLETE_ORDER = Origins.identifier("courier_complete_order");
     public static final Identifier CANCEL_ORDER = Origins.identifier("courier_cancel_order");
+    public static final Identifier DELETE_ORDER = Origins.identifier("courier_delete_order");
+    public static final Identifier OPEN_ORDERS_UI = Origins.identifier("courier_open_orders_ui");
     public static final Identifier SYNC_ORDERS = Origins.identifier("courier_sync_orders");
     public static final Identifier NEW_ORDER_NOTIFY = Origins.identifier("courier_new_order_notify");
     public static final Identifier ORDER_STATUS_UPDATE = Origins.identifier("courier_order_status_update");
