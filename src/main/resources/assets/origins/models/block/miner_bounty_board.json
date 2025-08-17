@@ -1,8 +1,6 @@
 {
-  "parent": "minecraft:block/orientable",
+  "parent": "minecraft:block/cube_all",
   "textures": {
-    "top": "origins:block/bounty_board/miner_bounty_board",
-    "front": "origins:block/bounty_board/miner_bounty_board",
-    "side": "origins:block/bounty_board/miner_bounty_board"
+    "all": "origins:block/bounty_board/miner_bounty_board"
   }
 }

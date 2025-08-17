@@ -1,19 +1,7 @@
 {
   "variants": {
-    "facing=north": {
+    "": {
       "model": "origins:block/courier_bounty_board"
-    },
-    "facing=south": {
-      "model": "origins:block/courier_bounty_board",
-      "y": 180
-    },
-    "facing=west": {
-      "model": "origins:block/courier_bounty_board",
-      "y": 270
-    },
-    "facing=east": {
-      "model": "origins:block/courier_bounty_board",
-      "y": 90
     }
   }
 }
