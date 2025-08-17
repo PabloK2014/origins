@@ -36,8 +36,7 @@ public class SkillKeybinds implements ClientModInitializer {
             return;
         }
         
-        Origins.LOGGER.info("Registering Origins skill keybindings...");
-        
+                
         try {
             // Регистрируем клавишу G для глобального навыка класса
             activateGlobalSkillKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
@@ -61,8 +60,7 @@ public class SkillKeybinds implements ClientModInitializer {
                 "category.origins.skills" // Категория
             ));
             
-            Origins.LOGGER.info("Successfully registered {} Origins skill keybindings", 3);
-        } catch (Exception e) {
+                    } catch (Exception e) {
             Origins.LOGGER.error("Failed to register Origins skill keybindings: " + e.getMessage(), e);
         }
         
@@ -72,22 +70,19 @@ public class SkillKeybinds implements ClientModInitializer {
             
             // Проверяем нажатие клавиши активации активного навыка
             if (activateActiveSkillKey.wasPressed()) {
-                Origins.LOGGER.info("Нажата клавиша активации активного навыка (K)");
-                showKeybindFeedback("Активация навыка...", Formatting.YELLOW);
+                                showKeybindFeedback("Активация навыка...", Formatting.YELLOW);
                 sendActivateActiveSkillPacket();
             }
             
             // Проверяем нажатие клавиши открытия GUI выбора навыка
             if (openSkillSelectionKey.wasPressed()) {
-                Origins.LOGGER.info("Нажата клавиша открытия GUI выбора навыка (L)");
-                showKeybindFeedback("Открытие меню навыков...", Formatting.BLUE);
+                                showKeybindFeedback("Открытие меню навыков...", Formatting.BLUE);
                 openSkillSelectionGUI();
             }
             
             // Проверяем нажатие клавиши активации глобального навыка класса
             if (activateGlobalSkillKey.wasPressed()) {
-                Origins.LOGGER.info("Нажата клавиша активации глобального навыка (G)");
-                showKeybindFeedback("Активация глобального навыка...", Formatting.GREEN);
+                                showKeybindFeedback("Активация глобального навыка...", Formatting.GREEN);
                 sendActivateGlobalSkillPacket();
             }
         });
@@ -132,16 +127,14 @@ public class SkillKeybinds implements ClientModInitializer {
             Text feedbackText = Text.literal(message).formatted(color);
             client.player.sendMessage(feedbackText, true);
             
-            Origins.LOGGER.debug("Показана обратная связь: {}", message);
-        }
+                    }
     }
     
     /**
      * Проверяет состояние клавиш для диагностики
      */
     public static void runKeybindingDiagnostic() {
-        Origins.LOGGER.info("Запуск диагностики клавиш Origins...");
-        
+                
         if (activateGlobalSkillKey == null) {
             Origins.LOGGER.error("Клавиша глобального навыка (G) не зарегистрирована!");
         } else {
@@ -166,8 +159,7 @@ public class SkillKeybinds implements ClientModInitializer {
                 openSkillSelectionKey.getBoundKeyLocalizedText().getString());
         }
         
-        Origins.LOGGER.info("Диагностика клавиш завершена");
-    }
+            }
     
     /**
      * Получает статус клавиш для внешней диагностики

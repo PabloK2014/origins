@@ -36,8 +36,7 @@ public class OriginLayers extends MultiJsonDataLoader implements IdentifiableRes
             minLayerPriority = Integer.MIN_VALUE;
             jel.forEach(je -> {
                 try {
-                    Origins.LOGGER.info("Trying to read layer file: " + id);
-                    JsonObject jo = je.getAsJsonObject();
+                                        JsonObject jo = je.getAsJsonObject();
                     boolean replace = JsonHelper.getBoolean(jo, "replace", false);
                     int priority = JsonHelper.getInt(jo, "loading_priority", 0);
                     if(priority >= minLayerPriority) {
@@ -70,8 +69,7 @@ public class OriginLayers extends MultiJsonDataLoader implements IdentifiableRes
             }
             OriginLayers.layers.put(layerId, layer);
         }
-        Origins.LOGGER.info("Finished loading origin layers from data files. Read " + layers.size() + " layers.");
-        OriginDataLoadedCallback.EVENT.invoker().onDataLoaded(false);
+                OriginDataLoadedCallback.EVENT.invoker().onDataLoaded(false);
     }
 
     public static OriginLayer getLayer(Identifier id) {

@@ -187,14 +187,11 @@ public class DiagnosticReporter {
                 Origins.LOGGER.warn("[{}] {}", category, message);
                 break;
             case "INFO":
-                Origins.LOGGER.info("[{}] {}", category, message);
-                break;
+                                break;
             case "DEBUG":
-                Origins.LOGGER.debug("[{}] {}", category, message);
-                break;
+                                break;
             default:
-                Origins.LOGGER.info("[{}] {}", category, message);
-                break;
+                                break;
         }
     }
     
@@ -209,8 +206,7 @@ public class DiagnosticReporter {
      * Generates a comprehensive diagnostic report
      */
     public static DiagnosticReport generateReport() {
-        Origins.LOGGER.info("Generating comprehensive diagnostic report...");
-        
+                
         // Collect system information
         SystemInfo systemInfo = new SystemInfo();
         
@@ -241,8 +237,7 @@ public class DiagnosticReporter {
             EVENT_LOG
         );
         
-        Origins.LOGGER.info("Diagnostic report generated successfully");
-        return report;
+                return report;
     }
     
     /**
@@ -259,8 +254,7 @@ public class DiagnosticReporter {
             String jsonReport = GSON.toJson(report);
             Files.writeString(reportFile, jsonReport);
             
-            Origins.LOGGER.info("Diagnostic report saved to: {}", reportFile);
-            return reportFile;
+                        return reportFile;
         } catch (IOException e) {
             Origins.LOGGER.error("Failed to save diagnostic report: " + e.getMessage(), e);
             return null;
@@ -368,8 +362,7 @@ public class DiagnosticReporter {
             
             Files.writeString(reportFile, textReport.toString());
             
-            Origins.LOGGER.info("Text diagnostic report saved to: {}", reportFile);
-            return reportFile;
+                        return reportFile;
         } catch (IOException e) {
             Origins.LOGGER.error("Failed to save text diagnostic report: " + e.getMessage(), e);
             return null;
@@ -381,8 +374,7 @@ public class DiagnosticReporter {
      */
     public static void clearEventLog() {
         EVENT_LOG.clear();
-        Origins.LOGGER.debug("Diagnostic event log cleared");
-    }
+            }
     
     /**
      * Gets events for a specific category

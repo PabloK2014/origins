@@ -11,20 +11,17 @@ public class QuestUtils {
      * Проверяет совместимость классов игрока и квеста
      */
     public static boolean isClassCompatible(String playerClass, String questClass) {
-        Origins.LOGGER.info("QuestUtils.isClassCompatible: игрок='{}', квест='{}'", playerClass, questClass);
-        
+                
         // Квесты для любого класса всегда доступны
         if (questClass == null || questClass.equals("any") || questClass.equals("human")) {
-            Origins.LOGGER.info("Квест для любого класса или человека - РАЗРЕШЕНО");
-            return true;
+                        return true;
         }
         
         // Нормализуем названия классов
         String normalizedPlayerClass = normalizeClassName(playerClass);
         String normalizedQuestClass = normalizeClassName(questClass);
         
-        Origins.LOGGER.info("Нормализованные классы: игрок='{}', квест='{}'", normalizedPlayerClass, normalizedQuestClass);
-        
+                
         // Проверяем точное совпадение
         boolean compatible = normalizedPlayerClass.equals(normalizedQuestClass);
         
@@ -33,8 +30,7 @@ public class QuestUtils {
             compatible = true;
         }
         
-        Origins.LOGGER.info("Результат проверки совместимости: {}", compatible ? "РАЗРЕШЕНО" : "ЗАПРЕЩЕНО");
-        return compatible;
+                return compatible;
     }
     
     /**

@@ -64,7 +64,6 @@ public class QuestTicketTimeUpdater {
         // Если время истекло, помечаем квест как проваленный
         if (elapsedSeconds >= totalLimitSeconds) {
             QuestTicketItem.markAsFailed(stack);
-            io.github.apace100.origins.Origins.LOGGER.info("Квест {} автоматически помечен как проваленный из-за истечения времени", quest.getId());
-        }
+      }
     }
 }

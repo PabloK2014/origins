@@ -156,36 +156,28 @@ public class CookHelper {
      */
     public static void processCookingExperience(ServerPlayerEntity player, net.minecraft.screen.slot.Slot slot, net.minecraft.item.ItemStack stack, String source) {
         try {
-            Origins.LOGGER.info("=== CookHelper: processCookingExperience вызван из {} ===", source);
-            
+                        
             if (stack == null || stack.isEmpty()) {
-                Origins.LOGGER.info("CookHelper: Стек пустой или null");
-                return;
+                                return;
             }
             
-            Origins.LOGGER.info("CookHelper: Предмет: {}", stack.getItem().toString());
-            
+                        
             if (!stack.isFood()) {
-                Origins.LOGGER.info("CookHelper: Предмет не является едой");
-                return;
+                                return;
             }
             
-            Origins.LOGGER.info("CookHelper: Предмет является едой!");
-            
+                        
             String invClass = slot.inventory != null ? slot.inventory.getClass().getName() : "null";
             int slotIdx = slot.getIndex();
             
-            Origins.LOGGER.info("CookHelper: Инвентарь: {}, Слот: {}", invClass, slotIdx);
-            
+                        
             // Проверяем, что слот относится к результату приготовления
             boolean isCookingSlot = isCookingResultSlot(slot);
-            Origins.LOGGER.info("CookHelper: Слот является результатом приготовления: {}", isCookingSlot);
-            
+                        
             if (isCookingSlot) {
                 // Проверяем, является ли игрок поваром
                 boolean isCook = isPlayerCook(player);
-                Origins.LOGGER.info("CookHelper: Игрок является поваром: {}", isCook);
-                
+                                
                 if (isCook) {
                     // Используем продвинутую формулу расчета опыта
                     int baseExp = getBaseExperienceForFood(stack);
@@ -195,11 +187,9 @@ public class CookHelper {
                     String deviceName = getDeviceName(slot.inventory.getClass().getName());
                     giveCookExperience(player, expAmount, deviceName + " (" + source + ")");
                 } else {
-                    Origins.LOGGER.info("CookHelper: Игрок не является поваром");
-                }
+                                    }
             } else {
-                Origins.LOGGER.info("CookHelper: Слот не является результатом приготовления");
-            }
+                            }
         } catch (Exception e) {
             Origins.LOGGER.error("Ошибка при обработке опыта повару: " + e.getMessage(), e);
         }

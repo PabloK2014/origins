@@ -118,13 +118,14 @@ public class CourierUtils {
      * Дает предметы игроку
      */
     public static void giveItemsToPlayer(ServerPlayerEntity player, java.util.List<ItemStack> itemsToGive) {
-        for (ItemStack item : itemsToGive) {
+                for (ItemStack item : itemsToGive) {
             if (!item.isEmpty()) {
-                // Пытаемся добавить в инвентарь, если не помещается - дропаем
+                                // Пытаемся добавить в инвентарь, если не помещается - дропаем
                 if (!player.getInventory().insertStack(item.copy())) {
-                    player.dropItem(item.copy(), false);
-                }
+                                        player.dropItem(item.copy(), false);
+                } else {
+                                    }
             }
         }
-    }
+            }
 }

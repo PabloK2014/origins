@@ -77,8 +77,7 @@ public class JsonDiagnostic {
                 public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
                     String dirName = dir.getFileName().toString();
                     if (EXCLUDED_DIRECTORIES.contains(dirName)) {
-                        Origins.LOGGER.info("Skipping directory: " + dir);
-                        return FileVisitResult.SKIP_SUBTREE;
+                                                return FileVisitResult.SKIP_SUBTREE;
                     }
                     return FileVisitResult.CONTINUE;
                 }
@@ -95,8 +94,7 @@ public class JsonDiagnostic {
             Origins.LOGGER.error("Error scanning for JSON files: " + e.getMessage());
         }
         
-        Origins.LOGGER.info("Found " + jsonFiles.size() + " JSON files to validate");
-        return jsonFiles;
+                return jsonFiles;
     }
     
     /**
@@ -181,13 +179,11 @@ public class JsonDiagnostic {
             return true;
         }
         
-        Origins.LOGGER.info("Attempting repair of JSON file: {}", filePath);
-        
+                
         try {
             // Create backup before attempting repair
             Path backupPath = createBackup(filePath);
-            Origins.LOGGER.info("Created backup: " + backupPath);
-            
+                        
             switch (result.errorType) {
                 case EMPTY_FILE:
                     return handleEmptyFile(filePath);
@@ -247,8 +243,7 @@ public class JsonDiagnostic {
         }
         
         Files.writeString(filePath, defaultContent);
-        Origins.LOGGER.info("Generated default content for empty file: " + filePath);
-        return true;
+                return true;
     }
     
     /**
@@ -260,8 +255,7 @@ public class JsonDiagnostic {
         
         if (!repairedContent.equals(content)) {
             Files.writeString(filePath, repairedContent);
-            Origins.LOGGER.info("Attempted to complete truncated JSON: " + filePath);
-            return true;
+                        return true;
         }
         
         return false;
@@ -276,8 +270,7 @@ public class JsonDiagnostic {
         
         if (!repairedContent.equals(content)) {
             Files.writeString(filePath, repairedContent);
-            Origins.LOGGER.info("Attempted syntax repair for: " + filePath);
-            return true;
+                        return true;
         }
         
         return false;
@@ -443,8 +436,7 @@ public class JsonDiagnostic {
      * Runs comprehensive JSON validation on the entire project
      */
     public static void runFullDiagnostic() {
-        Origins.LOGGER.info("Starting comprehensive JSON diagnostic...");
-        
+                
         List<Path> jsonFiles = scanForJsonFiles();
         List<ValidationResult> failures = new ArrayList<>();
         int repairedCount = 0;
@@ -463,14 +455,12 @@ public class JsonDiagnostic {
                 // Attempt repair
                 if (repairJsonFile(jsonFile, result)) {
                     repairedCount++;
-                    Origins.LOGGER.info("Successfully repaired: " + jsonFile);
-                    
+                                        
                     // Re-validate after repair
                     ValidationResult revalidation = validateJsonFile(jsonFile);
                     if (revalidation.isValid) {
                         validCount++;
-                        Origins.LOGGER.info("Repair verified for: " + jsonFile);
-                    } else {
+                                            } else {
                         Origins.LOGGER.error("Repair failed verification for: " + jsonFile);
                     }
                 } else {
@@ -481,12 +471,7 @@ public class JsonDiagnostic {
             }
         }
         
-        Origins.LOGGER.info("=== JSON Diagnostic Summary ===");
-        Origins.LOGGER.info("- Total files scanned: " + jsonFiles.size());
-        Origins.LOGGER.info("- Valid files: " + validCount);
-        Origins.LOGGER.info("- Files with issues: " + failures.size());
-        Origins.LOGGER.info("- Files repaired: " + repairedCount);
-        Origins.LOGGER.info("- Success rate: " + String.format("%.1f%%", 
+                                                Origins.LOGGER.info("- Success rate: " + String.format("%.1f%%", 
             (double) validCount / jsonFiles.size() * 100));
         
         if (!failures.isEmpty()) {
@@ -496,15 +481,13 @@ public class JsonDiagnostic {
             }
         }
         
-        Origins.LOGGER.info("JSON diagnostic complete!");
-    }
+            }
     
     /**
      * Quick validation for Origins-specific JSON files only
      */
     public static void runOriginsJsonDiagnostic() {
-        Origins.LOGGER.info("Starting Origins-specific JSON diagnostic...");
-        
+                
         List<Path> jsonFiles = scanForJsonFiles().stream()
             .filter(path -> path.toString().contains("origins") || 
                            path.toString().contains("powers") ||
@@ -512,8 +495,7 @@ public class JsonDiagnostic {
                            path.toString().contains("mixins.json"))
             .toList();
         
-        Origins.LOGGER.info("Found " + jsonFiles.size() + " Origins-related JSON files");
-        
+                
         int issues = 0;
         for (Path jsonFile : jsonFiles) {
             ValidationResult result = validateJsonFile(jsonFile);
@@ -525,8 +507,7 @@ public class JsonDiagnostic {
         }
         
         if (issues == 0) {
-            Origins.LOGGER.info("All Origins JSON files are valid!");
-        } else {
+                    } else {
             Origins.LOGGER.warn("Found and attempted to fix " + issues + " issues in Origins JSON files");
         }
     }

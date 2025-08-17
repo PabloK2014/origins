@@ -36,23 +36,19 @@ public class QuestProgressTracker {
             QuestInventoryManager inventoryManager = QuestInventoryManager.getInstance();
             List<ItemStack> questTickets = inventoryManager.findQuestTickets(player);
             
-            Origins.LOGGER.info("Найдено билетов квестов: {}", questTickets.size());
-            inventoryManager.debugInventory(player);
+                        inventoryManager.debugInventory(player);
             
             if (questTickets.isEmpty()) {
-                Origins.LOGGER.info("Нет активных квестов у игрока {}", player.getName().getString());
-                return; // Нет активных квестов
+                                return; // Нет активных квестов
             }
             
             // Обновляем прогресс для каждого билета
             for (ItemStack ticket : questTickets) {
-                Origins.LOGGER.info("Обрабатываем билет квеста: {}", ticket);
-                
+                                
                 // Получаем квест из билета
                 Quest quest = QuestItem.getQuestFromStack(ticket);
                 if (quest != null) {
-                    Origins.LOGGER.info("Найден квест в билете: {} (ID: {})", quest.getTitle(), quest.getId());
-                    updateTicketProgress(player, ticket, action, target, amount);
+                                        updateTicketProgress(player, ticket, action, target, amount);
                 } else {
                     Origins.LOGGER.warn("Не удалось получить квест из билета: {}", ticket);
                 }
@@ -128,19 +124,15 @@ public class QuestProgressTracker {
             }
             
             // Проверяем, соответствует ли действие цели
-            Origins.LOGGER.info("Проверяем соответствие действия цели для квеста {}", quest.getId());
-            if (isActionMatchingObjective(action, target, objective)) {
-                Origins.LOGGER.info("Действие соответствует цели! Обновляем прогресс.");
-                // Обновляем прогресс
+                        if (isActionMatchingObjective(action, target, objective)) {
+                                // Обновляем прогресс
                 int newProgress = Math.min(objective.getProgress() + amount, objective.getAmount());
                 objective.setProgress(newProgress);
                 
-                Origins.LOGGER.info("Обновлен прогресс квеста {}: {}/{}", quest.getId(), newProgress, objective.getAmount());
-                
+                                
                 if (newProgress >= objective.getAmount()) {
                     objective.setCompleted(true);
-                    Origins.LOGGER.info("Цель квеста {} выполнена!", quest.getId());
-                }
+                                    }
                 
                 // Обновляем билет с новым методом
                 progressUpdated = QuestTicketItem.updateQuestProgress(ticket, action, target, amount);
@@ -148,8 +140,7 @@ public class QuestProgressTracker {
                 // Уведомляем игрока
                 notifyPlayerProgress(player, objective, quest);
             } else {
-                Origins.LOGGER.info("Действие НЕ соответствует цели квеста {}", quest.getId());
-            }
+                            }
             
             if (progressUpdated) {
                 // Синхронизируем с клиентом
@@ -194,12 +185,10 @@ public class QuestProgressTracker {
         }
         
         if (!typeMatches) {
-            Origins.LOGGER.info("Тип действия не совпадает: {} != {}", actionLower, objectiveType);
-            return false;
+                        return false;
         }
         
-        Origins.LOGGER.info("Тип действия совпадает: {} == {}", actionLower, objectiveType);
-        
+                
         // Проверяем цель (предмет/моб)
         String objectiveTarget = objective.getTarget();
         if (objectiveTarget == null) {
@@ -208,8 +197,7 @@ public class QuestProgressTracker {
         
         // Прямое сравнение ID
         if (objectiveTarget.equals(target)) {
-            Origins.LOGGER.info("Точное совпадение цели: {} == {}", objectiveTarget, target);
-            return true;
+                        return true;
         }
         
         // Сравнение без префикса minecraft:
@@ -217,12 +205,10 @@ public class QuestProgressTracker {
         String cleanTarget = target.replace("minecraft:", "");
         
         if (cleanObjective.equals(cleanTarget)) {
-            Origins.LOGGER.info("Совпадение без префикса: {} == {}", cleanObjective, cleanTarget);
-            return true;
+                        return true;
         }
         
-        Origins.LOGGER.debug("Цели не совпадают: {} != {}", objectiveTarget, target);
-        return false;
+                return false;
     }
     
     /**

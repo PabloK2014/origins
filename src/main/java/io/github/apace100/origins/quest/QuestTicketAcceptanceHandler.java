@@ -68,8 +68,7 @@ public class QuestTicketAcceptanceHandler {
         }
         
         try {
-            Origins.LOGGER.info("Создаем билет квеста");
-            // Создаем билет квеста
+                        // Создаем билет квеста
             ItemStack questTicket = QuestTicketItem.createQuestTicket(quest);
             if (questTicket.isEmpty()) {
                 Origins.LOGGER.error("Не удалось создать билет для квеста: {}", quest.getId());
@@ -80,10 +79,8 @@ public class QuestTicketAcceptanceHandler {
                 );
                 return false;
             }
-            Origins.LOGGER.info("Билет квеста создан: {}", questTicket);
-            
-            Origins.LOGGER.info("Добавляем билет в инвентарь игрока");
-            // Добавляем билет в инвентарь игрока
+                        
+                        // Добавляем билет в инвентарь игрока
             QuestInventoryManager inventoryManager = QuestInventoryManager.getInstance();
             if (!inventoryManager.addQuestTicketToInventory(player, quest)) {
                 Origins.LOGGER.warn("Не удалось добавить билет в инвентарь");
@@ -91,30 +88,24 @@ public class QuestTicketAcceptanceHandler {
                 return false;
             }
             
-            Origins.LOGGER.info("Билет добавлен в инвентарь, проверяем...");
-            inventoryManager.debugInventory(player);
+                        inventoryManager.debugInventory(player);
             
             // Помечаем билет как принятый
             ItemStack addedTicket = inventoryManager.getActiveQuestTicket(player, quest.getId());
             if (!addedTicket.isEmpty()) {
                 QuestTicketItem.markAsAccepted(addedTicket, System.currentTimeMillis());
-                Origins.LOGGER.info("Билет помечен как принятый");
-            } else {
+                            } else {
                 Origins.LOGGER.warn("Не удалось найти добавленный билет квеста {}", quest.getId());
             }
             
-            Origins.LOGGER.info("Регистрируем квест в QuestManager");
-            // Регистрируем квест как принятый в QuestManager
+                        // Регистрируем квест как принятый в QuestManager
             QuestManager questManager = QuestManager.getInstance();
             questManager.startQuest(player, quest);
-            Origins.LOGGER.info("Квест зарегистрирован в QuestManager");
-            
-            Origins.LOGGER.info("Удаляем квест с доски объявлений");
-            // Удаляем квест с доски объявлений
+                        
+                        // Удаляем квест с доски объявлений
             if (board != null) {
                 board.removeQuest(quest);
-                Origins.LOGGER.info("Квест удален с доски");
-            }
+                            }
             
             // Уведомляем игрока об успехе
             if (player instanceof ServerPlayerEntity serverPlayer) {
@@ -123,11 +114,9 @@ public class QuestTicketAcceptanceHandler {
                 
                 sendSuccessMessage(player, "Квест \"" + quest.getTitle() + "\" принят!");
                 sendInfoMessage(player, "Активных квестов: " + activeCount + "/" + maxQuests);
-                Origins.LOGGER.info("Отправлено сообщение игроку");
-            }
+                            }
             
-            Origins.LOGGER.info("Игрок {} принял квест: {}", player.getName().getString(), quest.getTitle());
-            return true;
+                        return true;
             
         } catch (Exception e) {
             Origins.LOGGER.error("Ошибка при принятии квеста {}: {}", quest.getId(), e.getMessage());
@@ -202,17 +191,14 @@ public class QuestTicketAcceptanceHandler {
                 return false;
             }
             
-            Origins.LOGGER.info("Проверяем готовность квеста {} к завершению", quest.getId());
-            
+                        
             // Проверяем готовность квеста к завершению через билет
             QuestTicketState ticketState = QuestTicketItem.getTicketState(ticketStack);
             boolean isReady = QuestTicketItem.isReadyForCompletion(ticketStack);
             
-            Origins.LOGGER.info("Состояние билета: {}, готов к завершению: {}", ticketState, isReady);
-            
+                        
             if (!isReady) {
-                Origins.LOGGER.info("Квест {} не готов к завершению", quest.getId());
-                sendErrorMessage(player, "Квест еще не выполнен! Проверьте все условия.");
+                                sendErrorMessage(player, "Квест еще не выполнен! Проверьте все условия.");
                 return false;
             }
             
@@ -223,8 +209,7 @@ public class QuestTicketAcceptanceHandler {
                 return false;
             }
             
-            Origins.LOGGER.info("Выдаем награды за квест {}", quest.getId());
-            
+                        
             // Выдаем награды
             giveQuestRewards(player, quest);
             
@@ -247,8 +232,7 @@ public class QuestTicketAcceptanceHandler {
                 showRewardDetails(serverPlayer, quest);
             }
             
-            Origins.LOGGER.info("Игрок {} успешно завершил квест: {}", player.getName().getString(), quest.getTitle());
-            return true;
+                        return true;
             
         } catch (Exception e) {
             Origins.LOGGER.error("Ошибка при завершении квеста: {}", e.getMessage());
@@ -286,8 +270,7 @@ public class QuestTicketAcceptanceHandler {
                 );
             }
             
-            Origins.LOGGER.info("Игрок {} отменил квест: {}", player.getName().getString(), quest.getTitle());
-            
+                        
         } catch (Exception e) {
             Origins.LOGGER.error("Ошибка при отмене квеста: {}", e.getMessage());
         }
@@ -320,8 +303,7 @@ public class QuestTicketAcceptanceHandler {
             }
             
             // Проверяем лимит активных квестов
-            Origins.LOGGER.info("Проверяем лимит активных квестов");
-            QuestManager questManager = QuestManager.getInstance();
+                        QuestManager questManager = QuestManager.getInstance();
             
             if (!questManager.canAcceptAdditionalQuest(player)) {
                 int currentCount = questManager.getActiveQuestCount(player);
@@ -348,13 +330,11 @@ public class QuestTicketAcceptanceHandler {
                     if (hasInManager && !hasInInventory) {
                         // Есть в менеджере, но нет в инвентаре - удаляем из менеджера
                         questManager.cancelQuest(player, quest.getId());
-                        Origins.LOGGER.info("Удален квест {} из QuestManager (не было билета)", quest.getId());
-                        return canAcceptQuest(player, quest); // Повторная проверка
+                                                return canAcceptQuest(player, quest); // Повторная проверка
                     } else if (!hasInManager && hasInInventory) {
                         // Есть в инвентаре, но нет в менеджере - удаляем из инвентаря
                         inventoryManager.removeQuestTicketFromInventory(player, quest.getId());
-                        Origins.LOGGER.info("Удален билет квеста {} из инвентаря (не было в менеджере)", quest.getId());
-                        return canAcceptQuest(player, quest); // Повторная проверка
+                                                return canAcceptQuest(player, quest); // Повторная проверка
                     }
                 }
                 
@@ -362,31 +342,25 @@ public class QuestTicketAcceptanceHandler {
                 return false;
             }
             
-            Origins.LOGGER.info("Проверка лимитов пройдена");
-            
+                        
             // Проверяем соответствие класса игрока с улучшенной логикой
-            Origins.LOGGER.info("Проверяем класс игрока");
-            String playerClass = getPlayerOriginClass(player);
+                        String playerClass = getPlayerOriginClass(player);
             String questClass = quest.getPlayerClass();
             
-            Origins.LOGGER.info("Класс игрока: {}, требуемый класс: {}", playerClass, questClass);
-            
+                        
             if (!QuestUtils.isClassCompatible(playerClass, questClass)) {
                 Origins.LOGGER.warn("Класс игрока {} не подходит для квеста класса {}", playerClass, questClass);
                 sendErrorMessage(player, "Этот квест предназначен для класса: " + QuestUtils.getLocalizedClassName(questClass));
                 return false;
             }
-            Origins.LOGGER.info("Класс игрока подходит");
-            
+                        
             // Проверяем, есть ли место в инвентаре
-            Origins.LOGGER.info("Проверяем место в инвентаре");
-            if (!hasInventorySpace(player)) {
+                        if (!hasInventorySpace(player)) {
                 Origins.LOGGER.warn("Нет места в инвентаре");
                 sendErrorMessage(player, "Нет места в инвентаре для билета квеста! Освободите место и попробуйте снова.");
                 return false;
             }
-            Origins.LOGGER.info("Место в инвентаре есть");
-            
+                        
             // Проверяем уровень игрока (если требуется)
             if (!checkPlayerLevel(player, quest)) {
                 Origins.LOGGER.warn("Уровень игрока недостаточен для квеста");
@@ -394,8 +368,7 @@ public class QuestTicketAcceptanceHandler {
                 return false;
             }
             
-            Origins.LOGGER.info("Все проверки пройдены успешно");
-            return true;
+                        return true;
             
         } catch (Exception e) {
             Origins.LOGGER.error("Ошибка при проверке возможности принятия квеста: {}", e.getMessage());
@@ -624,8 +597,7 @@ public class QuestTicketAcceptanceHandler {
         // Проверяем состояние билета
         QuestTicketState state = QuestTicketItem.getTicketState(questTicket);
         if (state != QuestTicketState.COMPLETED) {
-            Origins.LOGGER.info("Квест {} не в состоянии COMPLETED (текущее: {})", quest.getId(), state);
-            return false;
+                        return false;
         }
         
         // Проверяем все цели в билете
@@ -711,8 +683,7 @@ public class QuestTicketAcceptanceHandler {
                 objNbt.putInt("progress", newProgress);
                 objNbt.putBoolean("completed", newProgress >= amount);
                 
-                Origins.LOGGER.info("Обновлен прогресс цели {}: {}/{}", target, newProgress, amount);
-                break;
+                                break;
             }
         }
         
@@ -735,8 +706,7 @@ public class QuestTicketAcceptanceHandler {
             // Добавляем визуальные эффекты
             QuestTicketItem.addVisualCompletionEffect(questTicket);
             
-            Origins.LOGGER.info("Квест готов к завершению!");
-        }
+                    }
     }
     
     /**
@@ -764,8 +734,7 @@ public class QuestTicketAcceptanceHandler {
                         
                     case ITEM:
                         // Добавляем предметы (если будет реализовано)
-                        Origins.LOGGER.info("Награда в виде предметов пока не реализована");
-                        break;
+                                                break;
                 }
             }
             

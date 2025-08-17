@@ -136,8 +136,7 @@ public class ModCompatibilityChecker {
      * Runs comprehensive compatibility check
      */
     public static CompatibilityReport runCompatibilityCheck() {
-        Origins.LOGGER.info("Starting comprehensive mod compatibility check...");
-        
+                
         CompatibilityReport report = new CompatibilityReport();
         
         // Collect information about all installed mods
@@ -388,13 +387,7 @@ public class ModCompatibilityChecker {
      * Logs compatibility results
      */
     private static void logCompatibilityResults(CompatibilityReport report) {
-        Origins.LOGGER.info("Mod compatibility check complete:");
-        Origins.LOGGER.info("- Total mods: {}", report.installedMods.size());
-        Origins.LOGGER.info("- Version conflicts: {}", report.versionConflicts.size());
-        Origins.LOGGER.info("- Incompatibilities: {}", report.incompatibilities.size());
-        Origins.LOGGER.info("- Missing dependencies: {}", report.missingDependencies.size());
-        Origins.LOGGER.info("- Warnings: {}", report.warnings.size());
-        
+                                                        
         if (report.hasCriticalIssues()) {
             Origins.LOGGER.error("CRITICAL ISSUES DETECTED:");
             for (IncompatibilityIssue issue : report.incompatibilities) {
@@ -419,10 +412,8 @@ public class ModCompatibilityChecker {
         }
         
         if (!report.recommendations.isEmpty()) {
-            Origins.LOGGER.info("Recommendations:");
-            for (String recommendation : report.recommendations) {
-                Origins.LOGGER.info("- {}", recommendation);
-            }
+                        for (String recommendation : report.recommendations) {
+                            }
         }
     }
     

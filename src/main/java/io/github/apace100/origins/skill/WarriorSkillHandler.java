@@ -153,8 +153,7 @@ public class WarriorSkillHandler {
             );
         }
         
-        Origins.LOGGER.info("Воин {} использовал безумный рывок", player.getName().getString());
-    }
+            }
     
     /**
      * Обрабатывает навык "Жажда Битвы"
@@ -215,8 +214,7 @@ public class WarriorSkillHandler {
                     false
                 );
                 
-                Origins.LOGGER.info("Воин {} использовал последний шанс", player.getName().getString());
-                return true; // Отменяем урон
+                                return true; // Отменяем урон
             }
         }
         
@@ -261,8 +259,7 @@ public class WarriorSkillHandler {
                 false
             );
             
-            Origins.LOGGER.info("Воин {} активировал несокрушимость", player.getName().getString());
-        } else {
+                    } else {
             long cooldownLeft = 1800 - (currentTime - lastUse);
             player.sendMessage(
                 Text.literal("Несокрушимость перезарядится через " + (cooldownLeft / 20) + " сек")
@@ -364,7 +361,6 @@ public class WarriorSkillHandler {
                 false
             );
             
-            Origins.LOGGER.info("Воин {} призвал дагестанскую братву", player.getName().getString());
-        }
+                    }
     }
 }

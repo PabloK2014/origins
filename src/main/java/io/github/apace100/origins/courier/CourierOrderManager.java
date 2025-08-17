@@ -52,8 +52,7 @@ public class CourierOrderManager extends PersistentState {
         CourierOrderManager manager = new CourierOrderManager();
         
         NbtList ordersList = nbt.getList("orders", NbtElement.COMPOUND_TYPE);
-        Origins.LOGGER.info("Загружаем {} заказов из NBT", ordersList.size());
-        
+                
         for (int i = 0; i < ordersList.size(); i++) {
             try {
                 Order order = Order.fromNbt(ordersList.getCompound(i));
@@ -63,34 +62,29 @@ public class CourierOrderManager extends PersistentState {
                 manager.playerOrders.computeIfAbsent(order.getOwnerUuid(), k -> new HashSet<>())
                     .add(order.getId());
                     
-                Origins.LOGGER.debug("Загружен заказ {}: {} от {}", order.getId(), order.getDescription(), order.getOwnerName());
-            } catch (Exception e) {
+                            } catch (Exception e) {
                 Origins.LOGGER.error("Ошибка при загрузке заказа {}: {}", i, e.getMessage(), e);
             }
         }
         
-        Origins.LOGGER.info("Успешно загружено {} заказов курьера", manager.orders.size());
-        return manager;
+                return manager;
     }
     
     @Override
     public NbtCompound writeNbt(NbtCompound nbt) {
         NbtList ordersList = new NbtList();
         
-        Origins.LOGGER.info("Сохраняем {} заказов в NBT", orders.size());
-        
+                
         for (Order order : orders.values()) {
             try {
                 ordersList.add(order.toNbt());
-                Origins.LOGGER.debug("Сохранен заказ {}: {} от {}", order.getId(), order.getDescription(), order.getOwnerName());
-            } catch (Exception e) {
+                            } catch (Exception e) {
                 Origins.LOGGER.error("Ошибка при сохранении заказа {}: {}", order.getId(), e.getMessage(), e);
             }
         }
         
         nbt.put("orders", ordersList);
-        Origins.LOGGER.info("Успешно сохранено {} заказов курьера", ordersList.size());
-        return nbt;
+                return nbt;
     }
     
     /**
@@ -122,8 +116,7 @@ public class CourierOrderManager extends PersistentState {
         playerOrderIds.add(order.getId());
         markDirty();
         
-        Origins.LOGGER.info("Создан новый заказ {} от игрока {}", order.getId(), order.getOwnerName());
-        return true;
+                return true;
     }
     
     /**
@@ -142,13 +135,11 @@ public class CourierOrderManager extends PersistentState {
         // Принудительное сохранение
         try {
             courier.getServerWorld().getPersistentStateManager().save();
-            Origins.LOGGER.info("Принудительное сохранение после принятия заказа");
-        } catch (Exception e) {
+                    } catch (Exception e) {
             Origins.LOGGER.error("Ошибка при принудительном сохранении: " + e.getMessage());
         }
         
-        Origins.LOGGER.info("Заказ {} принят курьером {}", orderId, courier.getName().getString());
-        return true;
+                return true;
     }
     
     /**
@@ -161,18 +152,25 @@ public class CourierOrderManager extends PersistentState {
         }
         
         order.setStatus(Order.Status.DECLINED);
+        
+        // Возвращаем предметы награды заказчику
+        ServerPlayerEntity orderOwner = courier.getServer().getPlayerManager().getPlayer(order.getOwnerUuid());
+        if (orderOwner != null) {
+            CourierUtils.giveItemsToPlayer(orderOwner, order.getRewardItems());
+            orderOwner.sendMessage(Text.literal("Ваш заказ отклонен курьером. Предметы награды возвращены в ваш инвентарь.")
+                .formatted(Formatting.YELLOW), false);
+        }
+        
         markDirty();
         
         // Принудительное сохранение
         try {
             courier.getServerWorld().getPersistentStateManager().save();
-            Origins.LOGGER.info("Принудительное сохранение после отклонения заказа");
-        } catch (Exception e) {
+                    } catch (Exception e) {
             Origins.LOGGER.error("Ошибка при принудительном сохранении: " + e.getMessage());
         }
         
-        Origins.LOGGER.info("Заказ {} отклонен курьером {}", orderId, courier.getName().getString());
-        return true;
+                return true;
     }
     
     /**
@@ -258,16 +256,14 @@ public class CourierOrderManager extends PersistentState {
         // Принудительное сохранение
         try {
             player.getServerWorld().getPersistentStateManager().save();
-            Origins.LOGGER.info("Принудительное сохранение после завершения заказа");
-        } catch (Exception e) {
+                    } catch (Exception e) {
             Origins.LOGGER.error("Ошибка при принудительном сохранении: " + e.getMessage());
         }
         
         // Уведомляем заказчика
         notifyOrderOwner(order, "Ваш заказ выполнен курьером " + player.getName().getString() + "!");
         
-        Origins.LOGGER.info("Заказ {} завершен игроком {}", orderId, player.getName().getString());
-        return true;
+                return true;
     }
     
     /**
@@ -282,8 +278,7 @@ public class CourierOrderManager extends PersistentState {
         order.setCompleted();
         markDirty();
         
-        Origins.LOGGER.info("Заказ {} завершен", orderId);
-        return true;
+                return true;
     }
     
     /**
@@ -292,6 +287,7 @@ public class CourierOrderManager extends PersistentState {
     public boolean cancelOrder(UUID orderId, ServerPlayerEntity player) {
         Order order = orders.get(orderId);
         if (order == null) {
+            Origins.LOGGER.warn("Попытка отмены несуществующего заказа с ID: {}", orderId);
             return false;
         }
         
@@ -300,46 +296,43 @@ public class CourierOrderManager extends PersistentState {
                            CourierUtils.isAdmin(player);
         
         if (!canCancel) {
+            Origins.LOGGER.warn("Игрок {} не имеет прав для отмены заказа {}", player.getName().getString(), orderId);
             return false;
         }
         
+                
         // Возвращаем предметы награды заказчику
         ServerPlayerEntity orderOwner = player.getServer().getPlayerManager().getPlayer(order.getOwnerUuid());
-        if (orderOwner != null) {
-            Origins.LOGGER.info("Возвращаем {} предметов награды игроку {}", order.getRewardItems().size(), orderOwner.getName().getString());
-            for (ItemStack item : order.getRewardItems()) {
-                Origins.LOGGER.info("Возвращаем предмет: {} x{}", item.getName().getString(), item.getCount());
-            }
+                        if (orderOwner != null) {
+                        for (ItemStack item : order.getRewardItems()) {
+                            }
             CourierUtils.giveItemsToPlayer(orderOwner, order.getRewardItems());
             orderOwner.sendMessage(Text.literal("Ваш заказ отменен. Предметы награды возвращены в ваш инвентарь.")
                 .formatted(Formatting.YELLOW), false);
-        } else {
+                    } else {
             // Если заказчик не онлайн, возвращаем предметы тому, кто отменил заказ (если это владелец)
             if (player.getUuid().equals(order.getOwnerUuid())) {
-                Origins.LOGGER.info("Возвращаем {} предметов награды игроку {} (владелец отменил заказ)", order.getRewardItems().size(), player.getName().getString());
-                for (ItemStack item : order.getRewardItems()) {
-                    Origins.LOGGER.info("Возвращаем предмет: {} x{}", item.getName().getString(), item.getCount());
-                }
+                                for (ItemStack item : order.getRewardItems()) {
+                                    }
                 CourierUtils.giveItemsToPlayer(player, order.getRewardItems());
                 player.sendMessage(Text.literal("Заказ отменен. Предметы награды возвращены в ваш инвентарь.")
                     .formatted(Formatting.YELLOW), false);
-            }
+                            } else {
+                            }
         }
         
         order.setStatus(Order.Status.CANCELLED);
-        
+                
         markDirty();
         
         // Принудительное сохранение
         try {
             player.getServerWorld().getPersistentStateManager().save();
-            Origins.LOGGER.info("Принудительное сохранение после отмены заказа");
-        } catch (Exception e) {
-            Origins.LOGGER.error("Ошибка при принудительном сохранении: " + e.getMessage());
+                    } catch (Exception e) {
+            Origins.LOGGER.error("Ошибка при принудительном сохранении после отмены заказа {}: {}", orderId, e.getMessage(), e);
         }
         
-        Origins.LOGGER.info("Заказ {} отменен игроком {}", orderId, player.getName().getString());
-        return true;
+                return true;
     }
     
     /**
@@ -388,13 +381,11 @@ public class CourierOrderManager extends PersistentState {
         // Принудительное сохранение
         try {
             player.getServerWorld().getPersistentStateManager().save();
-            Origins.LOGGER.info("Принудительное сохранение после удаления заказа");
-        } catch (Exception e) {
+                    } catch (Exception e) {
             Origins.LOGGER.error("Ошибка при принудительном сохранении: " + e.getMessage());
         }
         
-        Origins.LOGGER.info("Заказ {} удален игроком {}", orderId, player.getName().getString());
-        return true;
+                return true;
     }
     
     /**
@@ -508,8 +499,7 @@ public class CourierOrderManager extends PersistentState {
         
         if (removed > 0) {
             markDirty();
-            Origins.LOGGER.info("Очищено {} старых заказов", removed);
-        }
+                    }
         
         return removed;
     }
@@ -523,8 +513,7 @@ public class CourierOrderManager extends PersistentState {
         playerOrders.clear();
         markDirty();
         
-        Origins.LOGGER.info("Удалено {} заказов администратором", count);
-    }
+            }
     
     /**
      * Проверяет, может ли игрок создать новый заказ
@@ -553,8 +542,7 @@ public class CourierOrderManager extends PersistentState {
     private void notifyOrderOwner(Order order, String message) {
         // Здесь можно добавить логику уведомления владельца заказа
         // Например, отправить сообщение в чат, если игрок онлайн
-        Origins.LOGGER.info("Уведомление для {}: {}", order.getOwnerName(), message);
-    }
+            }
     
     /**
      * Статистика заказов

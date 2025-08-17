@@ -18,13 +18,11 @@ public class QuestResourceReloadListener implements SimpleSynchronousResourceRel
     
     @Override
     public void reload(ResourceManager resourceManager) {
-        Origins.LOGGER.info("Начинаем загрузку квестов из JSON файлов...");
-        
+                
         try {
             // Загружаем квесты из JSON файлов
             QuestGenerator.loadQuestsFromResources(resourceManager);
-            Origins.LOGGER.info("Квесты успешно загружены из JSON файлов");
-        } catch (Exception e) {
+                    } catch (Exception e) {
             Origins.LOGGER.error("Ошибка при загрузке квестов: " + e.getMessage(), e);
         }
     }

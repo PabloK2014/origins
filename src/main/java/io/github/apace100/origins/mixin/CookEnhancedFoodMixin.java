@@ -58,6 +58,5 @@ public class CookEnhancedFoodMixin {
         nbt.putFloat("NutritionMultiplier", power.getNutritionMultiplier());
         nbt.putFloat("SaturationMultiplier", power.getSaturationMultiplier());
         
-        io.github.apace100.origins.Origins.LOGGER.info("[DEBUG] Еда улучшена поваром: " + stack.getItem().toString());
-    }
+          }
 }

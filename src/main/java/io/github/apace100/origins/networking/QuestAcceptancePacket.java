@@ -101,6 +101,5 @@ public class QuestAcceptancePacket {
      */
     public static void registerServerHandler() {
         ServerPlayNetworking.registerGlobalReceiver(ACCEPT_QUEST_ID, QuestAcceptancePacket::handleAcceptQuest);
-        Origins.LOGGER.info("Зарегистрирован обработчик пакета принятия квестов");
-    }
+            }
 }

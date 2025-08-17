@@ -53,8 +53,7 @@ public class OriginHudOverlay {
         }
         
         if (!hasLoggedDebug) {
-            Origins.LOGGER.info("Rendering HUD bars with texture: " + ALL_TEXTURE);
-            hasLoggedDebug = true;
+                        hasLoggedDebug = true;
         }
         
         // Получаем компоненты
@@ -229,15 +228,13 @@ public class OriginHudOverlay {
     private static void validateTexture() {
         try {
             if (TextureValidator.validateTexture(ALL_TEXTURE)) {
-                Origins.LOGGER.info("Successfully validated texture: " + ALL_TEXTURE);
-            } else {
+                            } else {
                 Origins.LOGGER.warn("Texture validation failed: " + ALL_TEXTURE);
                 
                 // Try to get a valid fallback texture
                 Identifier validTexture = TextureValidator.getValidTexture(ALL_TEXTURE);
                 if (!validTexture.equals(ALL_TEXTURE)) {
-                    Origins.LOGGER.info("Using fallback texture: " + validTexture);
-                } else {
+                                    } else {
                     Origins.LOGGER.error("No valid texture or fallback found for: " + ALL_TEXTURE);
                     Origins.LOGGER.error("Expected location: src/main/resources/assets/origins/textures/gui/all.png");
                 }

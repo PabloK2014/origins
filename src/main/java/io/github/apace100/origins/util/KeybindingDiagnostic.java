@@ -47,8 +47,7 @@ public class KeybindingDiagnostic {
      * Runs comprehensive keybinding diagnostic
      */
     public static DiagnosticReport runDiagnostic() {
-        Origins.LOGGER.info("Starting keybinding diagnostic...");
-        
+                
         DiagnosticReport report = new DiagnosticReport();
         
         // Check if client is available
@@ -126,8 +125,7 @@ public class KeybindingDiagnostic {
                                     getKeyName(expectedKey) + ", got " + getKeyName(actualKey));
                 }
                 
-                Origins.LOGGER.info("Found Origins keybinding: " + translationKey + " -> " + getKeyName(actualKey));
-            }
+                            }
         }
         
         // Check for missing keybindings
@@ -228,18 +226,11 @@ public class KeybindingDiagnostic {
      * Logs diagnostic results
      */
     private static void logDiagnosticResults(DiagnosticReport report) {
-        Origins.LOGGER.info("Keybinding diagnostic complete:");
-        Origins.LOGGER.info("- Total keybindings found: " + report.registeredKeybindings.size());
-        Origins.LOGGER.info("- Origins keybindings found: " + report.originsKeybindings.size());
-        Origins.LOGGER.info("- Conflicts detected: " + report.conflicts.size());
-        Origins.LOGGER.info("- Issues found: " + report.issues.size());
-        
+                                                
         // Log Origins keybindings status
-        Origins.LOGGER.info("Origins keybindings status:");
-        for (Map.Entry<String, Boolean> entry : report.originsKeybindings.entrySet()) {
+                for (Map.Entry<String, Boolean> entry : report.originsKeybindings.entrySet()) {
             String status = entry.getValue() ? "OK" : "ISSUE";
-            Origins.LOGGER.info("  " + entry.getKey() + ": " + status);
-        }
+                    }
         
         // Log conflicts
         if (!report.conflicts.isEmpty()) {
@@ -263,8 +254,7 @@ public class KeybindingDiagnostic {
      * Attempts to repair keybinding issues
      */
     public static boolean repairKeybindings(DiagnosticReport report) {
-        Origins.LOGGER.info("Attempting to repair keybinding issues...");
-        
+                
         boolean repaired = false;
         
         // Try to resolve conflicts by suggesting alternative keys
@@ -282,8 +272,7 @@ public class KeybindingDiagnostic {
         // Check if SkillKeybinds class is properly initialized
         if (report.originsKeybindings.isEmpty()) {
             Origins.LOGGER.warn("No Origins keybindings found - SkillKeybinds may not be initialized");
-            Origins.LOGGER.info("Ensure SkillKeybinds implements ClientModInitializer and is registered in fabric.mod.json");
-        }
+                    }
         
         return repaired;
     }
@@ -316,8 +305,7 @@ public class KeybindingDiagnostic {
      * Tests if keybinding system is working properly
      */
     public static boolean testKeybindingSystem() {
-        Origins.LOGGER.info("Testing keybinding system...");
-        
+                
         try {
             // Test basic keybinding functionality
             if (client == null || client.options == null) {
@@ -332,8 +320,7 @@ public class KeybindingDiagnostic {
                 return false;
             }
             
-            Origins.LOGGER.info("Keybinding system test passed - found " + allKeys.length + " keybindings");
-            return true;
+                        return true;
             
         } catch (Exception e) {
             Origins.LOGGER.error("Keybinding system test failed: " + e.getMessage());

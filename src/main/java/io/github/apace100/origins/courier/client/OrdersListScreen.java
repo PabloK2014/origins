@@ -190,13 +190,12 @@ public class OrdersListScreen extends Screen {
     private void filterOrders() {
         filteredOrders.clear();
         
-        System.out.println("DEBUG: Filtering orders for tab: " + currentTab + ", total orders: " + allOrders.size());
+        
         
         switch (currentTab) {
             case ALL:
                 filteredOrders.addAll(allOrders);
-                System.out.println("DEBUG: ALL tab - showing " + filteredOrders.size() + " orders");
-                break;
+                                break;
             case OPEN:
                 for (ClientOrder order : allOrders) {
                     // Открытые заказы: только со статусом OPEN
@@ -204,19 +203,16 @@ public class OrdersListScreen extends Screen {
                         filteredOrders.add(order);
                     }
                 }
-                System.out.println("DEBUG: OPEN tab - showing " + filteredOrders.size() + " orders");
-                break;
+                                break;
             case ACTIVE:
                 for (ClientOrder order : allOrders) {
-                    System.out.println("DEBUG: Order " + order.id + " status: " + order.status);
-                    // Принятые заказы: только принятые и выполняющиеся
+                                        // Принятые заказы: только принятые и выполняющиеся
                     if (order.status == Order.Status.ACCEPTED || 
                         order.status == Order.Status.IN_PROGRESS) {
                         filteredOrders.add(order);
                     }
                 }
-                System.out.println("DEBUG: ACTIVE tab - showing " + filteredOrders.size() + " orders");
-                break;
+                                break;
             case COMPLETED:
                 for (ClientOrder order : allOrders) {
                     // Завершенные заказы: выполненные + отклоненные + отмененные
@@ -226,8 +222,7 @@ public class OrdersListScreen extends Screen {
                         filteredOrders.add(order);
                     }
                 }
-                System.out.println("DEBUG: COMPLETED tab - showing " + filteredOrders.size() + " orders");
-                break;
+                                break;
         }
         
         // Обновляем список
@@ -324,16 +319,13 @@ public class OrdersListScreen extends Screen {
     
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        System.out.println("DEBUG: OrdersListScreen mouseClicked - coords: " + mouseX + "," + mouseY + ", button: " + button);
-        
+                
         // Сначала проверяем список заказов
         if (orderList.mouseClicked(mouseX, mouseY, button)) {
-            System.out.println("DEBUG: Click handled by order list");
-            return true;
+                        return true;
         }
         
-        System.out.println("DEBUG: Click not handled by order list, passing to super");
-        return super.mouseClicked(mouseX, mouseY, button);
+                return super.mouseClicked(mouseX, mouseY, button);
     }
     
     @Override
@@ -369,20 +361,17 @@ public class OrdersListScreen extends Screen {
         
         @Override
         public boolean mouseClicked(double mouseX, double mouseY, int button) {
-            System.out.println("DEBUG: OrderListWidget mouseClicked - coords: " + mouseX + "," + mouseY + ", button: " + button);
-            
+                        
             // Проверяем каждый entry вручную
             for (int i = 0; i < this.children().size(); i++) {
                 OrderEntry entry = this.children().get(i);
                 if (entry.mouseClicked(mouseX, mouseY, button)) {
-                    System.out.println("DEBUG: Entry " + i + " handled the click");
-                    return true;
+                                        return true;
                 }
             }
             
             boolean result = super.mouseClicked(mouseX, mouseY, button);
-            System.out.println("DEBUG: OrderListWidget super result: " + result);
-            return result;
+                        return result;
         }
         
         public void clearAllEntries() {
@@ -470,25 +459,20 @@ public class OrdersListScreen extends Screen {
         
         @Override
         public boolean mouseClicked(double mouseX, double mouseY, int button) {
-            System.out.println("DEBUG: OrderEntry mouseClicked - order: " + order.id + ", button: " + button + ", coords: " + mouseX + "," + mouseY);
-            System.out.println("DEBUG: Button bounds: x=" + buttonX + ", y=" + buttonY + ", w=" + buttonWidth + ", h=" + buttonHeight);
-            
+                                    
             // Если координаты кнопки не установлены, пропускаем
             if (buttonX == 0 && buttonY == 0) {
-                System.out.println("DEBUG: Button position not set, skipping click");
-                return false;
+                                return false;
             }
             
             // Проверяем, попал ли клик в область кнопки
             if (mouseX >= buttonX && mouseX <= buttonX + buttonWidth &&
                 mouseY >= buttonY && mouseY <= buttonY + buttonHeight) {
-                System.out.println("DEBUG: Click is within button bounds, opening order details for order: " + order.id);
-                MinecraftClient.getInstance().setScreen(new OrderDetailsScreen(this.order));
+                                MinecraftClient.getInstance().setScreen(new OrderDetailsScreen(this.order));
                 return true;
             }
             
-            System.out.println("DEBUG: Click outside button bounds");
-            return false;
+                        return false;
         }
         
         @Override

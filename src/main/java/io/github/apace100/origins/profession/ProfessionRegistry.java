@@ -105,6 +105,5 @@ public class ProfessionRegistry {
      */
     public static void init() {
         // Профессии уже зарегистрированы через статические поля
-        Origins.LOGGER.info("Зарегистрировано {} профессий", PROFESSIONS.size());
-    }
+            }
 }

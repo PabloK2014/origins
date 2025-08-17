@@ -54,8 +54,7 @@ public class CourierOrdersCommand {
             
             player.sendMessage(message, false);
             
-            Origins.LOGGER.info("Игрок {} открыл интерфейс заказов курьера", player.getName().getString());
-            return 1;
+                        return 1;
         }
         
         return 0;

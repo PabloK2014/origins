@@ -37,8 +37,7 @@ public class OngoingValidationService {
             return;
         }
         
-        Origins.LOGGER.info("Initializing ongoing validation service...");
-        
+                
         // Register server lifecycle events
         ServerLifecycleEvents.SERVER_STARTED.register(OngoingValidationService::onServerStarted);
         ServerLifecycleEvents.SERVER_STOPPING.register(OngoingValidationService::onServerStopping);
@@ -53,16 +52,14 @@ public class OngoingValidationService {
         schedulePeriodicValidations();
         
         initialized = true;
-        Origins.LOGGER.info("Ongoing validation service initialized");
-    }
+            }
     
     /**
      * Called when server starts
      */
     private static void onServerStarted(MinecraftServer server) {
         serverRunning = true;
-        Origins.LOGGER.info("Server started - enabling ongoing validation");
-        
+                
         // Log diagnostic event
         DiagnosticReporter.logEvent("VALIDATION", "INFO", "Server started - validation service active");
         
@@ -82,8 +79,7 @@ public class OngoingValidationService {
      */
     private static void onServerStopping(MinecraftServer server) {
         serverRunning = false;
-        Origins.LOGGER.info("Server stopping - disabling ongoing validation");
-        
+                
         // Log diagnostic event
         DiagnosticReporter.logEvent("VALIDATION", "INFO", "Server stopping - validation service disabled");
         
@@ -177,8 +173,7 @@ public class OngoingValidationService {
      * Runs initial validation after mod loading
      */
     private static void runInitialValidation() {
-        Origins.LOGGER.info("Running initial validation...");
-        LAST_VALIDATION_TIME.set(System.currentTimeMillis());
+                LAST_VALIDATION_TIME.set(System.currentTimeMillis());
         VALIDATION_COUNT.incrementAndGet();
         
         // Log system information
@@ -199,16 +194,14 @@ public class OngoingValidationService {
         if (!textureHealth || !keybindingHealth || !compatibilityHealth) {
             Origins.LOGGER.warn("Initial validation detected issues - check diagnostic logs");
         } else {
-            Origins.LOGGER.info("Initial validation completed successfully");
-        }
+                    }
     }
     
     /**
      * Runs startup validation after server starts
      */
     private static void runStartupValidation() {
-        Origins.LOGGER.info("Running startup validation...");
-        LAST_VALIDATION_TIME.set(System.currentTimeMillis());
+                LAST_VALIDATION_TIME.set(System.currentTimeMillis());
         VALIDATION_COUNT.incrementAndGet();
         
         DiagnosticReporter.logEvent("VALIDATION", "INFO", "Startup validation started");
@@ -231,8 +224,7 @@ public class OngoingValidationService {
                 Origins.LOGGER.warn("Startup validation detected minor issues");
                 DiagnosticReporter.logEvent("VALIDATION", "WARN", "Minor issues detected during startup");
             } else {
-                Origins.LOGGER.info("Startup validation completed without issues");
-                DiagnosticReporter.logEvent("VALIDATION", "INFO", "Startup validation successful");
+                                DiagnosticReporter.logEvent("VALIDATION", "INFO", "Startup validation successful");
             }
             
         } catch (Exception e) {
@@ -245,8 +237,7 @@ public class OngoingValidationService {
      * Runs periodic validation checks
      */
     private static void runPeriodicValidation() {
-        Origins.LOGGER.debug("Running periodic validation...");
-        LAST_VALIDATION_TIME.set(System.currentTimeMillis());
+                LAST_VALIDATION_TIME.set(System.currentTimeMillis());
         VALIDATION_COUNT.incrementAndGet();
         
         // Lightweight health checks
@@ -272,8 +263,7 @@ public class OngoingValidationService {
             }
             
             if (systemHealthy) {
-                Origins.LOGGER.debug("Periodic validation: All systems healthy");
-                DiagnosticReporter.logEvent("VALIDATION", "DEBUG", "Periodic validation successful");
+                                DiagnosticReporter.logEvent("VALIDATION", "DEBUG", "Periodic validation successful");
             } else {
                 Origins.LOGGER.warn("Periodic validation: Issues detected");
                 DiagnosticReporter.logEvent("VALIDATION", "WARN", "Periodic validation detected issues");
@@ -289,8 +279,7 @@ public class OngoingValidationService {
      * Runs texture-specific validation
      */
     private static void runTextureValidation() {
-        Origins.LOGGER.debug("Running texture validation...");
-        
+                
         try {
             TextureValidator.ValidationReport report = TextureValidator.validateAllTextures();
             
@@ -303,8 +292,7 @@ public class OngoingValidationService {
                 // Attempt to generate missing textures
                 TextureValidator.generateMissingTextures();
             } else {
-                Origins.LOGGER.debug("Texture validation: All textures valid");
-                DiagnosticReporter.logEvent("VALIDATION", "DEBUG", "Texture validation successful");
+                                DiagnosticReporter.logEvent("VALIDATION", "DEBUG", "Texture validation successful");
             }
             
         } catch (Exception e) {
@@ -317,8 +305,7 @@ public class OngoingValidationService {
      * Runs keybinding-specific validation
      */
     private static void runKeybindingValidation() {
-        Origins.LOGGER.debug("Running keybinding validation...");
-        
+                
         try {
             KeybindingDiagnostic.DiagnosticReport report = KeybindingDiagnostic.runDiagnostic();
             
@@ -332,8 +319,7 @@ public class OngoingValidationService {
                 // Attempt to repair issues
                 KeybindingDiagnostic.repairKeybindings(report);
             } else {
-                Origins.LOGGER.debug("Keybinding validation: All keybindings healthy");
-                DiagnosticReporter.logEvent("VALIDATION", "DEBUG", "Keybinding validation successful");
+                                DiagnosticReporter.logEvent("VALIDATION", "DEBUG", "Keybinding validation successful");
             }
             
         } catch (Exception e) {
@@ -374,8 +360,7 @@ public class OngoingValidationService {
      * Runs shutdown validation before server stops
      */
     private static void runShutdownValidation() {
-        Origins.LOGGER.info("Running shutdown validation...");
-        
+                
         DiagnosticReporter.logEvent("VALIDATION", "INFO", "Shutdown validation started");
         
         try {
@@ -385,8 +370,7 @@ public class OngoingValidationService {
             DiagnosticReporter.saveReportAsText(report);
             
             // Log validation statistics
-            Origins.LOGGER.info("Validation statistics: {} validations performed", VALIDATION_COUNT.get());
-            DiagnosticReporter.logEvent("VALIDATION", "INFO", 
+                        DiagnosticReporter.logEvent("VALIDATION", "INFO", 
                 "Shutdown validation completed - " + VALIDATION_COUNT.get() + " total validations performed");
             
         } catch (Exception e) {
@@ -421,16 +405,14 @@ public class OngoingValidationService {
      * Forces an immediate validation check
      */
     public static void forceValidation() {
-        Origins.LOGGER.info("Forcing immediate validation...");
-        
+                
         SCHEDULER.submit(() -> {
             try {
                 runPeriodicValidation();
                 runTextureValidation();
                 runKeybindingValidation();
                 
-                Origins.LOGGER.info("Forced validation completed");
-                DiagnosticReporter.logEvent("VALIDATION", "INFO", "Forced validation completed");
+                                DiagnosticReporter.logEvent("VALIDATION", "INFO", "Forced validation completed");
                 
             } catch (Exception e) {
                 Origins.LOGGER.error("Forced validation failed: " + e.getMessage(), e);
@@ -443,15 +425,13 @@ public class OngoingValidationService {
      * Shuts down the validation service
      */
     public static void shutdown() {
-        Origins.LOGGER.info("Shutting down ongoing validation service...");
-        
+                
         try {
             SCHEDULER.shutdown();
             if (!SCHEDULER.awaitTermination(10, TimeUnit.SECONDS)) {
                 SCHEDULER.shutdownNow();
             }
-            Origins.LOGGER.info("Ongoing validation service shut down successfully");
-        } catch (InterruptedException e) {
+                    } catch (InterruptedException e) {
             SCHEDULER.shutdownNow();
             Thread.currentThread().interrupt();
             Origins.LOGGER.warn("Validation service shutdown interrupted");

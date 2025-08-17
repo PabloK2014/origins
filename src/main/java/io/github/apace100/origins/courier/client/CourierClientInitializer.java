@@ -16,6 +16,5 @@ public class CourierClientInitializer implements ClientModInitializer {
         // Регистрируем клиентские команды
         CourierClientCommands.register();
         
-        Origins.LOGGER.info("Инициализирована клиентская часть системы заказов курьера");
-    }
+            }
 }

@@ -27,13 +27,10 @@ public class DebugInfo {
             border += "-";
         }
         border += "+";
-        Origins.LOGGER.info(border);
-        for(int i = 0; i < lines.length; i++) {
+                for(int i = 0; i < lines.length; i++) {
             while(lines[i].length() < longest + 3)
                 lines[i] += " ";
             lines[i] += "|";
-            Origins.LOGGER.info(lines[i]);
-        }
-        Origins.LOGGER.info(border);
-    }
+                    }
+            }
 }

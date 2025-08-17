@@ -46,8 +46,7 @@ public class QuestGenerator {
             loadQuestFile(resourceManager, fileName);
         }
         
-        Origins.LOGGER.info("Загружено квестов: " + getTotalQuestCount());
-    }
+            }
     
     /**
      * Загружает квесты из конкретного JSON файла
@@ -62,8 +61,7 @@ public class QuestGenerator {
                 return;
             }
             
-            Origins.LOGGER.info("Загружаем файл квестов: " + fileName);
-            
+                        
             try (BufferedReader reader = new BufferedReader(
                     new InputStreamReader(resource.get().getInputStream(), StandardCharsets.UTF_8))) {
                 
@@ -93,8 +91,7 @@ public class QuestGenerator {
                     loadedQuests.computeIfAbsent(playerClass, k -> new ArrayList<>()).add(quest);
                 }
                 
-                Origins.LOGGER.info("Загружено " + quests.size() + " квестов из " + fileName);
-                
+                                
             }
         } catch (IOException e) {
             Origins.LOGGER.error("Ошибка при чтении файла квестов " + fileName + ": " + e.getMessage());

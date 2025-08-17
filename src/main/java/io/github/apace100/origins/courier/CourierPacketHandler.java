@@ -52,8 +52,7 @@ public class CourierPacketHandler {
         ServerPlayNetworking.registerGlobalReceiver(CourierNetworking.REQUEST_ORDERS_SYNC, 
             CourierPacketHandler::handleRequestOrdersSync);
         
-        Origins.LOGGER.info("Зарегистрированы обработчики пакетов системы заказов курьера");
-    }
+            }
     
     /**
      * Обработка создания заказа
@@ -147,8 +146,7 @@ public class CourierPacketHandler {
                         // Уведомляем всех курьеров о новом заказе
                         notifyNewOrder(world, order);
                         
-                        Origins.LOGGER.info("Игрок {} создал заказ {}", player.getName().getString(), order.getId());
-                    } else {
+                                            } else {
                         player.sendMessage(Text.literal("Ошибка при создании заказа. Проверьте корректность данных.")
                             .formatted(Formatting.RED), false);
                     }

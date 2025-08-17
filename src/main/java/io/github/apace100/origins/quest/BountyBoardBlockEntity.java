@@ -103,8 +103,7 @@ public class BountyBoardBlockEntity extends BlockEntity implements ExtendedScree
 
     public void removeQuest(Quest quest) {
         if (quest != null) {
-            Origins.LOGGER.info("🗑️ Removing quest from board: " + quest.getTitle() + " (ID: " + quest.getId() + ")");
-            
+                        
             // Удаляем из списка доступных квестов
             availableQuests.remove(quest);
             
@@ -115,8 +114,7 @@ public class BountyBoardBlockEntity extends BlockEntity implements ExtendedScree
                     Quest stackQuest = QuestItem.getQuestFromStack(stack);
                     if (stackQuest != null && stackQuest.getId().equals(quest.getId())) {
                         bounties.setStack(i, ItemStack.EMPTY);
-                        Origins.LOGGER.info("✅ Removed quest from bounties slot " + i);
-                        break;
+                                                break;
                     }
                 }
             }
@@ -124,8 +122,7 @@ public class BountyBoardBlockEntity extends BlockEntity implements ExtendedScree
             // Удаляем из системы накопления через API менеджер (он сам вызовет QuestAccumulation)
             String questClass = quest.getPlayerClass().replace("origins:", "");
             QuestApiManager.getInstance().removeQuestFromAccumulation(questClass, quest.getId());
-            Origins.LOGGER.info("✅ Removed quest from accumulation system via API manager");
-            
+                        
             markDirty();
         }
     }
@@ -202,8 +199,7 @@ public class BountyBoardBlockEntity extends BlockEntity implements ExtendedScree
         
         // ВАЖНО: Классовые доски НЕ должны генерировать случайные квесты!
         if (isClassBoard()) {
-            Origins.LOGGER.info("🚫 Пропускаем генерацию случайных квестов для классовой доски: " + getBoardClass());
-            return;
+                        return;
         }
         
         // Очищаем старые квесты
@@ -356,8 +352,7 @@ public class BountyBoardBlockEntity extends BlockEntity implements ExtendedScree
         
         // ВАЖНО: Классовые доски инициализируются по-другому!
         if (isClassBoard()) {
-            Origins.LOGGER.info("🔄 Классовая доска " + getBoardClass() + " будет инициализирована через API");
-            return;
+                        return;
         }
         
         // Проверяем количество валидных квестов

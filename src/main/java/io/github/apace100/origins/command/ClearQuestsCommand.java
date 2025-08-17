@@ -90,8 +90,7 @@ public class ClearQuestsCommand {
      */
     private static int clearQuests(ServerCommandSource source, ServerPlayerEntity player) {
         try {
-            Origins.LOGGER.info("Очистка квестов для игрока: {}", player.getName().getString());
-            
+                        
             // Получаем информацию о квестах до очистки
             QuestManager questManager = QuestManager.getInstance();
             QuestInventoryManager inventoryManager = QuestInventoryManager.getInstance();
@@ -122,8 +121,7 @@ public class ClearQuestsCommand {
                 false
             );
             
-            Origins.LOGGER.info("Квесты игрока {} успешно очищены", player.getName().getString());
-            return 1;
+                        return 1;
             
         } catch (Exception e) {
             Origins.LOGGER.error("Ошибка при очистке квестов игрока {}: {}", player.getName().getString(), e.getMessage());

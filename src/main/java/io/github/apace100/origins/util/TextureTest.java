@@ -57,8 +57,7 @@ public class TextureTest {
      * Runs comprehensive texture loading tests
      */
     public static CompletableFuture<TextureTestSuite> runTextureTests() {
-        Origins.LOGGER.info("Starting texture loading and GUI rendering tests...");
-        
+                
         return CompletableFuture.supplyAsync(() -> {
             List<TextureTestResult> results = new ArrayList<>();
             
@@ -312,13 +311,11 @@ public class TextureTest {
      * Tests texture initialization during mod startup
      */
     public static void testTextureInitialization() {
-        Origins.LOGGER.info("Testing texture initialization...");
-        
+                
         try {
             // Initialize texture validation system
             TextureValidator.initialize();
-            Origins.LOGGER.info("✓ Texture validation system initialized");
-            
+                        
             // Run validation report
             TextureValidator.ValidationReport report = TextureValidator.validateAllTextures();
             Origins.LOGGER.info("✓ Texture validation completed: {}/{} textures valid", 
@@ -361,8 +358,7 @@ public class TextureTest {
                 }
             }
             
-            Origins.LOGGER.info("✓ Texture system health check passed");
-            return true;
+                        return true;
             
         } catch (Exception e) {
             Origins.LOGGER.error("Texture health check failed with exception: " + e.getMessage(), e);
@@ -413,22 +409,15 @@ public class TextureTest {
      * Creates test textures for manual testing
      */
     public static void createTestTextures() {
-        Origins.LOGGER.info("Creating test texture scenarios...");
-        
+                
         try {
             // Test texture validation on existing textures
             TextureValidator.ValidationReport report = TextureValidator.validateAllTextures();
             
-            Origins.LOGGER.info("Test texture scenarios created:");
-            Origins.LOGGER.info("- Valid textures: {}", report.validTextures.size());
-            Origins.LOGGER.info("- Invalid textures: {}", report.invalidTextures.size());
-            Origins.LOGGER.info("- Fallbacks available: {}", report.fallbacksUsed.size());
-            
+                                                            
             if (!report.invalidTextures.isEmpty()) {
-                Origins.LOGGER.info("Missing textures that can be used for testing:");
-                for (Identifier missing : report.invalidTextures) {
-                    Origins.LOGGER.info("  - {}", missing);
-                }
+                                for (Identifier missing : report.invalidTextures) {
+                                    }
             }
             
         } catch (Exception e) {

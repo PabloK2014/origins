@@ -30,8 +30,7 @@ public class QuestEventHandlers {
             }
         });
         
-        Origins.LOGGER.info("Обработчики событий квестов инициализированы");
-    }
+            }
     
     /**
      * Обработчик разрушения блоков (для майнинга)
@@ -85,8 +84,7 @@ public class QuestEventHandlers {
             String itemId = net.minecraft.registry.Registries.ITEM.getId(craftedItem.getItem()).toString();
             int amount = craftedItem.getCount();
             
-            Origins.LOGGER.info("Игрок {} создал {} x{}", player.getName().getString(), itemId, amount);
-            
+                        
             // Отслеживаем действие крафта
             QuestProgressTracker tracker = QuestProgressTracker.getInstance();
             tracker.trackPlayerAction(player, "craft", itemId, amount);

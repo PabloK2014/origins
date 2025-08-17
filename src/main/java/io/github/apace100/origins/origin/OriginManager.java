@@ -58,8 +58,7 @@ public class OriginManager extends MultiJsonDataLoader implements IdentifiableRe
 				}
 			}
 		});
-		Origins.LOGGER.info("Finished loading origins from data files. Registry contains " + OriginRegistry.size() + " origins.");
-		if(hasConfigChanged.get()) {
+				if(hasConfigChanged.get()) {
 			Origins.serializeConfig();
 		}
 	}

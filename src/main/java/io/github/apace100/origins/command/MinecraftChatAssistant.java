@@ -50,8 +50,7 @@ public class MinecraftChatAssistant {
                 return 0;
             }
             
-            Origins.LOGGER.info("🤖 [ChatAssistant] Игрок задал вопрос: " + question);
-            
+                        
             // Показываем индикатор загрузки
             ChatMessageAnimator.sendLoadingMessage(source, "Отправляю ваш вопрос AI помощнику...");
             
@@ -123,17 +122,14 @@ public class MinecraftChatAssistant {
                 if (parts.size() > 1) {
                     // Отправляем многочастное сообщение
                     ChatMessageAnimator.sendMultipartMessage(source, parts, 20); // 20 тиков = 1 секунда задержки
-                    Origins.LOGGER.info("🤖 [ChatAssistant] Отправлен многочастный ответ (" + parts.size() + " частей)");
-                } else {
+                                    } else {
                     // Отправляем как обычное анимированное сообщение
                     ChatMessageAnimator.sendAnimatedMessage(source, answer, color);
-                    Origins.LOGGER.info("🤖 [ChatAssistant] Отправлен длинный ответ");
-                }
+                                    }
             } else {
                 // Отправляем как обычное анимированное сообщение
                 ChatMessageAnimator.sendAnimatedMessage(source, answer, color);
-                Origins.LOGGER.info("🤖 [ChatAssistant] Отправлен обычный ответ");
-            }
+                            }
             
         } catch (Exception e) {
             Origins.LOGGER.error("Ошибка при форматировании ответа", e);

@@ -47,6 +47,5 @@ public class CourierKeybinds {
             }
         });
         
-        Origins.LOGGER.info("Зарегистрированы кейбинды системы заказов курьера");
-    }
+            }
 }

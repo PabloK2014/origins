@@ -42,8 +42,7 @@ public class QuestPackets {
                             Quest quest = bountyHandler.getQuest(questIndex);
                             if (quest != null) {
                                 bountyHandler.acceptQuest(quest, player);
-                                Origins.LOGGER.info("Игрок {} принял квест: {}", player.getName().getString(), quest.getId());
-                            } else {
+                                                            } else {
                                 Origins.LOGGER.warn("Квест с индексом {} не найден", questIndex);
                             }
                         } else {
@@ -81,8 +80,7 @@ public class QuestPackets {
                             Quest quest = bountyHandler.getSelectedQuest();
                             if (quest != null) {
                                 // Заглушка для завершения квеста - функциональность будет добавлена позже
-                                Origins.LOGGER.info("Игрок {} пытается завершить квест: {}", player.getName().getString(), quest.getId());
-                                player.sendMessage(Text.literal("Завершение квестов пока не реализовано"), false);
+                                                                player.sendMessage(Text.literal("Завершение квестов пока не реализовано"), false);
                             } else {
                                 Origins.LOGGER.warn("Нет выбранного квеста для завершения");
                             }
@@ -98,6 +96,5 @@ public class QuestPackets {
             }
         });
         
-        Origins.LOGGER.info("Зарегистрированы серверные пакеты квестов");
-    }
+            }
 }

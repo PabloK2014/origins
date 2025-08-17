@@ -134,8 +134,7 @@ public class CourierCommand {
             manager.clearAllOrders();
             
             source.sendFeedback(() -> Text.literal("Все заказы удалены").formatted(Formatting.GREEN), true);
-            Origins.LOGGER.info("Администратор {} очистил все заказы", source.getName());
-            
+                        
             return 1;
             
         } catch (Exception e) {
@@ -194,8 +193,7 @@ public class CourierCommand {
             order.setStatus(Order.Status.CANCELLED);
             
             source.sendFeedback(() -> Text.literal("Заказ " + orderIdStr + " удален").formatted(Formatting.GREEN), true);
-            Origins.LOGGER.info("Администратор {} удалил заказ {}", source.getName(), orderId);
-            
+                        
             return 1;
             
         } catch (IllegalArgumentException e) {
@@ -222,8 +220,7 @@ public class CourierCommand {
             
             if (manager.completeOrder(orderId)) {
                 source.sendFeedback(() -> Text.literal("Заказ " + orderIdStr + " принудительно завершен").formatted(Formatting.GREEN), true);
-                Origins.LOGGER.info("Администратор {} принудительно завершил заказ {}", source.getName(), orderId);
-                return 1;
+                                return 1;
             } else {
                 source.sendError(Text.literal("Не удалось завершить заказ " + orderIdStr));
                 return 0;
@@ -303,8 +300,7 @@ public class CourierCommand {
                 source.sendFeedback(() -> Text.literal("Очищено истекших заказов: " + cleaned).formatted(Formatting.YELLOW), false);
             }
             
-            Origins.LOGGER.info("Администратор {} перезагрузил систему заказов курьера", source.getName());
-            return 1;
+                        return 1;
             
         } catch (Exception e) {
             Origins.LOGGER.error("Ошибка при выполнении команды reloadSystem: " + e.getMessage(), e);

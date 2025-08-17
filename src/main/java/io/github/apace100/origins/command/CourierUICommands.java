@@ -36,8 +36,7 @@ public class CourierUICommands {
             player.sendMessage(Text.literal("Откройте чат и введите команду: ")
                 .append(Text.literal("/courier:client_open_orders").formatted(Formatting.GREEN)), false);
             
-            Origins.LOGGER.info("Игрок {} запросил открытие UI заказов", player.getName().getString());
-            return 1;
+                        return 1;
         }
         
         return 0;
@@ -54,8 +53,7 @@ public class CourierUICommands {
             player.sendMessage(Text.literal("Откройте чат и введите команду: ")
                 .append(Text.literal("/courier:client_create_order").formatted(Formatting.GREEN)), false);
             
-            Origins.LOGGER.info("Игрок {} запросил открытие UI создания заказа", player.getName().getString());
-            return 1;
+                        return 1;
         }
         
         return 0;

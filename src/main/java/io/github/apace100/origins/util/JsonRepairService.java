@@ -47,8 +47,7 @@ public class JsonRepairService {
      * Attempts comprehensive repair of a JSON file
      */
     public static RepairResult repairJsonFile(Path filePath) {
-        Origins.LOGGER.info("Attempting comprehensive repair of JSON file: {}", filePath);
-        
+                
         try {
             // Read original content
             String originalContent = Files.readString(filePath);
@@ -81,9 +80,7 @@ public class JsonRepairService {
             // Write repaired content
             Files.writeString(filePath, repairedContent);
             
-            Origins.LOGGER.info("Successfully repaired JSON file: {}", filePath);
-            Origins.LOGGER.info("Applied fixes: {}", String.join(", ", appliedFixes));
-            
+                                    
             return new RepairResult(true, originalContent, repairedContent, appliedFixes, backupPath);
             
         } catch (Exception e) {
@@ -376,8 +373,7 @@ public class JsonRepairService {
      * Batch repair multiple JSON files
      */
     public static Map<Path, RepairResult> batchRepair(List<Path> jsonFiles) {
-        Origins.LOGGER.info("Starting batch repair of {} JSON files", jsonFiles.size());
-        
+                
         Map<Path, RepairResult> results = new HashMap<>();
         int successCount = 0;
         
@@ -402,8 +398,7 @@ public class JsonRepairService {
     public static boolean restoreFromBackup(Path filePath, Path backupPath) {
         try {
             Files.copy(backupPath, filePath, StandardCopyOption.REPLACE_EXISTING);
-            Origins.LOGGER.info("Successfully restored {} from backup {}", filePath, backupPath);
-            return true;
+                        return true;
         } catch (IOException e) {
             Origins.LOGGER.error("Failed to restore {} from backup {}: {}", 
                                filePath, backupPath, e.getMessage());

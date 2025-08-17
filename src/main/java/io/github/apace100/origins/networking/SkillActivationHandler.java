@@ -630,8 +630,7 @@ public class SkillActivationHandler {
                 .formatted(Formatting.GRAY), 
             true
         );
-        Origins.LOGGER.info("Попытка активации глобального навыка кузнеца для игрока {}", player.getName().getString());
-    }
+            }
     
     /**
      * Активирует глобальный навык воина - боевая ярость
@@ -652,8 +651,7 @@ public class SkillActivationHandler {
             false  // не показывать частицы
         ));
         
-        Origins.LOGGER.info("Активирован глобальный навык воина для игрока {}", player.getName().getString());
-    }
+            }
     
     /**
      * Активирует глобальный навык курьера - быстрая доставка
@@ -674,8 +672,7 @@ public class SkillActivationHandler {
             false  // не показывать частицы
         ));
         
-        Origins.LOGGER.info("Активирован глобальный навык курьера для игрока {}", player.getName().getString());
-    }
+            }
     
     /**
      * Активирует глобальный навык пивовара - очищающий эликсир
@@ -699,8 +696,7 @@ public class SkillActivationHandler {
             false  // не показывать частицы
         ));
         
-        Origins.LOGGER.info("Активирован глобальный навык пивовара для игрока {}", player.getName().getString());
-    }
+            }
     
     // Методы активации навыков шахтера
     private static void handleMinerOreHighlight(ServerPlayerEntity player, int level) {

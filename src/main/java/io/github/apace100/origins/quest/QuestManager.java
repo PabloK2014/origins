@@ -36,8 +36,7 @@ public class QuestManager {
     private void initializeQuests() {
         // Пока что используем генератор квестов
         // В будущем здесь будет загрузка из JSON файлов
-        Origins.LOGGER.info("Инициализация системы квестов...");
-    }
+            }
     
     /**
      * Получает случайные квесты для указанного класса
@@ -90,8 +89,7 @@ public class QuestManager {
         
         // Проверяем, нет ли уже этого конкретного квеста
         if (hasActiveQuest(player, quest.getId())) {
-            Origins.LOGGER.info("У игрока {} уже есть квест {}", player.getName().getString(), quest.getId());
-            return false;
+                        return false;
         }
         
         // Проверяем соответствие класса
@@ -157,16 +155,14 @@ public class QuestManager {
         }
         
         // Если не найден, пробуем сгенерировать через QuestGenerator
-        Origins.LOGGER.info("Квест {} не найден в загруженных, пробуем сгенерировать", questId);
-        
+                
         // Извлекаем класс из ID квеста (например, test_cook_2 -> cook)
         String questClass = extractClassFromQuestId(questId);
         if (questClass != null) {
             List<Quest> generatedQuests = QuestGenerator.getRandomQuestsForProfession(questClass, 10);
             for (Quest quest : generatedQuests) {
                 if (quest.getId().equals(questId)) {
-                    Origins.LOGGER.info("Найден сгенерированный квест: {}", questId);
-                    return quest;
+                                        return quest;
                 }
             }
         }
@@ -207,8 +203,7 @@ public class QuestManager {
         if (playerQuests != null) {
             boolean removed = playerQuests.removeIf(activeQuest -> activeQuest.getQuest().equals(quest));
             if (removed) {
-                Origins.LOGGER.info("Игрок {} завершил квест: {}", player.getName().getString(), quest.getTitle());
-                
+                                
                 // Если у игрока больше нет активных квестов, удаляем запись
                 if (playerQuests.isEmpty()) {
                     activeQuests.remove(playerId);
@@ -227,8 +222,7 @@ public class QuestManager {
         if (playerQuests != null) {
             boolean removed = playerQuests.removeIf(activeQuest -> activeQuest.getQuest().getId().equals(questId));
             if (removed) {
-                Origins.LOGGER.info("Игрок {} завершил квест с ID: {}", player.getName().getString(), questId);
-                
+                                
                 // Если у игрока больше нет активных квестов, удаляем запись
                 if (playerQuests.isEmpty()) {
                     activeQuests.remove(playerId);
@@ -245,8 +239,7 @@ public class QuestManager {
         List<ActiveQuest> playerQuests = activeQuests.remove(playerId);
         
         if (playerQuests != null && !playerQuests.isEmpty()) {
-            Origins.LOGGER.info("Игрок {} отменил {} квестов", player.getName().getString(), playerQuests.size());
-        }
+                    }
     }
     
     /**
@@ -259,8 +252,7 @@ public class QuestManager {
         if (playerQuests != null) {
             boolean removed = playerQuests.removeIf(activeQuest -> activeQuest.getQuest().getId().equals(questId));
             if (removed) {
-                Origins.LOGGER.info("Игрок {} отменил квест с ID: {}", player.getName().getString(), questId);
-                
+                                
                 // Если у игрока больше нет активных квестов, удаляем запись
                 if (playerQuests.isEmpty()) {
                     activeQuests.remove(playerId);
@@ -334,8 +326,7 @@ public class QuestManager {
                 if (quest.getTimeLimit() > 0) {
                     long elapsedMinutes = (currentTime - activeQuest.getStartTime()) / (1000 * 60);
                     if (elapsedMinutes >= quest.getTimeLimit()) {
-                        Origins.LOGGER.info("Квест {} истек по времени", quest.getTitle());
-                        return true;
+                                                return true;
                     }
                 }
                 
@@ -359,8 +350,7 @@ public class QuestManager {
      */
     public void clearAllQuests() {
         activeQuests.clear();
-        Origins.LOGGER.info("Все активные квесты очищены");
-    }
+            }
     
     /**
      * Получает статистику по квестам
@@ -423,8 +413,7 @@ public class QuestManager {
         if (player == null) return;
         
         try {
-            Origins.LOGGER.info("Синхронизация квестов для игрока: {}", player.getName().getString());
-            
+                        
             UUID playerId = player.getUuid();
             List<ActiveQuest> managerQuests = activeQuests.get(playerId);
             
@@ -455,8 +444,7 @@ public class QuestManager {
                 managerQuests.removeIf(activeQuest -> {
                     String questId = activeQuest.getQuest().getId();
                     if (!inventoryQuestIds.contains(questId)) {
-                        Origins.LOGGER.info("Удаляем квест {} из менеджера (нет билета)", questId);
-                        return true;
+                                                return true;
                     }
                     return false;
                 });
@@ -473,14 +461,12 @@ public class QuestManager {
                 io.github.apace100.origins.quest.Quest quest = 
                     io.github.apace100.origins.quest.QuestItem.getQuestFromStack(ticket);
                 if (quest != null && !managerQuestIds.contains(quest.getId())) {
-                    Origins.LOGGER.info("Удаляем билет квеста {} из инвентаря (нет в менеджере)", quest.getId());
-                    inventoryManager.removeQuestTicketFromInventory(player, quest.getId());
+                                        inventoryManager.removeQuestTicketFromInventory(player, quest.getId());
                 }
             }
             */
             
-            Origins.LOGGER.info("Синхронизация завершена для игрока: {}", player.getName().getString());
-            
+                        
         } catch (Exception e) {
             Origins.LOGGER.error("Ошибка при синхронизации квестов для игрока {}: {}", 
                 player.getName().getString(), e.getMessage());

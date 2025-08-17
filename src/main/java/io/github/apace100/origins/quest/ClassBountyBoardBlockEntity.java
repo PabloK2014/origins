@@ -85,8 +85,7 @@ public abstract class ClassBountyBoardBlockEntity extends BountyBoardBlockEntity
             ((ServerWorld) world).getChunkManager().markForUpdate(pos);
         }
         
-        Origins.LOGGER.info("🔄 Updated " + getBoardClass() + " board from accumulation system");
-    }
+            }
     
     /**
      * Проверяет, нужно ли обновить квесты с API
@@ -152,8 +151,7 @@ public abstract class ClassBountyBoardBlockEntity extends BountyBoardBlockEntity
             
             // Проверяем, нужен ли новый запрос к API для этого класса
             if (QuestAccumulation.getInstance().needsNewApiRequest(boardClass)) {
-                Origins.LOGGER.info("🔄 Доска " + boardClass + " нуждается в новых квестах, запрашиваем через API Manager");
-                QuestApiManager.getInstance().forceUpdateClass(boardClass, (net.minecraft.server.world.ServerWorld) world);
+                                QuestApiManager.getInstance().forceUpdateClass(boardClass, (net.minecraft.server.world.ServerWorld) world);
             }
             
             // Всегда обновляем доску из системы накопления

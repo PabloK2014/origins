@@ -89,8 +89,7 @@ public class CourierSkillHandler {
                 true // action bar
             );
             
-            Origins.LOGGER.info("Курьер {} использовал рывок", player.getName().getString());
-        } else {
+                    } else {
             long cooldownLeft = 600 - (currentTime - lastUse);
             player.sendMessage(
                 Text.literal("Рывок перезарядится через " + (cooldownLeft / 20) + " сек")
@@ -133,8 +132,7 @@ public class CourierSkillHandler {
                 false
             );
             
-            Origins.LOGGER.info("Курьер {} использовал всплеск скорости", player.getName().getString());
-        } else {
+                    } else {
             long cooldownLeft = 1200 - (currentTime - lastUse);
             player.sendMessage(
                 Text.literal("Всплеск скорости перезарядится через " + (cooldownLeft / 20) + " сек")
@@ -212,8 +210,7 @@ public class CourierSkillHandler {
                 true // action bar
             );
             
-            Origins.LOGGER.info("Курьер {} установил ловушку", player.getName().getString());
-        } else {
+                    } else {
             long cooldownLeft = 600 - (currentTime - lastUse);
             player.sendMessage(
                 Text.literal("Ловушка перезарядится через " + (cooldownLeft / 20) + " сек")

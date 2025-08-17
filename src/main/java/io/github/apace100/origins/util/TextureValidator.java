@@ -71,8 +71,7 @@ public class TextureValidator {
                     // Just check if we can open the stream
                     inputStream.read();
                     TEXTURE_CACHE.put(textureId, true);
-                    Origins.LOGGER.debug("Validated texture: " + textureId);
-                    return true;
+                                        return true;
                 }
             }
             
@@ -98,15 +97,13 @@ public class TextureValidator {
         // Try fallback texture
         Identifier fallback = FALLBACK_TEXTURES.get(preferredTexture);
         if (fallback != null && validateTexture(fallback)) {
-            Origins.LOGGER.info("Using fallback texture " + fallback + " for " + preferredTexture);
-            return fallback;
+                        return fallback;
         }
         
         // Try generic Minecraft fallbacks
         Identifier genericFallback = getGenericFallback(preferredTexture);
         if (genericFallback != null && validateTexture(genericFallback)) {
-            Origins.LOGGER.info("Using generic fallback " + genericFallback + " for " + preferredTexture);
-            return genericFallback;
+                        return genericFallback;
         }
         
         Origins.LOGGER.error("No valid texture found for " + preferredTexture);
@@ -140,8 +137,7 @@ public class TextureValidator {
      * Validates all Origins mod textures
      */
     public static ValidationReport validateAllTextures() {
-        Origins.LOGGER.info("Starting comprehensive texture validation...");
-        
+                
         ValidationReport report = new ValidationReport();
         
         // Define all known Origins textures to validate
@@ -177,11 +173,7 @@ public class TextureValidator {
             }
         }
         
-        Origins.LOGGER.info("Texture validation complete:");
-        Origins.LOGGER.info("- Valid textures: " + report.validTextures.size());
-        Origins.LOGGER.info("- Invalid textures: " + report.invalidTextures.size());
-        Origins.LOGGER.info("- Fallbacks used: " + report.fallbacksUsed.size());
-        
+                                        
         if (!report.invalidTextures.isEmpty()) {
             Origins.LOGGER.warn("Invalid textures found:");
             for (Identifier invalid : report.invalidTextures) {
@@ -197,8 +189,7 @@ public class TextureValidator {
      */
     public static void clearCache() {
         TEXTURE_CACHE.clear();
-        Origins.LOGGER.debug("Texture validation cache cleared");
-    }
+            }
     
     /**
      * Initializes the texture validation system
@@ -208,15 +199,13 @@ public class TextureValidator {
             return;
         }
         
-        Origins.LOGGER.info("Initializing texture validation system...");
-        
+                
         // Run initial validation
         ValidationReport report = validateAllTextures();
         
         // Log summary
         if (report.invalidTextures.isEmpty()) {
-            Origins.LOGGER.info("All textures validated successfully");
-        } else {
+                    } else {
             Origins.LOGGER.warn("Found " + report.invalidTextures.size() + " invalid textures");
         }
         
@@ -249,8 +238,7 @@ public class TextureValidator {
      * Creates missing texture files by copying from existing ones
      */
     public static void generateMissingTextures() {
-        Origins.LOGGER.info("Attempting to generate missing textures...");
-        
+                
         ValidationReport report = validateAllTextures();
         int generated = 0;
         
@@ -260,8 +248,7 @@ public class TextureValidator {
             }
         }
         
-        Origins.LOGGER.info("Generated " + generated + " missing textures");
-        
+                
         // Clear cache and re-validate
         clearCache();
         validateAllTextures();
@@ -273,8 +260,7 @@ public class TextureValidator {
     private static boolean attemptTextureGeneration(Identifier missingTexture) {
         // This would require file system operations and image processing
         // For now, just log the attempt
-        Origins.LOGGER.info("Would attempt to generate: " + missingTexture);
-        
+                
         // In a real implementation, this would:
         // 1. Find a similar existing texture
         // 2. Copy it to the missing location

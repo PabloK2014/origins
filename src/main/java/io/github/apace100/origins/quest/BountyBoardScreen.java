@@ -490,8 +490,7 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
                     // Обновляем состояние выбора
                     Quest clickedQuest = questButton.getQuest();
                     if (clickedQuest != null) {
-                        Origins.LOGGER.info("Кликнули на квест '{}' с ID '{}'", clickedQuest.getTitle(), clickedQuest.getId());
-                        selectionState.selectQuest(i, clickedQuest);
+                                                selectionState.selectQuest(i, clickedQuest);
                         handler.setSelectedQuestIndex(i);
                         
                         // Устанавливаем выбранный квест для подсветки билета
@@ -504,8 +503,7 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
                     
                     // Левый клик только для подсветки - НЕ принимаем квест
                     if (button == 0 && clickedQuest != null) { // Left click
-                        Origins.LOGGER.info("Левый клик по квесту в списке - только подсветка");
-                        // Квест уже выбран выше, больше ничего не делаем
+                                                // Квест уже выбран выше, больше ничего не делаем
                     }
                     questButton.mouseClicked(mouseX, mouseY, button);
                     return true;
@@ -539,8 +537,7 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
             String playerClass = getPlayerClass();
             String questClass = quest.getPlayerClass();
             
-            Origins.LOGGER.info("Проверяем совместимость на клиенте: игрок '{}', квест '{}'", playerClass, questClass);
-            
+                        
             if (!QuestUtils.isClassCompatible(playerClass, questClass)) {
                 
                 
@@ -872,8 +869,7 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
                 nbt.putBoolean("should_highlight", true);
                 
                 // Логируем для отладки
-                io.github.apace100.origins.Origins.LOGGER.info("Подсвечиваем билет квеста в слоте {}", slotIndex);
-            }
+                          }
         }
     }
     
@@ -974,8 +970,7 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
                             if (!stackId.isEmpty() && stackId.equals(quest.getId())) {
                                 highlightedCenterSlot = i;
                                 highlightStartTime = System.currentTimeMillis();
-                                Origins.LOGGER.info("Подсвечиваем BountifulQuest в центральном слоте {}", i);
-                                return;
+                                                                return;
                             }
                         }
                     }
@@ -984,8 +979,7 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
                     if (centerQuest != null && centerQuest.getId().equals(quest.getId())) {
                         highlightedCenterSlot = i;
                         highlightStartTime = System.currentTimeMillis();
-                        Origins.LOGGER.info("Подсвечиваем квест '{}' в центральном слоте {}", centerQuest.getTitle(), i);
-                        return;
+                                                return;
                     }
                 }
             }
@@ -1056,8 +1050,7 @@ public class BountyBoardScreen extends HandledScreen<BountyBoardScreenHandler> {
         int backgroundHighlight = (backgroundAlpha << 24) | 0xFFFF00; // Желтый фон
         context.fill(slotX, slotY, slotX + slotSize, slotY + slotSize, backgroundHighlight);
         
-        Origins.LOGGER.info("Отрисовываем подсветку слота {} в позиции ({}, {})", slotIndex, slotX, slotY);
-    }
+            }
     
     /**
      * Вычисляет интенсивность подсветки для создания эффекта пульсации в центральной части

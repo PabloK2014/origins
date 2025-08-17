@@ -89,36 +89,29 @@ public class BountyBoardScreenHandler extends ScreenHandler {
     
     @Override
     public void onSlotClick(int slotIndex, int button, net.minecraft.screen.slot.SlotActionType actionType, PlayerEntity player) {
-        io.github.apace100.origins.Origins.LOGGER.info("ScreenHandler.onSlotClick: slotIndex={}, button={}, actionType={}", slotIndex, button, actionType);
-        
+              
         // Клик по центральной части (3x7 сетка) - слоты 0-20
         if (slotIndex >= 0 && slotIndex < 21) {
-            io.github.apace100.origins.Origins.LOGGER.info("Клик по центральной части, слот: {}", slotIndex);
-            
+                      
             // Получаем ItemStack из слота
             Slot slot = this.slots.get(slotIndex);
-            io.github.apace100.origins.Origins.LOGGER.info("Слот: {}, hasStack: {}", slot != null ? slot.getClass().getSimpleName() : "null", slot != null ? slot.hasStack() : false);
-            
+                      
             if (slot != null && slot.hasStack()) {
                 ItemStack stack = slot.getStack();
-                io.github.apace100.origins.Origins.LOGGER.info("ItemStack в слоте: {}, количество: {}", stack.getItem().getClass().getSimpleName(), stack.getCount());
-                
+                              
                 // Проверяем все возможные типы предметов
                 if (stack.getItem() instanceof BountifulQuestItem) {
-                    io.github.apace100.origins.Origins.LOGGER.info("Найден BountifulQuestItem - обрабатываем клик");
-                    
+                                      
                     if (actionType == net.minecraft.screen.slot.SlotActionType.PICKUP && button == 0) {
                         // Проверяем совместимость класса
                         BountifulQuestInfo info = BountifulQuestInfo.get(stack);
                         String playerClass = getCurrentPlayerClass();
                         String questClass = info.getProfession();
                         
-                        io.github.apace100.origins.Origins.LOGGER.info("Проверка класса: игрок='{}', квест='{}'", playerClass, questClass);
-                        
+                                              
                         if (QuestUtils.isClassCompatible(playerClass, questClass)) {
                             // Принимаем квест и позволяем взять билет
-                            io.github.apace100.origins.Origins.LOGGER.info("Класс совместим - принимаем квест и позволяем взять билет");
-                            if (acceptBountifulQuest(player, stack)) {
+                                                      if (acceptBountifulQuest(player, stack)) {
                                 player.sendMessage(Text.literal("Квест принят!").formatted(Formatting.GREEN), false);
                                 // Позволяем стандартной логике взять предмет
                                 super.onSlotClick(slotIndex, button, actionType, player);
@@ -128,16 +121,12 @@ public class BountyBoardScreenHandler extends ScreenHandler {
                                 return;
                             }
                         } else {
-                            io.github.apace100.origins.Origins.LOGGER.info("Класс не совместим - блокируем взятие билета");
-                            // Сообщение будет показано в takeStack/canTakeItems
+                                                      // Сообщение будет показано в takeStack/canTakeItems
                             return;
                         }
                     } else {
-                        io.github.apace100.origins.Origins.LOGGER.info("Неправильный тип клика: actionType={}, button={}", actionType, button);
-                    }
-                } else if (stack.getItem() instanceof QuestTicketItem) {
-                    io.github.apace100.origins.Origins.LOGGER.info("Найден QuestTicketItem в центральной части - проверяем класс");
-                    
+                                          }
+                } else if (stack.getItem() instanceof QuestTicketItem) {                
                     if (actionType == net.minecraft.screen.slot.SlotActionType.PICKUP && button == 0) {
                         // Проверяем совместимость класса для QuestTicketItem
                         Quest quest = QuestItem.getQuestFromStack(stack);
@@ -145,16 +134,13 @@ public class BountyBoardScreenHandler extends ScreenHandler {
                             String playerClass = getCurrentPlayerClass();
                             String questClass = quest.getPlayerClass();
                             
-                            io.github.apace100.origins.Origins.LOGGER.info("Проверка класса QuestTicketItem: игрок='{}', квест='{}'", playerClass, questClass);
-                            
+                                                      
                             if (QuestUtils.isClassCompatible(playerClass, questClass)) {
                                 // Класс совместим - позволяем взять билет
-                                io.github.apace100.origins.Origins.LOGGER.info("Класс совместим - позволяем взять QuestTicketItem");
-                                super.onSlotClick(slotIndex, button, actionType, player);
+                                                              super.onSlotClick(slotIndex, button, actionType, player);
                                 return;
                             } else {
-                                io.github.apace100.origins.Origins.LOGGER.info("Класс не совместим - блокируем взятие QuestTicketItem");
-                                // Сообщение будет показано в takeStack/canTakeItems
+                             // Сообщение будет показано в takeStack/canTakeItems
                                 return;
                             }
                         } else {
@@ -168,14 +154,12 @@ public class BountyBoardScreenHandler extends ScreenHandler {
                         return;
                     }
                 } else {
-                    io.github.apace100.origins.Origins.LOGGER.info("Неизвестный тип предмета: {} - позволяем взять", stack.getItem().getClass().getSimpleName());
-                    // Позволяем взять любой другой предмет
+                                      // Позволяем взять любой другой предмет
                     super.onSlotClick(slotIndex, button, actionType, player);
                     return;
                 }
             } else {
-                io.github.apace100.origins.Origins.LOGGER.info("Слот пустой или null");
-            }
+ }
             
             // Если дошли сюда, позволяем стандартную обработку
             super.onSlotClick(slotIndex, button, actionType, player);
@@ -184,8 +168,7 @@ public class BountyBoardScreenHandler extends ScreenHandler {
         
         // Клик по билету квеста (слот 21) - позволяем взаимодействие
         if (slotIndex == 21) {
-            io.github.apace100.origins.Origins.LOGGER.info("Клик по слоту выбранного квеста (21) - позволяем взаимодействие");
-            super.onSlotClick(slotIndex, button, actionType, player);
+                      super.onSlotClick(slotIndex, button, actionType, player);
             return;
         }
         
@@ -529,31 +512,25 @@ public class BountyBoardScreenHandler extends ScreenHandler {
 
         @Override
         public boolean canTakeItems(PlayerEntity playerEntity) {
-            io.github.apace100.origins.Origins.LOGGER.info("🔥 QuestSlot.canTakeItems вызван для слота {}", questIndex);
-            
+                      
             // Теперь МОЖНО брать билеты из слотов!
             if (!hasStack()) {
-                io.github.apace100.origins.Origins.LOGGER.info("🔥 Слот {} пустой - возвращаем false", questIndex);
-                return false;
+                              return false;
             }
             
             ItemStack stack = getStack();
-            io.github.apace100.origins.Origins.LOGGER.info("🔥 В слоте {} предмет: {}", questIndex, stack.getItem().getClass().getSimpleName());
-            
+                      
             // Получаем класс игрока - используем переданного игрока или текущего
             String playerClass;
             if (playerEntity instanceof ServerPlayerEntity serverPlayer) {
                 playerClass = getPlayerOriginClass(serverPlayer);
-                io.github.apace100.origins.Origins.LOGGER.info("🔥 Используем переданного игрока: {}", playerClass);
-            } else {
+                } else {
                 playerClass = getCurrentPlayerClass();
-                io.github.apace100.origins.Origins.LOGGER.info("🔥 Используем текущего игрока: {}", playerClass);
-            }
+                          }
             
             // Если это BountifulQuestItem, проверяем класс
             if (stack.getItem() instanceof BountifulQuestItem) {
-                io.github.apace100.origins.Origins.LOGGER.info("🔥 Это BountifulQuestItem - проверяем класс");
-                
+                              
                 BountifulQuestInfo info = BountifulQuestInfo.get(stack);
                 String questClass = info.getProfession();
                 
@@ -568,8 +545,7 @@ public class BountyBoardScreenHandler extends ScreenHandler {
             }
             // Если это QuestTicketItem, проверяем класс из Quest объекта
             else if (stack.getItem() instanceof QuestTicketItem) {
-                io.github.apace100.origins.Origins.LOGGER.info("🔥 Это QuestTicketItem - проверяем класс");
-                
+                              
                 Quest quest = QuestItem.getQuestFromStack(stack);
                 if (quest != null) {
                     String questClass = quest.getPlayerClass();
@@ -583,14 +559,11 @@ public class BountyBoardScreenHandler extends ScreenHandler {
                     
                     return compatible;
                 } else {
-                    io.github.apace100.origins.Origins.LOGGER.info("🔥 QuestTicketItem без Quest объекта - разрешаем взять");
-                    return true;
+                                      return true;
                 }
             }
             
-            // Для всех остальных предметов разрешаем взять
-            io.github.apace100.origins.Origins.LOGGER.info("🔥 Неизвестный тип предмета - разрешаем взять");
-            return true;
+             return true;
         }
 
         @Override
@@ -599,9 +572,7 @@ public class BountyBoardScreenHandler extends ScreenHandler {
             ItemStack stack = getStack();
             
             // Проверяем, можно ли взять предмет с учетом игрока
-            if (!canTakeItems(player)) {
-                io.github.apace100.origins.Origins.LOGGER.info("takeStack заблокирован - canTakeItems вернул false для слота {}", questIndex);
-                
+            if (!canTakeItems(player)) {             
                 // Отправляем сообщение игроку о том, что билет для другого класса
                 if (player != null) {
                     String requiredClass = getRequiredClassForStack(stack);
@@ -614,8 +585,7 @@ public class BountyBoardScreenHandler extends ScreenHandler {
             
             // Если это BountifulQuestItem, принимаем квест при взятии
             if (stack.getItem() instanceof BountifulQuestItem && player != null) {
-                io.github.apace100.origins.Origins.LOGGER.info("Принимаем квест при взятии билета из слота {}", questIndex);
-                if (acceptBountifulQuest(player, stack)) {
+                  if (acceptBountifulQuest(player, stack)) {
                     player.sendMessage(Text.literal("Квест принят!").formatted(Formatting.GREEN), false);
                 } else {
                     io.github.apace100.origins.Origins.LOGGER.warn("Не удалось принять квест при взятии билета");

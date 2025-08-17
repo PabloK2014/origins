@@ -69,14 +69,7 @@ public class CreateOrderScreen extends Screen {
         descriptionField.setText(savedDescription);
         this.addSelectableChild(descriptionField);
         
-        // Поле опыта
-        experienceField = new TextFieldWidget(this.textRenderer, left + 20, top + 55, 100, 20, Text.literal("Опыт для курьера"));
-        experienceField.setPlaceholder(Text.literal("0").formatted(Formatting.GRAY));
-        experienceField.setMaxLength(5); // Максимум 5 символов (до 99999)
-        experienceField.setText(String.valueOf(savedExperienceReward));
-        // Разрешаем только цифры
-        experienceField.setTextPredicate(text -> text.matches("\\d*"));
-        this.addSelectableChild(experienceField);
+        // Поле опыта\n        experienceField = new TextFieldWidget(this.textRenderer, left + 20, top + 55, 100, 20, Text.literal(\"Опыт для курьера\"));\n        experienceField.setPlaceholder(Text.literal(\"0\").formatted(Formatting.GRAY));\n        experienceField.setMaxLength(5); // Максимум 5 символов (до 99999)\n        experienceField.setText(String.valueOf(savedExperienceReward));\n        // Разрешаем только цифры\n        experienceField.setTextPredicate(text -> text.matches(\"\\\\d*\"));\n        this.addSelectableChild(experienceField);\n        \n        // Добавляем визуальный индикатор для поля опыта\n        // Это будет сделано в методе render
         
         // Создаем слоты для предметов запроса
         requestSlots.clear();
@@ -289,9 +282,7 @@ public class CreateOrderScreen extends Screen {
         context.drawText(this.textRenderer, Text.literal("Награда:"), left + 270, top + 80, CourierNetworking.COLOR_WARNING, false);
         
         // Рендерим поле описания
-        if (descriptionField != null) {
-            descriptionField.render(context, mouseX, mouseY, delta);
-        }
+        descriptionField.render(context, mouseX, mouseY, delta);
         
         // Рендерим поле опыта
         if (experienceField != null) {
@@ -323,24 +314,7 @@ public class CreateOrderScreen extends Screen {
             Text.literal(experienceHint).formatted(Formatting.GRAY), 
             left + 130, top + 60, CourierNetworking.COLOR_TEXT_SECONDARY, false);
         
-        // Показываем ошибку при неверном вводе опыта
-        if (experienceField != null) {
-            try {
-                int exp = Integer.parseInt(experienceField.getText());
-                if (exp < 0 || exp > 10000) {
-                    String errorText = "Опыт должен быть от 0 до 10000!";
-                    context.drawText(this.textRenderer, 
-                        Text.literal(errorText).formatted(Formatting.RED, Formatting.BOLD), 
-                        left + 20, top + 75, CourierNetworking.COLOR_ERROR, false);
-                }
-            } catch (NumberFormatException e) {
-                if (!experienceField.getText().isEmpty()) {
-                    context.drawText(this.textRenderer, 
-                        Text.literal("Введите число!").formatted(Formatting.RED, Formatting.BOLD), 
-                        left + 20, top + 75, CourierNetworking.COLOR_ERROR, false);
-                }
-            }
-        }
+        // Показываем ошибку при неверном вводе опыта\n        if (experienceField != null) {\n            try {\n                int exp = Integer.parseInt(experienceField.getText());\n                if (exp < 0 || exp > 10000) {\n                    String errorText = \"Опыт должен быть от 0 до 10000!\";\n                    context.drawText(this.textRenderer, \n                        Text.literal(errorText).formatted(Formatting.RED, Formatting.BOLD), \n                        left + 20, top + 75, CourierNetworking.COLOR_ERROR, false);\n                }\n            } catch (NumberFormatException e) {\n                if (!experienceField.getText().isEmpty()) {\n                    context.drawText(this.textRenderer, \n                        Text.literal(\"Введите число!\").formatted(Formatting.RED, Formatting.BOLD), \n                        left + 20, top + 75, CourierNetworking.COLOR_ERROR, false);\n                }\n            }\n        }
         
         // Рендерим подсказки для слотов
         for (ItemSlot slot : requestSlots) {

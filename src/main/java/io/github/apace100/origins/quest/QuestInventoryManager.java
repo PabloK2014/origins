@@ -38,23 +38,13 @@ public class QuestInventoryManager {
         }
         
         try {
-            Origins.LOGGER.info("Ищем билеты квестов в инвентаре игрока {}, размер инвентаря: {}", 
-                player.getName().getString(), player.getInventory().size());
-            
             // Проверяем основной инвентарь
             for (int i = 0; i < player.getInventory().size(); i++) {
                 ItemStack stack = player.getInventory().getStack(i);
-                if (!stack.isEmpty()) {
-                    Origins.LOGGER.info("Слот {}: {} (isQuestTicket: {})", 
-                        i, stack, QuestTicketItem.isQuestTicket(stack));
-                }
                 if (QuestTicketItem.isQuestTicket(stack)) {
                     questTickets.add(stack);
-                    Origins.LOGGER.info("Найден билет квеста в слоте {}: {}", i, stack);
                 }
             }
-            
-            Origins.LOGGER.info("Всего найдено билетов квестов: {}", questTickets.size());
             
         } catch (Exception e) {
             Origins.LOGGER.error("Ошибка при поиске билетов квестов в инвентаре: {}", e.getMessage());
@@ -282,8 +272,7 @@ public class QuestInventoryManager {
             
             // Добавляем билет в инвентарь
             player.getInventory().setStack(emptySlot, questTicket.copy());
-            Origins.LOGGER.info("Билет квеста добавлен в слот {}", emptySlot);
-            
+                        
             return true;
             
         } catch (Exception e) {
@@ -301,31 +290,19 @@ public class QuestInventoryManager {
         }
         
         try {
-            Origins.LOGGER.info("Отладка инвентаря игрока {}, размер инвентаря: {}", 
-                player.getName().getString(), player.getInventory().size());
-            
             int questTicketCount = 0;
             
             for (int i = 0; i < player.getInventory().size(); i++) {
                 ItemStack stack = player.getInventory().getStack(i);
                 if (!stack.isEmpty()) {
                     boolean isQuestTicket = QuestTicketItem.isQuestTicket(stack);
-                    Origins.LOGGER.info("Слот {}: {} {} (isQuestTicket: {})", 
-                        i, stack.getCount(), stack.getItem().toString(), isQuestTicket);
                     
                     if (isQuestTicket) {
                         questTicketCount++;
                         Quest quest = QuestItem.getQuestFromStack(stack);
-                        Origins.LOGGER.info("Найден билет квеста в слоте {}: {} quest_ticket_common", 
-                            i, stack.getCount());
-                        if (quest != null) {
-                            Origins.LOGGER.info("Квест в билете: {} (ID: {})", quest.getTitle(), quest.getId());
-                        }
                     }
                 }
             }
-            
-            Origins.LOGGER.info("Всего билетов квестов найдено: {}", questTicketCount);
             
         } catch (Exception e) {
             Origins.LOGGER.error("Ошибка при отладке инвентаря: {}", e.getMessage());

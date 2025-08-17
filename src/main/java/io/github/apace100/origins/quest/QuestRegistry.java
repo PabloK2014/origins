@@ -64,8 +64,7 @@ public class QuestRegistry {
     public static final BountifulQuestItem BOUNTIFUL_QUEST_ITEM = new BountifulQuestItem();
     
     public static void register() {
-        Origins.LOGGER.info("Регистрация системы квестов...");
-        
+                
         // Регистрируем блок доски объявлений
         Registry.register(Registries.BLOCK, new Identifier(Origins.MODID, "bounty_board"), BOUNTY_BOARD);
         Registry.register(Registries.ITEM, new Identifier(Origins.MODID, "bounty_board"), BOUNTY_BOARD_ITEM);
@@ -140,6 +139,5 @@ public class QuestRegistry {
         // Регистрируем новый предмет квеста
         Registry.register(Registries.ITEM, new Identifier(Origins.MODID, "bountiful_quest"), BOUNTIFUL_QUEST_ITEM);
         
-        Origins.LOGGER.info("Система квестов зарегистрирована успешно!");
-    }
+            }
 } 

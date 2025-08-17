@@ -55,8 +55,7 @@ public class KeybindingTest {
      * Runs comprehensive keybinding tests
      */
     public static CompletableFuture<TestSuite> runKeybindingTests() {
-        Origins.LOGGER.info("Starting keybinding functionality tests...");
-        
+                
         return CompletableFuture.supplyAsync(() -> {
             List<TestResult> results = new ArrayList<>();
             
@@ -211,8 +210,7 @@ public class KeybindingTest {
             return;
         }
         
-        Origins.LOGGER.info("Simulating keybinding usage...");
-        
+                
         // Simulate G key press feedback
         client.player.sendMessage(Text.literal("Симуляция: Нажата клавиша G (глобальный навык)")
             .formatted(Formatting.GREEN), true);
@@ -225,21 +223,18 @@ public class KeybindingTest {
         client.player.sendMessage(Text.literal("Симуляция: Нажата клавиша L (выбор навыка)")
             .formatted(Formatting.BLUE), true);
         
-        Origins.LOGGER.info("Keybinding usage simulation completed");
-    }
+            }
     
     /**
      * Tests keybinding conflicts detection
      */
     public static void testConflictDetection() {
-        Origins.LOGGER.info("Testing keybinding conflict detection...");
-        
+                
         try {
             KeybindingDiagnostic.DiagnosticReport report = KeybindingDiagnostic.runDiagnostic();
             
             if (report.conflicts.isEmpty()) {
-                Origins.LOGGER.info("✓ No keybinding conflicts detected");
-            } else {
+                            } else {
                 Origins.LOGGER.warn("⚠ Keybinding conflicts detected:");
                 for (KeybindingDiagnostic.KeyConflict conflict : report.conflicts) {
                     Origins.LOGGER.warn("  - {} conflicts with: {}", 
@@ -251,8 +246,7 @@ public class KeybindingTest {
             if (!report.conflicts.isEmpty()) {
                 boolean repaired = KeybindingDiagnostic.repairKeybindings(report);
                 if (repaired) {
-                    Origins.LOGGER.info("✓ Keybinding conflicts repaired");
-                } else {
+                                    } else {
                     Origins.LOGGER.warn("⚠ Some keybinding conflicts could not be automatically repaired");
                 }
             }
@@ -288,8 +282,7 @@ public class KeybindingTest {
                 return false;
             }
             
-            Origins.LOGGER.info("✓ Keybinding system health check passed");
-            return true;
+                        return true;
             
         } catch (Exception e) {
             Origins.LOGGER.error("Keybinding health check failed with exception: " + e.getMessage(), e);

@@ -27,11 +27,7 @@ public class SlotMixin {
             Slot slot = (Slot) (Object) this;
             
             // Дополнительное логирование для отладки Shift+ЛКМ
-            Origins.LOGGER.info("=== SlotMixin: onTakeItem вызван ===");
-            Origins.LOGGER.info("Игрок: {}", serverPlayer.getName().getString());
-            Origins.LOGGER.info("Предмет: {}", stack.isEmpty() ? "пустой" : stack.getItem().toString());
-            Origins.LOGGER.info("Количество: {}", stack.getCount());
-            Origins.LOGGER.info("Слот: {}, Инвентарь: {}", slot.getIndex(), 
+                                                            Origins.LOGGER.info("Слот: {}, Инвентарь: {}", slot.getIndex(), 
                 slot.inventory != null ? slot.inventory.getClass().getSimpleName() : "null");
             
             CookHelper.processCookingExperience(serverPlayer, slot, stack, "взятие");

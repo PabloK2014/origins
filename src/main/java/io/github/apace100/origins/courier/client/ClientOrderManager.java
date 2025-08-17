@@ -101,8 +101,7 @@ public class ClientOrderManager {
                 }
             });
         
-        Origins.LOGGER.info("Зарегистрированы клиентские обработчики пакетов системы заказов курьера");
-    }
+            }
     
     /**
      * Обновляет список заказов
@@ -118,8 +117,7 @@ public class ClientOrderManager {
             currentOrdersScreen.updateOrders(newOrders);
         }
         
-        Origins.LOGGER.debug("Обновлено {} заказов на клиенте", newOrders.size());
-    }
+            }
     
     /**
      * Обновляет статус конкретного заказа
@@ -142,8 +140,7 @@ public class ClientOrderManager {
                 currentOrdersScreen.updateOrders(new ArrayList<>(orders.values()));
             }
             
-            Origins.LOGGER.debug("Обновлен статус заказа {} на {}", orderId, newStatus);
-        }
+                    }
     }
     
     /**
@@ -176,8 +173,7 @@ public class ClientOrderManager {
                 false
             );
             
-            Origins.LOGGER.info("Показано уведомление о новом заказе {} от {}", orderId, ownerName);
-            
+                        
         } catch (Exception e) {
             Origins.LOGGER.error("Ошибка при показе уведомления о новом заказе: " + e.getMessage(), e);
         }
@@ -246,8 +242,7 @@ public class ClientOrderManager {
     public void clear() {
         orders.clear();
         currentOrdersScreen = null;
-        Origins.LOGGER.debug("Очищены все заказы на клиенте");
-    }
+            }
     
     /**
      * Проверяет, открыт ли экран заказов

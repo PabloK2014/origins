@@ -31,8 +31,7 @@ public class ChatAssistantApiClient {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 String url = API_BASE_URL + "/chat/ask";
-                Origins.LOGGER.info("🤖 [ChatAssistant] Отправляем вопрос к AI: " + question);
-                
+                                
                 // Создаем JSON запрос с правильными именами полей для FastAPI
                 JsonObject requestJson = new JsonObject();
                 requestJson.addProperty("question", question);
@@ -40,8 +39,7 @@ public class ChatAssistantApiClient {
                 // context поле опциональное, не добавляем если null
                 String jsonBody = gson.toJson(requestJson);
                 
-                Origins.LOGGER.info("🤖 [ChatAssistant] Отправляем JSON: " + jsonBody);
-                
+                                
                 HttpRequest httpRequest = HttpRequest.newBuilder()
                         .uri(URI.create(url))
                         .timeout(Duration.ofSeconds(60)) // Таймаут 1 минута
@@ -51,12 +49,10 @@ public class ChatAssistantApiClient {
                 
                 HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
                 
-                Origins.LOGGER.info("📡 [ChatAssistant] API RESPONSE: Status " + response.statusCode());
-                
+                                
                 if (response.statusCode() == 200) {
                     ChatResponse chatResponse = parseChatResponse(response.body());
-                    Origins.LOGGER.info("✅ [ChatAssistant] Получен ответ от AI: " + chatResponse.answer.substring(0, Math.min(50, chatResponse.answer.length())) + "...");
-                    return chatResponse;
+                                        return chatResponse;
                 } else {
                     Origins.LOGGER.error("❌ [ChatAssistant] API ERROR: Status " + response.statusCode());
                     Origins.LOGGER.error("Response body: " + response.body());
@@ -113,8 +109,7 @@ public class ChatAssistantApiClient {
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
                 
                 boolean isAvailable = response.statusCode() == 200;
-                Origins.LOGGER.info("🔍 [ChatAssistant] API Health Check: " + (isAvailable ? "✅ AVAILABLE" : "❌ UNAVAILABLE") + " (Status: " + response.statusCode() + ")");
-                
+                                
                 return isAvailable;
                 
             } catch (Exception e) {

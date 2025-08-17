@@ -41,8 +41,7 @@ public class OriginsJsonConfigSerializer<T extends ConfigData> extends GsonConfi
             try {
                 t = legacySerializer.deserialize();
                 serialize(t);
-                Origins.LOGGER.info("Converted old .toml config to new .json5 format. Old file will be renamed to origins_server.toml.unused.");
-                Files.move(legacySerializer.getConfigPath(), legacySerializer.getConfigPath().getParent().resolve("origins_server.toml.unused"));
+                                Files.move(legacySerializer.getConfigPath(), legacySerializer.getConfigPath().getParent().resolve("origins_server.toml.unused"));
                 return t;
             } catch (Exception e) {
                 Origins.LOGGER.error("Failed converting old .toml config to new .json5 format: " + e.getMessage());
