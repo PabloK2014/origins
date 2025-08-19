@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "triggered=false": {
+      "model": "origins:block/trap_block"
+    },
+    "triggered=true": {
+      "model": "origins:block/trap_block_triggered"
+    }
+  }
+}

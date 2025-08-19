@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "origins:trap_placer"
+    }
+  ],
+  "result": {
+    "item": "origins:trap_block",
+    "count": 1
+  }
+}

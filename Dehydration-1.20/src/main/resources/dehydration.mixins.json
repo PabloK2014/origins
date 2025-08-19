@@ -1,0 +1,36 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.dehydration.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "plugin": "net.dehydration.mixin.compat.DehydrationMixinPlugin",
+  "mixins": [
+    "PlayerEntityMixin",
+    "PotionItemMixin",
+    "ServerPlayerEntityMixin",
+    "MilkBucketItemMixin",
+    "ItemMixin",
+    "CampfireBlockMixin",
+    "PotionUtilMixin",
+    "BrewingRecipeRegistryMixin",
+    "BootstrapMixin",
+    "DispenserBlockMixin",
+    "StatusEffectMixin",
+    "CampfireBlockEntityMixin",
+    "PlayerManagerMixin",
+    "TooltipComponentMixin",
+    "HoneyBottleItemMixin",
+    "CauldronBehaviorMixin",
+    "WaterFluidMixin",
+    "GlassBottleItemMixin",
+    "accessor.CampfireBlockEntityAccessor",
+    "PlayerScreenHandlerMixin"
+  ],
+  "client": [
+    "client.InGameHudMixin",
+    "client.ClientPlayerEntityMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

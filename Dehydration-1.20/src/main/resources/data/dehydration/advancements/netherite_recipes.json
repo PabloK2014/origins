@@ -1,0 +1,22 @@
+{
+    "parent": "minecraft:recipes/root",
+    "rewards": {
+        "recipes": [
+            "dehydration:netherite_leather_flask"
+        ]
+    },
+    "criteria": {
+        "got_the_netherite_for_dehydration": {
+            "trigger": "minecraft:inventory_changed",
+            "conditions": {
+                "items": [
+                    {
+                        "items": [
+                            "minecraft:netherite_ingot"
+                        ]
+                    }
+                ]
+            }
+        }
+    }
+}

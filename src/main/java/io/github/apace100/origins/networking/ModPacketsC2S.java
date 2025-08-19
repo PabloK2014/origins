@@ -194,7 +194,7 @@ public class ModPacketsC2S {
                             // Увеличиваем максимальную энергию на 5
                             int oldMaxEnergy = skillComponent.getMaxEnergy();
                             int energyIncrease = 5;
-                            int maxEnergyLimit = 100; // Максимальный лимит энергии
+                            int maxEnergyLimit = 200; // Максимальный лимит энергии
                             
                             if (oldMaxEnergy >= maxEnergyLimit) {
                                 player.sendMessage(

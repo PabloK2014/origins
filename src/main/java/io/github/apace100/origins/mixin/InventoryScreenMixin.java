@@ -25,9 +25,9 @@ public class InventoryScreenMixin {
         int screenWidth = screen.width;
         int screenHeight = screen.height;
         
-        // Определяем позицию кнопки (справа от инвентаря)
-        int buttonX = (screenWidth + 176) / 2 + 10; // Справа от инвентаря
-        int buttonY = (screenHeight - 166) / 2 + 10; // Сверху
+        // Определяем позицию кнопок (ниже инвентаря, в строку)
+        int buttonX = (screenWidth - 176) / 2; // Слева от инвентаря
+        int buttonY = (screenHeight + 166) / 2 + 10; // Ниже инвентаря
         
         // Добавляем кнопку для курьеров (список заказов)
         ButtonWidget ordersButton = ButtonWidget.builder(Text.literal("📦"), button -> {
@@ -41,20 +41,19 @@ public class InventoryScreenMixin {
         ButtonWidget createOrderButton = ButtonWidget.builder(Text.literal("✉"), button -> {
             client.setScreen(new CreateOrderScreen());
         })
-        .dimensions(buttonX, buttonY + 25, 20, 20)
+        .dimensions(buttonX + 25, buttonY, 20, 20) // Смещаем вправо
         .tooltip(net.minecraft.client.gui.tooltip.Tooltip.of(Text.translatable("gui.origins.inventory.create_order_button")))
         .build();
         
         // Добавляем кнопку навыков
         ButtonWidget skillsButton = ButtonWidget.builder(Text.literal("⚡"), button -> {
-            // Открываем экран навыков LevelZ
             client.setScreen(new io.github.apace100.origins.client.gui.LevelZSkillScreen());
         })
-        .dimensions(buttonX, buttonY + 50, 20, 20)
+        .dimensions(buttonX + 50, buttonY, 20, 20) // Смещаем еще правее
         .tooltip(net.minecraft.client.gui.tooltip.Tooltip.of(Text.translatable("gui.origins.inventory.skills_button")))
         .build();
         
-        // Добавляем кнопки через рефлексию (так как addDrawableChild protected)
+        // Добавляем кнопки через рефлексию
         try {
             java.lang.reflect.Method addDrawableChild = net.minecraft.client.gui.screen.Screen.class.getDeclaredMethod("addDrawableChild", net.minecraft.client.gui.Element.class);
             addDrawableChild.setAccessible(true);
@@ -88,7 +87,6 @@ public class InventoryScreenMixin {
                 selectables.add(createOrderButton);
                 selectables.add(skillsButton);
             } catch (Exception ex) {
-                // Если и это не работает, просто логируем ошибку
                 System.err.println("Failed to add courier buttons to inventory screen: " + ex.getMessage());
             }
         }
