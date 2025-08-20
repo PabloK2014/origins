@@ -155,14 +155,9 @@ public class OriginHudOverlay {
             PlayerSkillComponent skillComponent = PlayerSkillComponent.KEY.get(client.player);
             if (skillComponent == null) return;
             
-            long cooldownRemaining = skillComponent.getSkillCooldownRemaining(skillName);
-            int maxCooldown = getMaxCooldownForSkill(skillName);
+            // Рисуем полоску кулдауна (заполняем слева направо)
+            int filledWidth = (int)(BAR_WIDTH * (1.0f - fillPercent));
             
-            // Рассчитываем точный процент заполнения
-            float exactFillPercent = 1.0f - ((float) cooldownRemaining / maxCooldown);
-            int filledWidth = (int)(BAR_WIDTH * exactFillPercent);
-            
-            // Рисуем полоску кулдауна
             if (filledWidth > 0) {
                 context.drawTexture(
                     ALL_TEXTURE,       // текстура
@@ -174,7 +169,8 @@ public class OriginHudOverlay {
             }
             
             // Текст кулдауна
-            if (cooldownRemaining > 0) {
+            if (skillComponent.isSkillOnCooldown(skillName)) {
+                long cooldownRemaining = skillComponent.getSkillCooldownRemaining(skillName);
                 String cooldownText = String.format("%.1fs", cooldownRemaining / 20.0f);
                 context.drawTextWithShadow(client.textRenderer, cooldownText, x + BAR_WIDTH + 4, y + 1, COOLDOWN_TEXT_COLOR);
             }
@@ -209,15 +205,35 @@ public class OriginHudOverlay {
      */
     private static int getMaxCooldownForSkill(String skillId) {
         return switch (skillId) {
+            // Навыки пивовара
+            case "bottle_throw" -> 300; // 15 секунд
+            case "master_brewer" -> 600; // 30 секунд
+            case "berserker_drink" -> 1200; // 60 секунд
+            case "healing_ale" -> 400; // 20 секунд
+            case "party_time" -> 1800; // 90 секунд
+            
+            // Навыки кузнеца
+            case "hot_strike" -> 600; // 30 секунд
+            case "instant_repair" -> 6000; // 300 секунд (5 минут)
+            
+            // Навыки воина
             case "mad_boost" -> 100; // 5 секунд
-            case "last_chance" -> 1200; // 60 секунд
-            case "indestructibility" -> 1800; // 90 секунд
+            case "indestructibility" -> 1200; // 60 секунд
             case "dagestan" -> 2400; // 120 секунд
+            
+            // Навыки курьера
             case "sprint_boost" -> 600; // 30 секунд
             case "speed_surge" -> 1200; // 60 секунд
             case "carry_capacity_basic" -> 600; // 30 секунд
-            case "hot_strike" -> 600; // 30 секунд
-            case "instant_repair" -> 6000; // 300 секунд (5 минут)
+            
+            // Навыки шахтера
+            case "ore_highlight" -> 600; // 30 секунд
+            case "vein_miner" -> 1200; // 60 секунд
+            
+            // Навыки повара
+            case "smoke_screen" -> 300; // 15 секунд
+            case "banquet" -> 1800; // 90 секунд
+            
             default -> 1200; // 60 секунд по умолчанию
         };
     }

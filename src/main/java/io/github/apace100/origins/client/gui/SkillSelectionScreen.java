@@ -1,9 +1,7 @@
 package io.github.apace100.origins.client.gui;
 
 import io.github.apace100.origins.skill.PlayerSkillComponent;
-import io.github.apace100.origins.skill.BlacksmithSkillHandler;
-import io.github.apace100.origins.skill.WarriorSkillHandler;
-import io.github.apace100.origins.skill.CourierSkillHandler;
+import io.github.apace100.origins.skill.SkillTreeHandler;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.gui.DrawContext;
@@ -95,50 +93,20 @@ public class SkillSelectionScreen extends Screen {
         // Определяем класс игрока через компонент Origins
         String playerClass = getPlayerClass();
         
-        if ("origins:blacksmith".equals(playerClass)) {
-            // Навыки кузнеца
-            int hotStrikeLevel = skillComponent.getSkillLevel("hot_strike");
-            if (hotStrikeLevel > 0) {
-                availableSkills.add(new SkillInfo("hot_strike", "Раскалённый удар", hotStrikeLevel));
-            }
-            
-            int instantRepairLevel = skillComponent.getSkillLevel("instant_repair");
-            if (instantRepairLevel > 0) {
-                availableSkills.add(new SkillInfo("instant_repair", "Мгновенный ремонт", instantRepairLevel));
-            }
-        } 
-        else if ("origins:warrior".equals(playerClass)) {
-            // Навыки воина
-            int madBoostLevel = skillComponent.getSkillLevel("mad_boost");
-            if (madBoostLevel > 0) {
-                availableSkills.add(new SkillInfo("mad_boost", "Безумный рывок", madBoostLevel));
-            }
-            
-            int indestructibilityLevel = skillComponent.getSkillLevel("indestructibility");
-            if (indestructibilityLevel > 0) {
-                availableSkills.add(new SkillInfo("indestructibility", "Несокрушимость", indestructibilityLevel));
-            }
-            
-            int dagestanskayaBratvaLevel = skillComponent.getSkillLevel("dagestan");
-            if (dagestanskayaBratvaLevel > 0) {
-                availableSkills.add(new SkillInfo("dagestan", "Дагестанская братва", dagestanskayaBratvaLevel));
-            }
-        } 
-        else if ("origins:courier".equals(playerClass)) {
-            // Навыки курьера
-            int sprintBoostLevel = skillComponent.getSkillLevel("sprint_boost");
-            if (sprintBoostLevel > 0) {
-                availableSkills.add(new SkillInfo("sprint_boost", "Рывок", sprintBoostLevel));
-            }
-            
-            int speedSurgeLevel = skillComponent.getSkillLevel("speed_surge");
-            if (speedSurgeLevel > 0) {
-                availableSkills.add(new SkillInfo("speed_surge", "Всплеск скорости", speedSurgeLevel));
-            }
-            
-            int trapLevel = skillComponent.getSkillLevel("carry_capacity_basic");
-            if (trapLevel > 0) {
-                availableSkills.add(new SkillInfo("carry_capacity_basic", "Ловушка", trapLevel));
+        // Получаем дерево навыков для класса игрока
+        SkillTreeHandler.SkillTree skillTree = SkillTreeHandler.getSkillTree(playerClass);
+        if (skillTree == null) return;
+        
+        // Проходим по всем навыкам в дереве
+        for (SkillTreeHandler.Skill skill : skillTree.getAllSkills()) {
+            // Проверяем, что навык активный или глобальный
+            if (skill.getType() == SkillTreeHandler.SkillType.ACTIVE || 
+                skill.getType() == SkillTreeHandler.SkillType.GLOBAL) {
+                // Проверяем, изучен ли навык
+                int skillLevel = skillComponent.getSkillLevel(skill.getId());
+                if (skillLevel > 0) {
+                    availableSkills.add(new SkillInfo(skill.getId(), skill.getName(), skillLevel));
+                }
             }
         }
     }

@@ -382,7 +382,7 @@ public class SkillActivationHandler {
             
             // Навыки пивовара
             case "master_brewer" -> 3;
-            case "bottle_throw" -> 4;
+            case "bottle_throw" -> 15; // 15 энергии для метания бутылок
             case "berserker_drink" -> 8;
             case "healing_ale" -> 5;
             case "party_time" -> 10;
@@ -392,6 +392,44 @@ public class SkillActivationHandler {
             case "banquet" -> 8;
             
             default -> 2; // Стоимость по умолчанию
+        };
+    }
+    
+    /**
+     * Получает кулдаун навыка в тиках
+     */
+    private static int getSkillCooldown(String skillId) {
+        return switch (skillId) {
+            // Навыки кузнеца
+            case "hot_strike" -> 600; // 30 секунд
+            case "instant_repair" -> 6000; // 300 секунд (5 минут)
+            
+            // Навыки воина
+            case "mad_boost" -> 100; // 5 секунд
+            case "indestructibility" -> 1200; // 60 секунд
+            case "dagestan" -> 2400; // 120 секунд
+            
+            // Навыки курьера
+            case "sprint_boost" -> 600; // 30 секунд
+            case "speed_surge" -> 1200; // 60 секунд
+            case "carry_capacity_basic" -> 600; // 30 секунд
+            
+            // Навыки шахтера
+            case "ore_highlight" -> 600; // 30 секунд
+            case "vein_miner" -> 1200; // 60 секунд
+            
+            // Навыки пивовара
+            case "master_brewer" -> 300; // 15 секунд
+            case "bottle_throw" -> 300; // 15 секунд
+            case "berserker_drink" -> 1200; // 60 секунд
+            case "healing_ale" -> 400; // 20 секунд
+            case "party_time" -> 1800; // 90 секунд
+            
+            // Навыки повара
+            case "smoke_screen" -> 300; // 15 секунд
+            case "banquet" -> 1800; // 90 секунд
+            
+            default -> 1200; // 60 секунд по умолчанию
         };
     }
     
@@ -446,6 +484,14 @@ public class SkillActivationHandler {
                 return;
             }
             
+            // Получаем кулдаун навыка
+            int cooldownTicks = getSkillCooldown(skill.id);
+            
+            // Устанавливаем кулдаун только для скиллов, кроме bottle_throw
+            if (!"bottle_throw".equals(skill.id)) {
+                skillComponent.setSkillCooldown(skill.id, cooldownTicks);
+            }
+            
             switch (skill.id) {
                 // Навыки кузнеца
                 case "hot_strike":
@@ -490,7 +536,8 @@ public class SkillActivationHandler {
                     handleBrewerMasterBrewer(player, skill.level);
                     break;
                 case "bottle_throw":
-                    handleBrewerBottleThrow(player, skill.level);
+                    // Используем наш обработчик, который восполняет жажду другим игрокам
+                    BrewerSkillHandler.handleBottleThrow(player, skill.level);
                     break;
                 case "berserker_drink":
                     handleBrewerBerserkerDrink(player, skill.level);
@@ -760,22 +807,8 @@ public class SkillActivationHandler {
         ));
     }
     
-    private static void handleBrewerBottleThrow(ServerPlayerEntity player, int level) {
-        player.sendMessage(
-            Text.literal("Метание бутылок готово! Следующие " + level + " бросков будут взрывными")
-                .formatted(Formatting.RED), 
-            true
-        );
-        
-        // Даем эффект силы для более мощных бросков
-        player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
-            net.minecraft.entity.effect.StatusEffects.STRENGTH, 
-            300, // 15 секунд
-            0, 
-            false, 
-            false
-        ));
-    }
+    // Метод активации навыка "Метание бутылок" теперь использует наш обработчик
+    // который восполняет жажду другим игрокам
     
     private static void handleBrewerBerserkerDrink(ServerPlayerEntity player, int level) {
         player.sendMessage(

@@ -8,6 +8,7 @@ import io.github.apace100.origins.Origins;
 import io.github.apace100.origins.component.OriginComponent;
 import io.github.apace100.origins.origin.Origin;
 import io.github.apace100.origins.origin.OriginLayers;
+import io.github.apace100.origins.registry.ModComponents;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -493,6 +494,129 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
             // Добавить другие навыки по мере необходимости
         }
     }
+    
+    /**
+     * Активирует указанный активный навык у игрока
+     * @param skillId ID навыка
+     */
+    public void activateSkill(String skillId) {
+        Origins.LOGGER.info("Попытка активации навыка: {}", skillId);
+        String currentClass = getCurrentClass();
+        if (currentClass == null) {
+            Origins.LOGGER.info("Не удалось активировать навык: не найден текущий класс");
+            return;
+        }
+        
+        SkillTreeHandler.SkillTree skillTree = SkillTreeHandler.getSkillTree(currentClass);
+        if (skillTree == null) {
+            Origins.LOGGER.info("Не удалось активировать навык: не найдено дерево навыков для класса {}", currentClass);
+            return;
+        }
+        
+        SkillTreeHandler.Skill skill = null;
+        for (SkillTreeHandler.Skill s : skillTree.getAllSkills()) {
+            if (s.getId().equals(skillId) && s.getType() == SkillTreeHandler.SkillType.ACTIVE) {
+                skill = s;
+                break;
+            }
+        }
+        
+        if (skill == null) {
+            Origins.LOGGER.info("Не удалось активировать навык: активный навык {} не найден в дереве", skillId);
+            // Попробуем найти обработчик по ID навыка
+            handleSkillById(skillId);
+            return;
+        }
+        
+        int skillLevel = getSkillLevel(skillId);
+        if (skillLevel <= 0) {
+            Origins.LOGGER.info("Не удалось активировать навык: навык {} не изучен", skillId);
+            return;
+        }
+        
+        // Вызов обработчика по ID навыка
+        handleSkillById(skillId);
+    }
+    
+    /**
+     * Вызывает соответствующий обработчик для навыка по его ID
+     * @param skillId ID навыка
+     */
+    private void handleSkillById(String skillId) {
+        if ("bottle_throw".equals(skillId) && player instanceof ServerPlayerEntity serverPlayer) {
+            // Обрабатывается в SkillActivationHandler
+            return;
+        }
+        
+        if ("mad_boost".equals(skillId) && player instanceof ServerPlayerEntity serverPlayer) {
+            int level = getSkillLevel(skillId);
+            if (WarriorSkillHandler.isWarrior(player)) {
+                WarriorSkillHandler.handleMadBoost(serverPlayer, level);
+            }
+            return;
+        }
+        
+        if ("sprint_boost".equals(skillId) && player instanceof ServerPlayerEntity serverPlayer) {
+            int level = getSkillLevel(skillId);
+            if (CourierSkillHandler.isCourier(player)) {
+                CourierSkillHandler.handleSprintBoost(serverPlayer, level);
+            }
+            return;
+        }
+        
+        if ("instant_repair".equals(skillId) && player instanceof ServerPlayerEntity serverPlayer) {
+            int level = getSkillLevel(skillId);
+            if (BlacksmithSkillHandler.isBlacksmith(player)) {
+                BlacksmithSkillHandler.handleInstantRepair(serverPlayer, level);
+            }
+            return;
+        }
+        
+        if ("hot_strike".equals(skillId) && player instanceof ServerPlayerEntity serverPlayer) {
+            int level = getSkillLevel(skillId);
+            if (BlacksmithSkillHandler.isBlacksmith(player)) {
+                BlacksmithSkillHandler.handleHotStrike(serverPlayer, level);
+            }
+            return;
+        }
+        
+        if ("indestructibility".equals(skillId) && player instanceof ServerPlayerEntity serverPlayer) {
+            int level = getSkillLevel(skillId);
+            if (WarriorSkillHandler.isWarrior(player)) {
+                WarriorSkillHandler.handleIndestructibility(serverPlayer, level);
+            }
+            return;
+        }
+        
+        if ("dagestan".equals(skillId) && player instanceof ServerPlayerEntity serverPlayer) {
+            int level = getSkillLevel(skillId);
+            if (WarriorSkillHandler.isWarrior(player)) {
+                WarriorSkillHandler.handleDagestanskayaBratva(serverPlayer, level);
+            }
+            return;
+        }
+        
+        if ("healing_ale".equals(skillId) && player instanceof ServerPlayerEntity serverPlayer) {
+            // TODO: Реализовать пассивный эффект "Лечебный эль"
+            serverPlayer.sendMessage(Text.literal("Навык 'Лечебный эль' еще не реализован.").formatted(Formatting.RED), false);
+            return;
+        }
+        
+        if ("party_time".equals(skillId) && player instanceof ServerPlayerEntity serverPlayer) {
+            // TODO: Реализовать активный эффект "Время вечеринки"
+            serverPlayer.sendMessage(Text.literal("Навык 'Время вечеринки' еще не реализован.").formatted(Formatting.RED), false);
+            return;
+        }
+        
+        if ("banquet".equals(skillId) && player instanceof ServerPlayerEntity serverPlayer) {
+            // TODO: Реализовать активный эффект "Банкет"
+            serverPlayer.sendMessage(Text.literal("Навык 'Банкет' еще не реализован.").formatted(Formatting.RED), false);
+            return;
+        }
+        
+        // Добавить обработчики для других активных навыков по мере их реализации
+        Origins.LOGGER.warn("Обработчик для активного навыка {} не найден", skillId);
+    }
 
     @Override
     public void serverTick() {
@@ -561,9 +685,6 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
         if (currentEnergy < 0) currentEnergy = maxEnergy;
         if (energyRegenRate <= 0) energyRegenRate = 1;
         
-        Origins.LOGGER.info("Загруженные навыки: {}", professionSkillLevels);
-        Origins.LOGGER.info("Загруженные активные навыки: {}", activeSkills);
-        Origins.LOGGER.info("Загруженная энергия: {}/{}", currentEnergy, maxEnergy);
         if (player instanceof ServerPlayerEntity serverPlayer) {
             KEY.sync(serverPlayer);
         }
@@ -607,9 +728,6 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
         tag.putInt("maxEnergy", maxEnergy);
         tag.putInt("energyRegenRate", energyRegenRate);
         tag.putInt("energyRegenDelay", energyRegenDelay);
-        
-        Origins.LOGGER.info("Сохранение навыков в NBT: {}", allSkillsTag);
-        Origins.LOGGER.info("Сохранение активных навыков в NBT: {}", activeSkillsTag);
-        Origins.LOGGER.info("Сохранение энергии в NBT: {}/{}", currentEnergy, maxEnergy);
+
     }
 }

@@ -79,7 +79,6 @@ public class QuestItem {
     
     NbtCompound nbt = stack.getNbt();
     if (nbt == null) {
-        io.github.apace100.origins.Origins.LOGGER.warn("Билет квеста не содержит NBT: {}", stack);
         return null;
     }
     
