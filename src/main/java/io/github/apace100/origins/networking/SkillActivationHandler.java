@@ -455,9 +455,16 @@ public class SkillActivationHandler {
             // Получаем стоимость энергии для навыка
             int energyCost = getSkillEnergyCost(skill.id);
             
+            Origins.LOGGER.info("Проверка активации навыка {} для игрока {}", skill.id, player.getName().getString());
+            Origins.LOGGER.info("Стоимость энергии: {}", energyCost);
+            Origins.LOGGER.info("Текущая энергия игрока: {}", skillComponent.getCurrentEnergy());
+            Origins.LOGGER.info("Достаточно энергии: {}", skillComponent.hasEnoughEnergy(energyCost));
+            Origins.LOGGER.info("Скилл в кулдауне: {}", skillComponent.isSkillOnCooldown(skill.id));
+            
             // Проверяем, хватает ли энергии
             if (!skillComponent.canUseSkill(skill.id, energyCost)) {
                 if (!skillComponent.hasEnoughEnergy(energyCost)) {
+                    Origins.LOGGER.info("Недостаточно энергии для активации навыка {}", skill.id);
                     player.sendMessage(
                         Text.literal("Недостаточно энергии! Требуется: " + energyCost + ", у вас: " + skillComponent.getCurrentEnergy())
                             .formatted(Formatting.RED), 
@@ -465,6 +472,7 @@ public class SkillActivationHandler {
                     );
                 } else if (skillComponent.isSkillOnCooldown(skill.id)) {
                     long cooldownRemaining = skillComponent.getSkillCooldownRemaining(skill.id);
+                    Origins.LOGGER.info("Скилл {} находится в кулдауне, осталось {} тиков", skill.id, cooldownRemaining);
                     player.sendMessage(
                         Text.literal("Навык перезарядится через " + (cooldownRemaining / 20) + " сек")
                             .formatted(Formatting.GRAY), 
@@ -536,16 +544,20 @@ public class SkillActivationHandler {
                     handleBrewerMasterBrewer(player, skill.level);
                     break;
                 case "bottle_throw":
+                    Origins.LOGGER.info("Вызов BrewerSkillHandler.handleBottleThrow для игрока {}", player.getName().getString());
                     // Используем наш обработчик, который восполняет жажду другим игрокам
                     BrewerSkillHandler.handleBottleThrow(player, skill.level);
                     break;
                 case "berserker_drink":
+                    Origins.LOGGER.info("Вызов handleBrewerBerserkerDrink для игрока {}", player.getName().getString());
                     handleBrewerBerserkerDrink(player, skill.level);
                     break;
                 case "healing_ale":
+                    Origins.LOGGER.info("Вызов handleBrewerHealingAle для игрока {}", player.getName().getString());
                     handleBrewerHealingAle(player, skill.level);
                     break;
                 case "party_time":
+                    Origins.LOGGER.info("Вызов handleBrewerPartyTime для игрока {}", player.getName().getString());
                     handleBrewerPartyTime(player, skill.level);
                     break;
                     
@@ -554,6 +566,7 @@ public class SkillActivationHandler {
                     handleCookSmokeScreen(player, skill.level);
                     break;
                 case "banquet":
+                    Origins.LOGGER.info("Вызов handleCookBanquet для игрока {}", player.getName().getString());
                     handleCookBanquet(player, skill.level);
                     break;
                     
@@ -811,10 +824,13 @@ public class SkillActivationHandler {
     // который восполняет жажду другим игрокам
     
     private static void handleBrewerBerserkerDrink(ServerPlayerEntity player, int level) {
+        Origins.LOGGER.info("Начало обработки навыка 'Напиток берсерка' для игрока {}", player.getName().getString());
+        Origins.LOGGER.info("Уровень навыка: {}", level);
+        
         player.sendMessage(
             Text.literal("Напиток берсерка! Временная неуязвимость и ярость!")
                 .formatted(Formatting.DARK_RED), 
-            true
+            false // Отправляем в чат, а не в action bar
         );
         
         // Даем мощные эффекты
@@ -841,17 +857,23 @@ public class SkillActivationHandler {
             false, 
             false
         ));
+        
+        Origins.LOGGER.info("Завершение обработки навыка 'Напиток берсерка'");
     }
     
     private static void handleBrewerHealingAle(ServerPlayerEntity player, int level) {
+        Origins.LOGGER.info("Начало обработки навыка 'Лечебный эль' для игрока {}", player.getName().getString());
+        Origins.LOGGER.info("Уровень навыка: {}", level);
+        
         player.sendMessage(
             Text.literal("Лечебный эль! Восстановление здоровья союзников")
                 .formatted(Formatting.GREEN), 
-            true
+            false // Отправляем в чат, а не в action bar
         );
         
         // Лечим игрока
         player.heal(2.0f * level);
+        Origins.LOGGER.info("Игрок {} вылечен на {} HP", player.getName().getString(), 2.0f * level);
         
         // Даем регенерацию
         player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
@@ -861,49 +883,70 @@ public class SkillActivationHandler {
             false, 
             false
         ));
+        Origins.LOGGER.info("Игроку {} добавлен эффект регенерации", player.getName().getString());
         
-        // Лечим ближайших союзников
-        player.getWorld().getOtherEntities(player, player.getBoundingBox().expand(10.0), 
-            entity -> entity instanceof ServerPlayerEntity).forEach(entity -> {
-            if (entity instanceof ServerPlayerEntity ally) {
-                ally.heal(1.0f * level);
-                ally.sendMessage(
-                    Text.literal("Вы получили лечение от лечебного эля!")
-                        .formatted(Formatting.GREEN), 
-                    true
-                );
-            }
-        });
+        // Лечим ближайших союзников (включая самого игрока)
+        List<ServerPlayerEntity> playersInRange = player.getWorld().getEntitiesByClass(
+            ServerPlayerEntity.class, 
+            player.getBoundingBox().expand(10.0),
+            p -> p.isAlive()
+        );
+        
+        Origins.LOGGER.info("Найдено {} игроков в радиусе для лечебного эля", playersInRange.size());
+        
+        for (ServerPlayerEntity ally : playersInRange) {
+            Origins.LOGGER.info("Лечение союзника: {}", ally.getName().getString());
+            ally.heal(1.0f * level);
+            ally.sendMessage(
+                Text.literal("Вы получили лечение от лечебного эля!")
+                    .formatted(Formatting.GREEN), 
+                false // Отправляем в чат, а не в action bar
+            );
+        }
+        
+        Origins.LOGGER.info("Завершение обработки навыка 'Лечебный эль'");
     }
     
     private static void handleBrewerPartyTime(ServerPlayerEntity player, int level) {
+        Origins.LOGGER.info("Начало обработки навыка 'Время вечеринки' для игрока {}", player.getName().getString());
+        Origins.LOGGER.info("Уровень навыка: {}", level);
+        
         player.sendMessage(
             Text.literal("Время вечеринки! Массовые баффы для всей команды!")
                 .formatted(Formatting.GOLD), 
-            true
+            false // Отправляем в чат, а не в action bar
         );
         
-        // Даем баффы всем игрокам в радиусе 20 блоков
-        player.getWorld().getOtherEntities(player, player.getBoundingBox().expand(20.0), 
-            entity -> entity instanceof ServerPlayerEntity).forEach(entity -> {
-            if (entity instanceof ServerPlayerEntity ally) {
-                // Даем различные положительные эффекты
-                ally.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
-                    net.minecraft.entity.effect.StatusEffects.STRENGTH, 600, 0, false, false));
-                ally.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
-                    net.minecraft.entity.effect.StatusEffects.SPEED, 600, 0, false, false));
-                ally.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
-                    net.minecraft.entity.effect.StatusEffects.REGENERATION, 200, 0, false, false));
-                ally.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
-                    net.minecraft.entity.effect.StatusEffects.LUCK, 600, 0, false, false));
-                
-                ally.sendMessage(
-                    Text.literal("Вечеринка началась! Получены баффы!")
-                        .formatted(Formatting.GOLD), 
-                    true
-                );
-            }
-        });
+        // Даем баффы всем игрокам в радиусе 20 блоков (включая самого игрока)
+        List<ServerPlayerEntity> playersInRange = player.getWorld().getEntitiesByClass(
+            ServerPlayerEntity.class, 
+            player.getBoundingBox().expand(20.0),
+            p -> p.isAlive()
+        );
+        
+        Origins.LOGGER.info("Найдено {} игроков в радиусе", playersInRange.size());
+        
+        for (ServerPlayerEntity ally : playersInRange) {
+            Origins.LOGGER.info("Применение эффектов к союзнику: {}", ally.getName().getString());
+            
+            // Даем различные положительные эффекты
+            ally.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                net.minecraft.entity.effect.StatusEffects.STRENGTH, 600, 0, false, false));
+            ally.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                net.minecraft.entity.effect.StatusEffects.SPEED, 600, 0, false, false));
+            ally.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                net.minecraft.entity.effect.StatusEffects.REGENERATION, 200, 0, false, false));
+            ally.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                net.minecraft.entity.effect.StatusEffects.LUCK, 600, 0, false, false));
+            
+            ally.sendMessage(
+                Text.literal("Вечеринка началась! Получены баффы!")
+                    .formatted(Formatting.GOLD), 
+                false // Отправляем в чат, а не в action bar
+            );
+        }
+        
+        Origins.LOGGER.info("Завершение обработки навыка 'Время вечеринки'");
     }
     
     // Методы активации навыков повара
@@ -934,51 +977,63 @@ public class SkillActivationHandler {
     }
     
     private static void handleCookBanquet(ServerPlayerEntity player, int level) {
+        Origins.LOGGER.info("Начало обработки навыка 'Банкет' для игрока {}", player.getName().getString());
+        Origins.LOGGER.info("Уровень навыка: {}", level);
+        
         player.sendMessage(
             Text.literal("Банкет! Все союзники получают регенерацию и сопротивление")
                 .formatted(Formatting.GOLD), 
-            true
+            false // Отправляем в чат, а не в action bar
         );
         
-        // Даем мощные эффекты всем игрокам в радиусе 15 блоков
-        player.getWorld().getOtherEntities(player, player.getBoundingBox().expand(15.0), 
-            entity -> entity instanceof ServerPlayerEntity).forEach(entity -> {
-            if (entity instanceof ServerPlayerEntity ally) {
-                ally.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
-                    net.minecraft.entity.effect.StatusEffects.REGENERATION, 
-                    400, // 20 секунд
-                    level - 1, 
-                    false, 
-                    false
-                ));
-                
-                ally.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
-                    net.minecraft.entity.effect.StatusEffects.RESISTANCE, 
-                    400, // 20 секунд
-                    0, 
-                    false, 
-                    false
-                ));
-                
-                ally.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
-                    net.minecraft.entity.effect.StatusEffects.SATURATION, 
-                    200, // 10 секунд
-                    level - 1, 
-                    false, 
-                    false
-                ));
-                
-                // Восстанавливаем здоровье и голод
-                ally.heal(4.0f);
-                ally.getHungerManager().add(6, 0.6f);
-                
-                ally.sendMessage(
-                    Text.literal("Банкет! Вы получили мощные баффы и восстановление!")
-                        .formatted(Formatting.GOLD), 
-                    true
-                );
-            }
-        });
+        // Даем мощные эффекты всем игрокам в радиусе 15 блоков (включая самого игрока)
+        List<ServerPlayerEntity> playersInRange = player.getWorld().getEntitiesByClass(
+            ServerPlayerEntity.class, 
+            player.getBoundingBox().expand(15.0),
+            p -> p.isAlive()
+        );
+        
+        Origins.LOGGER.info("Найдено {} игроков в радиусе для банкета", playersInRange.size());
+        
+        for (ServerPlayerEntity ally : playersInRange) {
+            Origins.LOGGER.info("Применение эффектов банкета к союзнику: {}", ally.getName().getString());
+            
+            ally.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                net.minecraft.entity.effect.StatusEffects.REGENERATION, 
+                400, // 20 секунд
+                level - 1, 
+                false, 
+                false
+            ));
+            
+            ally.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                net.minecraft.entity.effect.StatusEffects.RESISTANCE, 
+                400, // 20 секунд
+                0, 
+                false, 
+                false
+            ));
+            
+            ally.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                net.minecraft.entity.effect.StatusEffects.SATURATION, 
+                200, // 10 секунд
+                level - 1, 
+                false, 
+                false
+            ));
+            
+            // Восстанавливаем здоровье и голод
+            ally.heal(4.0f);
+            ally.getHungerManager().add(6, 0.6f);
+            
+            ally.sendMessage(
+                Text.literal("Банкет! Вы получили мощные баффы и восстановление!")
+                    .formatted(Formatting.GOLD), 
+                false // Отправляем в чат, а не в action bar
+            );
+        }
+        
+        Origins.LOGGER.info("Завершение обработки навыка 'Банкет'");
     }
 
 }

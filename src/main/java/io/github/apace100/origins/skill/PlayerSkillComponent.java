@@ -544,7 +544,10 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
      */
     private void handleSkillById(String skillId) {
         if ("bottle_throw".equals(skillId) && player instanceof ServerPlayerEntity serverPlayer) {
-            // Обрабатывается в SkillActivationHandler
+            int level = getSkillLevel(skillId);
+            if (BrewerSkillHandler.isBrewer(player)) {
+                BrewerSkillHandler.handleBottleThrow(serverPlayer, level);
+            }
             return;
         }
         
@@ -596,21 +599,23 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
             return;
         }
         
+        if ("berserker_drink".equals(skillId) && player instanceof ServerPlayerEntity serverPlayer) {
+            // Обрабатывается в SkillActivationHandler
+            return;
+        }
+        
         if ("healing_ale".equals(skillId) && player instanceof ServerPlayerEntity serverPlayer) {
-            // TODO: Реализовать пассивный эффект "Лечебный эль"
-            serverPlayer.sendMessage(Text.literal("Навык 'Лечебный эль' еще не реализован.").formatted(Formatting.RED), false);
+            // Обрабатывается в SkillActivationHandler
             return;
         }
         
         if ("party_time".equals(skillId) && player instanceof ServerPlayerEntity serverPlayer) {
-            // TODO: Реализовать активный эффект "Время вечеринки"
-            serverPlayer.sendMessage(Text.literal("Навык 'Время вечеринки' еще не реализован.").formatted(Formatting.RED), false);
+            // Обрабатывается в SkillActivationHandler
             return;
         }
         
         if ("banquet".equals(skillId) && player instanceof ServerPlayerEntity serverPlayer) {
-            // TODO: Реализовать активный эффект "Банкет"
-            serverPlayer.sendMessage(Text.literal("Навык 'Банкет' еще не реализован.").formatted(Formatting.RED), false);
+            // Обрабатывается в SkillActivationHandler
             return;
         }
         
