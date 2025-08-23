@@ -186,7 +186,6 @@ public class CookSkillHandler {
                 ItemStack result = event.getSmelting();
                 if (result.isEdible()) {
                     cap.addExperience(5);
-                    player.sendSystemMessage(Component.literal("[DEBUG] +5 опыта за получение еды из печки (повар)"));
                 }
             });
         }
@@ -201,7 +200,6 @@ public class CookSkillHandler {
             ItemStack held = player.getMainHandItem();
             if (held.getItem().toString().contains("seeds") || held.getItem().toString().contains("carrot") || held.getItem().toString().contains("potato") || held.getItem().toString().contains("beetroot")) {
                 cap.addExperience(2);
-                player.sendSystemMessage(Component.literal("[DEBUG] +2 опыта за посадку культуры (повар)"));
             }
         });
     }

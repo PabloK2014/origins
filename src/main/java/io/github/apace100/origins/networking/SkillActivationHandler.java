@@ -954,7 +954,7 @@ public class SkillActivationHandler {
         player.sendMessage(
             Text.literal("Дымовая завеса! Невидимость активирована")
                 .formatted(Formatting.GRAY), 
-            true
+            false // Отправляем в чат, а не в action bar
         );
         
         // Даем невидимость
@@ -969,6 +969,15 @@ public class SkillActivationHandler {
         // Даем скорость для быстрого отступления
         player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
             net.minecraft.entity.effect.StatusEffects.SPEED, 
+            60 + (level * 20),
+            0, 
+            false, 
+            false
+        ));
+        
+        // Даем эффект медленного падения для более плавного перемещения
+        player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+            net.minecraft.entity.effect.StatusEffects.SLOW_FALLING, 
             60 + (level * 20),
             0, 
             false, 

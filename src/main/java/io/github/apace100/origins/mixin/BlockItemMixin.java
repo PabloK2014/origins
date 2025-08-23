@@ -22,7 +22,7 @@ public class BlockItemMixin {
             if (comp != null && "origins:cook".equals(String.valueOf(comp.getCurrentProfessionId()))) {
                 if (cir.getReturnValue() == net.minecraft.util.ActionResult.SUCCESS || cir.getReturnValue().isAccepted()) {
                     comp.addExperience(2);
-                    serverPlayer.sendMessage(net.minecraft.text.Text.literal("[DEBUG] +2 опыта за посадку семян (повар)").formatted(net.minecraft.util.Formatting.YELLOW), false);
+            
                 }
             }
         }

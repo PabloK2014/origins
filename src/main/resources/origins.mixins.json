@@ -46,6 +46,7 @@
     "PlayerAttributesMixin",
     "PlayerSkillsMixin",
     "PlayerAttackMixin",
+    "PlayerFlambeDamageMixin",
     "WarriorDamageMixin",
     "WarriorAttackMixin",
     "BountifulQuestKillMixin",

@@ -149,7 +149,7 @@ public class SkillTreeHandler {
         // Ветка "Огненная кухня"
         List<Skill> fieryKitchenBranch = Arrays.asList(
                 new Skill("smoke_screen", "Дымовая завеса", "При ударе ниже 30% HP даёт невидимость на 3 сек", SkillType.ACTIVE, 1, 1, null),
-                new Skill("flambe", "Фламбе", "При убийстве подожжённого врага происходит взрыв", SkillType.PASSIVE, 8, 3, "smoke_screen"),
+                new Skill("flambe", "Фламбе", "Увеличивает урон по горящим мобам на 10/20/30% за уровень", SkillType.PASSIVE, 8, 3, "smoke_screen"),
                 new Skill("fire_immunity", "Огнестойкость", "Иммунитет к огню и лаве", SkillType.PASSIVE, 15, 1, "flambe")
         );
 

@@ -1,6 +1,7 @@
 package io.github.apace100.origins.mixin;
 
 import io.github.apace100.apoli.component.PowerHolderComponent;
+import io.github.apace100.origins.Origins;
 import io.github.apace100.origins.power.CookEnhancedFoodPower;
 import net.minecraft.block.entity.AbstractFurnaceBlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -21,9 +22,6 @@ public class CookEnhancedFoodMixin {
 
     @Inject(method = "tick", at = @At("TAIL"))
     private static void enhanceCookedFood(net.minecraft.world.World world, BlockPos pos, net.minecraft.block.BlockState state, AbstractFurnaceBlockEntity blockEntity, CallbackInfo ci) {
-        // ВРЕМЕННО ОТКЛЮЧЕНО для решения проблемы стакования
-        // Логика улучшения еды перенесена в момент употребления
-        /*
         if (!world.isClient) {
             // Проверяем, есть ли что-то в слоте результата
             ItemStack resultStack = blockEntity.getStack(2);
@@ -41,7 +39,6 @@ public class CookEnhancedFoodMixin {
                 }
             }
         }
-        */
     }
     
     private static void enhanceFoodStack(ItemStack stack, CookEnhancedFoodPower power, PlayerEntity cook) {

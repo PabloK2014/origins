@@ -491,6 +491,37 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
             case "brewer_efficiency":
                 // Увеличение эффективности варки
                 break;
+                
+            // Пассивные скиллы повара
+            case "fresh_product":
+                // Еда восстанавливает на 2% сытости больше за уровень
+                // Эффект будет применяться в миксинах при потреблении еды
+                break;
+            case "hearty_meal":
+                // Эффект сытости длится в 2 раза дольше
+                // Эффект будет применяться в миксинах при потреблении еды
+                break;
+            case "chef_master":
+                // Приготовленная еда даёт случайные позитивные эффекты
+                // Эффект будет применяться в миксинах при потреблении еды
+                break;
+            case "flambe":
+                // При убийстве подожжённого врага происходит взрыв
+                // Эффект будет применяться в миксинах при убийстве врагов
+                break;
+            case "fire_immunity":
+                // Иммунитет к огню и лаве
+                // Эффект будет применяться в миксинах при получении урона
+                break;
+            case "ready":
+                // Приготовление еды даёт бафф 'Вдохновение' (+10% урона)
+                // Эффект будет применяться в миксинах при потреблении еды
+                break;
+            case "quick_snack":
+                // Можно есть на бегу без замедления
+                // Эффект будет применяться в миксинах при потреблении еды
+                break;
+                
             // Добавить другие навыки по мере необходимости
         }
     }
@@ -734,5 +765,83 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
         tag.putInt("energyRegenRate", energyRegenRate);
         tag.putInt("energyRegenDelay", energyRegenDelay);
 
+    }
+    
+    // ==================== МЕТОДЫ ДЛЯ ПОЛУЧЕНИЯ УРОВНЕЙ СКИЛЛОВ ПОВАРА ====================
+    
+    /**
+     * Получает уровень скилла "Свежий продукт" (fresh_product)
+     * @return уровень скилла или 0, если скилл не изучен
+     */
+    public int getFreshProductLevel() {
+        return getSkillLevel("fresh_product");
+    }
+    
+    /**
+     * Получает уровень скилла "Сытный обед" (hearty_meal)
+     * @return уровень скилла или 0, если скилл не изучен
+     */
+    public int getHeartyMealLevel() {
+        return getSkillLevel("hearty_meal");
+    }
+    
+    /**
+     * Получает уровень скилла "Шеф-повар" (chef_master)
+     * @return уровень скилла или 0, если скилл не изучен
+     */
+    public int getChefMasterLevel() {
+        return getSkillLevel("chef_master");
+    }
+    
+    /**
+     * Получает уровень скилла "Фламбе" (flambe)
+     * @return уровень скилла или 0, если скилл не изучен
+     */
+    public int getFlambeLevel() {
+        return getSkillLevel("flambe");
+    }
+    
+    /**
+     * Получает уровень скилла "Огнестойкость" (fire_immunity)
+     * @return уровень скилла или 0, если скилл не изучен
+     */
+    public int getFireImmunityLevel() {
+        return getSkillLevel("fire_immunity");
+    }
+    
+    /**
+     * Получает уровень скилла "Готово!" (ready)
+     * @return уровень скилла или 0, если скилл не изучен
+     */
+    public int getReadyLevel() {
+        return getSkillLevel("ready");
+    }
+    
+    /**
+     * Получает уровень скилла "Быстрый перекус" (quick_snack)
+     * @return уровень скилла или 0, если скилл не изучен
+     */
+    public int getQuickSnackLevel() {
+        return getSkillLevel("quick_snack");
+    }
+    
+    /**
+     * Применяет бонус урона от скилла "Фламбе" к горящей цели
+     * @param target цель атаки
+     * @return множитель урона (1.0 = без изменений)
+     */
+    public float applyFlambeBoost(net.minecraft.entity.Entity target) {
+        // Проверяем, что цель - живое существо и горит
+        if (target instanceof net.minecraft.entity.LivingEntity livingTarget && livingTarget.isOnFire()) {
+            int flambeLevel = getFlambeLevel();
+            if (flambeLevel > 0) {
+                // Увеличиваем урон на 10% за уровень
+                float bonus = 1.0f + (flambeLevel * 0.1f);
+                Origins.LOGGER.debug("Повар {} применил бонус 'Фламбе' к горящей цели {}: множитель {}", 
+                    player.getName().getString(), target.getName().getString(), bonus);
+                return bonus;
+            }
+        }
+        return 1.0f;
     }
 }

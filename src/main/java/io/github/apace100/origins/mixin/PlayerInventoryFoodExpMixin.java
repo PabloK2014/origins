@@ -21,8 +21,6 @@ public class PlayerInventoryFoodExpMixin {
                 ProfessionComponent comp = ProfessionComponent.KEY.get(serverPlayer);
                 if (comp != null && "origins:cook".equals(String.valueOf(comp.getCurrentProfessionId()))) {
                     comp.addExperience(stack.getCount());
-                    serverPlayer.sendMessage(net.minecraft.text.Text.literal("[DEBUG] +"
-                        + stack.getCount() + " опыта за еду в инвентаре (повар)").formatted(net.minecraft.util.Formatting.YELLOW), false);
                 }
             }
         }
