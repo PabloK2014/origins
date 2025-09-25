@@ -211,10 +211,27 @@ public class SmithSkillHandler {
         double chance = 0.02 * level;
 
         if (random.nextDouble() < chance) {
-            int maxDamage = item.getMaxDamage();
+            // Создаем копию предмета с увеличенной прочностью
+            ItemStack newItem = item.copy();
+            
+            // Увеличиваем максимальную прочность на 10%
+            int maxDamage = newItem.getMaxDamage();
             int bonusDurability = (int) (maxDamage * 0.1);
-
-            player.sendSystemMessage(Component.literal("Повышенная прочность! " + item.getDisplayName().getString() + " создан с бонусной прочностью!"));
+            
+            // Применяем бонус к прочности (обратите внимание, что в Minecraft меньшее значение damage означает больше прочности)
+            int currentDamage = newItem.getDamageValue();
+            newItem.setDamageValue(Math.max(0, currentDamage - bonusDurability));
+            
+            // Заменяем оригинальный предмет на предмет с бонусной прочностью
+            // Находим предмет в инвентаре и заменяем его
+            for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+                if (player.getInventory().getItem(i) == item) {
+                    player.getInventory().setItem(i, newItem);
+                    break;
+                }
+            }
+            
+            player.sendSystemMessage(Component.literal("Повышенная прочность! " + newItem.getDisplayName().getString() + " создан с бонусной прочностью!"));
         }
     }
 
@@ -223,12 +240,22 @@ public class SmithSkillHandler {
         double chance = 0.02 * level;
 
         if (random.nextDouble() < chance) {
-            player.sendSystemMessage(Component.literal("Ресурсная экономия! Часть материалов сохранена!"));
-
-            ItemStack bonus = new ItemStack(Items.IRON_INGOT);
-            if (!player.getInventory().add(bonus)) {
-                player.drop(bonus, false);
+            // Возвращаем часть ингредиентов игроку
+            List<ItemStack> remainingItems = event.getInventory().getRemainingItems();
+            
+            for (ItemStack remainingItem : remainingItems) {
+                if (!remainingItem.isEmpty()) {
+                    // 50% шанс вернуть каждый оставшийся предмет
+                    if (random.nextFloat() < 0.5f) {
+                        ItemStack bonus = remainingItem.copy();
+                        if (!player.getInventory().add(bonus)) {
+                            player.drop(bonus, false);
+                        }
+                    }
+                }
             }
+            
+            player.sendSystemMessage(Component.literal("Ресурсная экономия! Часть материалов сохранена!"));
         }
     }
 
