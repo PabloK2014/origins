@@ -4,6 +4,7 @@ import io.github.apace100.origins.quest.BountyBoardScreen;
 import io.github.apace100.origins.quest.Quest;
 import io.github.apace100.origins.quest.QuestObjective;
 import io.github.apace100.origins.quest.QuestReward;
+import io.github.apace100.origins.quest.QuestRegistry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
@@ -167,11 +168,11 @@ public class QuestButton {
             case SKILL_POINT_TOKEN:
                 switch (reward.getTier()) {
                     case 1:
-                        return new ItemStack(Items.IRON_NUGGET);
+                        return new ItemStack(io.github.apace100.origins.quest.QuestRegistry.SKILL_POINT_TOKEN_TIER1);
                     case 2:
-                        return new ItemStack(Items.GOLD_NUGGET);
+                        return new ItemStack(io.github.apace100.origins.quest.QuestRegistry.SKILL_POINT_TOKEN_TIER2);
                     case 3:
-                        return new ItemStack(Items.DIAMOND);
+                        return new ItemStack(io.github.apace100.origins.quest.QuestRegistry.SKILL_POINT_TOKEN_TIER3);
                     default:
                         return new ItemStack(Items.EXPERIENCE_BOTTLE);
                 }
