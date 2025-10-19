@@ -15,6 +15,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
 import java.util.ArrayList;
@@ -66,6 +67,11 @@ public class SkillTreeScreen extends Screen {
             // Получаем компонент навыков
             this.skillComponent = PlayerSkillComponent.KEY.get(this.client.player);
             this.availableSkillPoints = skillComponent.getAvailableSkillPoints();
+        }
+        
+        // Проверяем, удалось ли получить дерево навыков
+        if (this.skillTree == null) {
+            System.out.println("Ошибка: дерево навыков не найдено для класса " + this.currentClass);
         }
 
         // Кнопка закрытия

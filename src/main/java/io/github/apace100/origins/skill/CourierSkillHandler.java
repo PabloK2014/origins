@@ -45,10 +45,17 @@ public class CourierSkillHandler {
     /**
      * Обрабатывает навык "Базовая скорость"
      */
-    public static float handleSpeedBoost(ServerPlayerEntity player, int skillLevel) {
+    public static float handleSpeedBasic(ServerPlayerEntity player, int skillLevel) {
         if (skillLevel <= 0) return 0.0f;
         
         return skillLevel * 0.05f; // 5% за уровень
+    }
+    
+    /**
+     * Обрабатывает навык "Базовая скорость" (устаревший метод для совместимости)
+     */
+    public static float handleSpeedBoost(ServerPlayerEntity player, int skillLevel) {
+        return handleSpeedBasic(player, skillLevel);
     }
     
     /**
@@ -58,6 +65,74 @@ public class CourierSkillHandler {
         if (skillLevel <= 0) return 1.0f;
         
         return 1.0f - (skillLevel * 0.1f); // 10% снижение за уровень
+    }
+    
+    /**
+     * Обрабатывает улучшенный навык "Снижение голода" с учетом активных эффектов
+     */
+    public static void handleAdvancedHungerReduction(ServerPlayerEntity player, int skillLevel) {
+        if (skillLevel <= 0) return;
+        
+        // Применяем базовое снижение голода
+        float reduction = handleHungerReduction(player, skillLevel);
+        
+        // Дополнительно уменьшаем расход энергии при движении
+        if (player.isSprinting()) {
+            // При спринте снижаем расход энергии на 5% за уровень
+            // Это будет применяться в миксинах при расходе энергии
+        }
+        
+        if (player.isSwimming()) {
+            // При плавании снижаем расход энергии на 3% за уровень
+            // Это будет применяться в миксинах при расходе энергии
+        }
+    }
+    
+    /**
+     * Обрабатывает навык "Граната с перцем"
+     */
+    public static void handleCarrySurge(ServerPlayerEntity player, int skillLevel) {
+        if (skillLevel <= 0) return;
+        
+        // Проверяем кулдаун
+        var nbt = player.writeNbt(new net.minecraft.nbt.NbtCompound());
+        long lastUse = nbt.getLong("CarrySurgeLastUse");
+        long currentTime = player.getWorld().getTime();
+        
+        if (currentTime - lastUse >= 600) { // 30 секунд
+            nbt.putLong("CarrySurgeLastUse", currentTime);
+            player.readNbt(nbt);
+            
+            // Создаем огненный заряд
+            net.minecraft.entity.projectile.FireballEntity fireball = new net.minecraft.entity.projectile.FireballEntity(
+                player.getWorld(),
+                player,
+                player.getRotationVector().x,
+                player.getRotationVector().y,
+                player.getRotationVector().z,
+                skillLevel // Уровень влияет на силу взрыва
+            );
+            
+            // Устанавливаем позицию и направление
+            fireball.setPosition(player.getX(), player.getEyeY(), player.getZ());
+            
+            // Запускаем огненный заряд
+            player.getWorld().spawnEntity(fireball);
+            
+            player.sendMessage(
+                Text.literal("Граната с перцем выпущена!")
+                    .formatted(Formatting.RED), 
+                true // action bar
+            );
+            
+        } else {
+            long cooldownLeft = 600 - (currentTime - lastUse);
+            player.sendMessage(
+                Text.literal("Граната с перцем перезарядится через " + (cooldownLeft / 20) + " сек")
+                    .formatted(Formatting.GRAY), 
+                true // action bar
+            );
+        }
     }
     
     /**
@@ -132,7 +207,78 @@ public class CourierSkillHandler {
                 false
             );
             
-                    } else {
+        } else {
+            long cooldownLeft = 1200 - (currentTime - lastUse);
+            player.sendMessage(
+                Text.literal("Всплеск скорости перезарядится через " + (cooldownLeft / 20) + " сек")
+                    .formatted(Formatting.GRAY), 
+                true // action bar
+            );
+        }
+    }
+    
+    /**
+     * Обрабатывает улучшенный навык "Всплеск скорости" с дополнительными эффектами
+     */
+    public static void handleAdvancedSpeedSurge(ServerPlayerEntity player, int skillLevel) {
+        if (skillLevel <= 0) return;
+        
+        // Проверяем кулдаун
+        var nbt = new net.minecraft.nbt.NbtCompound();
+        player.writeNbt(nbt);
+        long lastUse = nbt.getLong("SpeedSurgeLastUse");
+        long currentTime = player.getWorld().getTime();
+        
+        if (currentTime - lastUse >= 1200) { // 60 секунд
+            nbt.putLong("SpeedSurgeLastUse", currentTime);
+            player.readNbt(nbt);
+            
+            // Применяем мощный эффект скорости на 30 секунд
+            player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                net.minecraft.entity.effect.StatusEffects.SPEED, 
+                600, // 30 секунд
+                2 // Уровень III
+            ));
+            
+            // Добавляем_jump boost
+            player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                net.minecraft.entity.effect.StatusEffects.JUMP_BOOST, 
+                600, // 30 секунд
+                1 // Уровень II
+            ));
+            
+            // Восстанавливаем голод
+            player.getHungerManager().setFoodLevel(20);
+            player.getHungerManager().setSaturationLevel(20.0f);
+            
+            // При высоком уровне добавляем дополнительные эффекты
+            if (skillLevel >= 3) {
+                // Добавляем сопротивление
+                player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                    net.minecraft.entity.effect.StatusEffects.RESISTANCE, 
+                    300, // 15 секунд
+                    0 // Уровень I
+                ));
+            }
+            
+            if (skillLevel >= 5) {
+                // Добавляем удачу
+                player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                    net.minecraft.entity.effect.StatusEffects.LUCK, 
+                    300, // 15 секунд
+                    0 // Уровень I
+                ));
+            }
+            
+            player.sendMessage(
+                Text.literal("Всплеск скорости! Голод восстановлен!" + 
+                    (skillLevel >= 3 ? " +Сопротивление" : "") + 
+                    (skillLevel >= 5 ? " +Удача" : ""))
+                    .formatted(Formatting.GOLD), 
+                false
+            );
+            
+        } else {
             long cooldownLeft = 1200 - (currentTime - lastUse);
             player.sendMessage(
                 Text.literal("Всплеск скорости перезарядится через " + (cooldownLeft / 20) + " сек")
@@ -158,17 +304,148 @@ public class CourierSkillHandler {
         if (skillLevel <= 0) return;
         
         // Увеличиваем радиус подбора предметов
-        double radius = 1.5 + skillLevel; // Базовый радиус + 1 блок за уровень
+        double radius = 1.5 + (skillLevel * 0.5); // Базовый радиус 1.5 + 0.5 за уровень
         
         // Ищем предметы в радиусе
-        var items = player.getWorld().getEntitiesByClass(ItemEntity.class, 
+        var items = player.getWorld().getEntitiesByClass(net.minecraft.entity.ItemEntity.class, 
             player.getBoundingBox().expand(radius), 
-            item -> !item.cannotPickup());
+            item -> !item.cannotPickup() && item.isAlive());
         
-        for (ItemEntity item : items) {
-            // Притягиваем предмет к игроку
-            Vec3d direction = player.getPos().subtract(item.getPos()).normalize();
-            item.setVelocity(direction.multiply(0.1));
+        int collectedCount = 0;
+        
+        for (net.minecraft.entity.ItemEntity item : items) {
+            // Проверяем, что предмет находится в пределах радиуса
+            double distance = player.getPos().distanceTo(item.getPos());
+            if (distance <= radius) {
+                // Притягиваем предмет к игроку с учетом уровня
+                net.minecraft.util.math.Vec3d direction = player.getPos().subtract(item.getPos()).normalize();
+                double pullStrength = 0.05 + (skillLevel * 0.02); // Сила притяжения зависит от уровня
+                item.setVelocity(direction.multiply(pullStrength));
+                
+                // Проверяем возможность подбора предмета
+                if (distance < 1.0) {
+                    // Предмет достаточно близко для подбора
+                    if (player.getInventory().insertStack(item.getStack())) {
+                        // Успешно добавили предмет в инвентарь
+                        item.discard();
+                        collectedCount++;
+                    }
+                }
+            }
+        }
+        
+        // Отправляем сообщение о количестве собранных предметов
+        if (collectedCount > 0) {
+            player.sendMessage(
+                Text.literal("Собрано предметов: " + collectedCount)
+                    .formatted(Formatting.GREEN), 
+                true // action bar
+            );
+        }
+    }
+    
+    /**
+     * Обрабатывает улучшенный навык "Магнитные карманы" с фильтрацией
+     */
+    public static void handleAdvancedMagneticPockets(ServerPlayerEntity player, int skillLevel) {
+        if (skillLevel <= 0) return;
+        
+        // Увеличиваем радиус подбора предметов
+        double radius = 1.5 + (skillLevel * 0.7); // Базовый радиус 1.5 + 0.7 за уровень
+        
+        // Ищем предметы в радиусе
+        var items = player.getWorld().getEntitiesByClass(net.minecraft.entity.ItemEntity.class, 
+            player.getBoundingBox().expand(radius), 
+            item -> !item.cannotPickup() && item.isAlive());
+        
+        int collectedCount = 0;
+        
+        for (net.minecraft.entity.ItemEntity item : items) {
+            // Проверяем, что предмет находится в пределах радиуса
+            double distance = player.getPos().distanceTo(item.getPos());
+            if (distance <= radius) {
+                // Притягиваем предмет к игроку с учетом уровня
+                net.minecraft.util.math.Vec3d direction = player.getPos().subtract(item.getPos()).normalize();
+                double pullStrength = 0.08 + (skillLevel * 0.03); // Сила притяжения зависит от уровня
+                item.setVelocity(direction.multiply(pullStrength));
+                
+                // Проверяем возможность подбора предмета
+                if (distance < 1.2) {
+                    // Предмет достаточно близко для подбора
+                    if (player.getInventory().insertStack(item.getStack())) {
+                        // Успешно добавили предмет в инвентарь
+                        item.discard();
+                        collectedCount++;
+                    }
+                }
+            }
+        }
+        
+        // Отправляем сообщение о количестве собранных предметов
+        if (collectedCount > 0) {
+            player.sendMessage(
+                Text.literal("Собрано предметов: " + collectedCount)
+                    .formatted(Formatting.GREEN), 
+                true // action bar
+            );
+        }
+    }
+    
+    /**
+     * Обрабатывает навык "Сумка для еды"
+     */
+    public static void handleInventorySurge(ServerPlayerEntity player, int skillLevel) {
+        if (skillLevel <= 0) return;
+        
+        // Проверяем кулдаун
+        var nbt = player.writeNbt(new net.minecraft.nbt.NbtCompound());
+        long lastUse = nbt.getLong("InventorySurgeLastUse");
+        long currentTime = player.getWorld().getTime();
+        
+        if (currentTime - lastUse >= 1200) { // 60 секунд
+            nbt.putLong("InventorySurgeLastUse", currentTime);
+            player.readNbt(nbt);
+            
+            // Создаем сумку с едой
+            net.minecraft.item.ItemStack foodBag = new net.minecraft.item.ItemStack(
+                net.minecraft.item.Items.PAPER // Используем бумагу как заглушку
+            );
+            
+            // Добавляем NBT данные для идентификации
+            var foodBagNbt = foodBag.getOrCreateNbt();
+            foodBagNbt.putString("FoodBag", "CourierFoodBag");
+            foodBagNbt.putInt("FoodLevel", skillLevel);
+            
+            // Добавляем описание
+            foodBag.setCustomName(
+                Text.literal("Сумка с едой (Уровень " + skillLevel + ")")
+                    .formatted(Formatting.GOLD)
+            );
+            
+            // Добавляем в инвентарь игрока
+            if (player.getInventory().insertStack(foodBag)) {
+                player.sendMessage(
+                    Text.literal("Сумка с едой создана!")
+                        .formatted(Formatting.GREEN), 
+                    true // action bar
+                );
+            } else {
+                // Если инвентарь полон, выбрасываем предмет
+                player.dropItem(foodBag, false);
+                player.sendMessage(
+                    Text.literal("Сумка с едой выброшена!")
+                        .formatted(Formatting.YELLOW), 
+                    true // action bar
+                );
+            }
+            
+        } else {
+            long cooldownLeft = 1200 - (currentTime - lastUse);
+            player.sendMessage(
+                Text.literal("Сумка для еды перезарядится через " + (cooldownLeft / 20) + " сек")
+                    .formatted(Formatting.GRAY), 
+                true // action bar
+            );
         }
     }
     
@@ -179,6 +456,64 @@ public class CourierSkillHandler {
         if (skillLevel <= 0) return 1.0f;
         
         return 1.0f - (skillLevel * 0.15f); // 15% скидка за уровень
+    }
+    
+    /**
+     * Обрабатывает навык "Карта в голове"
+     */
+    public static void handleShulkerCarry(ServerPlayerEntity player, int skillLevel) {
+        if (skillLevel <= 0) return;
+        
+        // Проверяем кулдаун
+        var nbt = player.writeNbt(new net.minecraft.nbt.NbtCompound());
+        long lastUse = nbt.getLong("ShulkerCarryLastUse");
+        long currentTime = player.getWorld().getTime();
+        
+        if (currentTime - lastUse >= 1800) { // 90 секунд
+            nbt.putLong("ShulkerCarryLastUse", currentTime);
+            player.readNbt(nbt);
+            
+            // Создаем "карту" с информацией о ближайших деревнях
+            net.minecraft.item.ItemStack mapItem = new net.minecraft.item.ItemStack(
+                net.minecraft.item.Items.MAP
+            );
+            
+            // Добавляем NBT данные для идентификации
+            var mapNbt = mapItem.getOrCreateNbt();
+            mapNbt.putString("MapType", "VillageMap");
+            mapNbt.putInt("MapLevel", skillLevel);
+            
+            // Добавляем описание
+            mapItem.setCustomName(
+                Text.literal("Карта деревень (Уровень " + skillLevel + ")")
+                    .formatted(Formatting.BLUE)
+            );
+            
+            // Добавляем в инвентарь игрока
+            if (player.getInventory().insertStack(mapItem)) {
+                player.sendMessage(
+                    Text.literal("Карта деревень создана!")
+                        .formatted(Formatting.GREEN), 
+                    true // action bar
+                );
+            } else {
+                // Если инвентарь полон, выбрасываем предмет
+                player.dropItem(mapItem, false);
+                player.sendMessage(
+                    Text.literal("Карта деревень выброшена!")
+                        .formatted(Formatting.YELLOW), 
+                    true // action bar
+                );
+            }
+            
+        } else {
+            long cooldownLeft = 1800 - (currentTime - lastUse);
+            player.sendMessage(
+                Text.literal("Карта деревень перезарядится через " + (cooldownLeft / 20) + " сек")
+                    .formatted(Formatting.GRAY), 
+                    true // action bar
+            );
+        }
     }
     
     /**

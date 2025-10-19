@@ -137,7 +137,13 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 }
 
 jar {
-	from "LICENSE"
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from(sourceSets.main.output)
+}
+
+// Включаем зависимости в финальный remapJar
+tasks.withType(net.fabricmc.loom.task.RemapJarTask) {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 // configure the maven publication

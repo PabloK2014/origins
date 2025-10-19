@@ -60,13 +60,15 @@ public class SkillKeybinds implements ClientModInitializer {
                 "category.origins.skills" // Категория
             ));
             
+
+            
                     } catch (Exception e) {
             Origins.LOGGER.error("Failed to register Origins skill keybindings: " + e.getMessage(), e);
         }
         
         // Регистрируем обработчик нажатий клавиш
-        ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (client.player == null) return;
+        ClientTickEvents.END_CLIENT_TICK.register(tickClient -> {
+            if (tickClient.player == null) return;
             
             // Проверяем нажатие клавиши активации активного навыка
             if (activateActiveSkillKey.wasPressed()) {

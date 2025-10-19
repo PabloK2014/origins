@@ -84,6 +84,10 @@ public class Origins implements ModInitializer, OrderedResourceListenerInitializ
 			}
 		});
 		LOGGER.info("Origins " + VERSION + " is initializing. Have fun!");
+		
+		// Отправляем сообщение в чат при инициализации (если сервер запущен и есть игроки)
+		// Это будет работать только при запуске dedicated сервера, но не на клиенте
+		LOGGER.info("Сервер Origins начинает инициализацию...");
 
 		AutoConfig.register(ServerConfig.class,
 			(definition, configClass) -> {

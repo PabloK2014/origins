@@ -2,6 +2,9 @@ package io.github.apace100.origins.courier.client;
 
 import io.github.apace100.origins.Origins;
 import net.fabricmc.api.ClientModInitializer;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 
 /**
  * Клиентский инициализатор для системы заказов курьера
@@ -15,6 +18,5 @@ public class CourierClientInitializer implements ClientModInitializer {
         
         // Регистрируем клиентские команды
         CourierClientCommands.register();
-        
-            }
+    }
 }

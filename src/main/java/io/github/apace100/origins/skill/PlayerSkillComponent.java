@@ -470,6 +470,36 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
                 }
             }
         }
+        
+        // Применяем специфические эффекты для курьера
+        if ("origins:courier".equals(currentClass) && player instanceof ServerPlayerEntity serverPlayer) {
+            // Применяем эффекты магнитных карманов
+            int magneticPocketsLevel = getSkillLevel("magnetic_pockets");
+            if (magneticPocketsLevel > 0) {
+                CourierSkillHandler.handleMagneticPockets(serverPlayer, magneticPocketsLevel);
+            }
+            
+            // Применяем эффекты базовой скорости
+            int speedBasicLevel = getSkillLevel("speed_basic");
+            if (speedBasicLevel > 0) {
+                // Скорость будет применяться через миксины
+                // Здесь мы просто регистрируем, что скилл активен
+            }
+            
+            // Применяем эффекты снижения голода
+            int hungerReductionLevel = getSkillLevel("hunger_reduction");
+            if (hungerReductionLevel > 0) {
+                // Снижение голода будет применяться через миксины
+                // Здесь мы просто регистрируем, что скилл активен
+            }
+            
+            // Применяем эффекты сумки для еды
+            int inventorySlotsBasicLevel = getSkillLevel("inventory_slots_basic");
+            if (inventorySlotsBasicLevel > 0) {
+                // Дополнительные слоты инвентаря будут применяться через миксины
+                // Здесь мы просто регистрируем, что скилл активен
+            }
+        }
     }
 
     /**
@@ -520,6 +550,48 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
             case "quick_snack":
                 // Можно есть на бегу без замедления
                 // Эффект будет применяться в миксинах при потреблении еды
+                break;
+                
+            // Пассивные скиллы курьера
+            case "speed_basic":
+                // Увеличение базовой скорости передвижения
+                // Эффект будет применяться в миксинах при движении
+                break;
+            case "carry_capacity_basic":
+                // Увеличение вместимости инвентаря
+                // Эффект будет применяться в миксинах при работе с инвентарем
+                break;
+            case "hunger_reduction":
+                // Снижение расхода голода
+                // Эффект будет применяться в миксинах при движении и действиях
+                break;
+            case "inventory_slots_basic":
+                // Дополнительные слоты инвентаря
+                // Эффект будет применяться в миксинах при работе с инвентарем
+                break;
+            case "magnetic_pockets":
+                // Увеличение радиуса подбора предметов
+                // Эффект будет применяться в миксинах при движении
+                break;
+            case "sprint_boost":
+                // Увеличение скорости при спринте
+                // Эффект будет применяться в миксинах при спринте
+                break;
+            case "speed_surge":
+                // Временное увеличение скорости и восстановление голода
+                // Эффект будет применяться в миксинах при активации
+                break;
+            case "carry_surge":
+                // Выброс огненного заряда
+                // Эффект будет применяться в миксинах при активации
+                break;
+            case "inventory_surge":
+                // Создание сумки с едой
+                // Эффект будет применяться в миксинах при активации
+                break;
+            case "shulker_carry":
+                // Создание карты деревень
+                // Эффект будет применяться в миксинах при активации
                 break;
                 
             // Добавить другие навыки по мере необходимости
@@ -650,6 +722,79 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
             return;
         }
         
+        // Обработчики для курьерских скиллов
+        if ("speed_basic".equals(skillId) && player instanceof ServerPlayerEntity serverPlayer) {
+            int level = getSkillLevel(skillId);
+            if (CourierSkillHandler.isCourier(player)) {
+                CourierSkillHandler.handleSpeedBasic(serverPlayer, level);
+            }
+            return;
+        }
+        
+        if ("carry_surge".equals(skillId) && player instanceof ServerPlayerEntity serverPlayer) {
+            int level = getSkillLevel(skillId);
+            if (CourierSkillHandler.isCourier(player)) {
+                CourierSkillHandler.handleCarrySurge(serverPlayer, level);
+            }
+            return;
+        }
+        
+        if ("inventory_surge".equals(skillId) && player instanceof ServerPlayerEntity serverPlayer) {
+            int level = getSkillLevel(skillId);
+            if (CourierSkillHandler.isCourier(player)) {
+                CourierSkillHandler.handleInventorySurge(serverPlayer, level);
+            }
+            return;
+        }
+        
+        if ("shulker_carry".equals(skillId) && player instanceof ServerPlayerEntity serverPlayer) {
+            int level = getSkillLevel(skillId);
+            if (CourierSkillHandler.isCourier(player)) {
+                CourierSkillHandler.handleShulkerCarry(serverPlayer, level);
+            }
+            return;
+        }
+        
+        if ("hunger_reduction".equals(skillId) && player instanceof ServerPlayerEntity serverPlayer) {
+            int level = getSkillLevel(skillId);
+            if (CourierSkillHandler.isCourier(player)) {
+                CourierSkillHandler.handleHungerReduction(serverPlayer, level);
+            }
+            return;
+        }
+        
+        if ("speed_surge".equals(skillId) && player instanceof ServerPlayerEntity serverPlayer) {
+            int level = getSkillLevel(skillId);
+            if (CourierSkillHandler.isCourier(player)) {
+                CourierSkillHandler.handleSpeedSurge(serverPlayer, level);
+            }
+            return;
+        }
+        
+        if ("magnetic_pockets".equals(skillId) && player instanceof ServerPlayerEntity serverPlayer) {
+            int level = getSkillLevel(skillId);
+            if (CourierSkillHandler.isCourier(player)) {
+                CourierSkillHandler.handleMagneticPockets(serverPlayer, level);
+            }
+            return;
+        }
+        
+        if ("inventory_slots_basic".equals(skillId) && player instanceof ServerPlayerEntity serverPlayer) {
+            int level = getSkillLevel(skillId);
+            if (CourierSkillHandler.isCourier(player)) {
+                CourierSkillHandler.handleExtraSlots(serverPlayer, level);
+            }
+            return;
+        }
+        
+        if ("carry_capacity_basic".equals(skillId) && player instanceof ServerPlayerEntity serverPlayer) {
+            int level = getSkillLevel(skillId);
+            if (CourierSkillHandler.isCourier(player)) {
+                CourierSkillHandler.handleTrap(serverPlayer, level);
+            }
+            return;
+        }
+        
         // Добавить обработчики для других активных навыков по мере их реализации
         Origins.LOGGER.warn("Обработчик для активного навыка {} не найден", skillId);
     }
@@ -765,6 +910,88 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
         tag.putInt("energyRegenRate", energyRegenRate);
         tag.putInt("energyRegenDelay", energyRegenDelay);
 
+    }
+    
+    // ==================== МЕТОДЫ ДЛЯ ПОЛУЧЕНИЯ УРОВНЕЙ СКИЛЛОВ КУРЬЕРА ====================
+    
+    /**
+     * Получает уровень скилла "Базовая скорость" (speed_basic)
+     * @return уровень скилла или 0, если скилл не изучен
+     */
+    public int getSpeedBasicLevel() {
+        return getSkillLevel("speed_basic");
+    }
+    
+    /**
+     * Получает уровень скилла "Снижение голода" (hunger_reduction)
+     * @return уровень скилла или 0, если скилл не изучен
+     */
+    public int getHungerReductionLevel() {
+        return getSkillLevel("hunger_reduction");
+    }
+    
+    /**
+     * Получает уровень скилла "Базовые слоты" (inventory_slots_basic)
+     * @return уровень скилла или 0, если скилл не изучен
+     */
+    public int getInventorySlotsBasicLevel() {
+        return getSkillLevel("inventory_slots_basic");
+    }
+    
+    /**
+     * Получает уровень скилла "Рывок" (sprint_boost)
+     * @return уровень скилла или 0, если скилл не изучен
+     */
+    public int getSprintBoostLevel() {
+        return getSkillLevel("sprint_boost");
+    }
+    
+    /**
+     * Получает уровень скилла "Всплеск скорости" (speed_surge)
+     * @return уровень скилла или 0, если скилл не изучен
+     */
+    public int getSpeedSurgeLevel() {
+        return getSkillLevel("speed_surge");
+    }
+    
+    /**
+     * Получает уровень скилла "Магнитные карманы" (magnetic_pockets)
+     * @return уровень скилла или 0, если скилл не изучен
+     */
+    public int getMagneticPocketsLevel() {
+        return getSkillLevel("magnetic_pockets");
+    }
+    
+    /**
+     * Получает уровень скилла "Граната с перцем" (carry_surge)
+     * @return уровень скилла или 0, если скилл не изучен
+     */
+    public int getCarrySurgeLevel() {
+        return getSkillLevel("carry_surge");
+    }
+    
+    /**
+     * Получает уровень скилла "Сумка для еды" (inventory_surge) - переименовано с "Улыбка Курьера"
+     * @return уровень скилла или 0, если скилл не изучен
+     */
+    public int getInventorySurgeLevel() {
+        return getSkillLevel("inventory_surge");
+    }
+    
+    /**
+     * Получает уровень скилла "Карта в голове" (shulker_carry)
+     * @return уровень скилла или 0, если скилл не изучен
+     */
+    public int getShulkerCarryLevel() {
+        return getSkillLevel("shulker_carry");
+    }
+    
+    /**
+     * Получает уровень скилла "Ловушка" (carry_capacity_basic)
+     * @return уровень скилла или 0, если скилл не изучен
+     */
+    public int getCarryCapacityBasicLevel() {
+        return getSkillLevel("carry_capacity_basic");
     }
     
     // ==================== МЕТОДЫ ДЛЯ ПОЛУЧЕНИЯ УРОВНЕЙ СКИЛЛОВ ПОВАРА ====================
