@@ -6,7 +6,7 @@
   },
   "rewards": {
     "loot": [
-      "origins:grant_book_on_first_join"
+      "origin:grant_book_on_first_join"
     ]
   }
 }
