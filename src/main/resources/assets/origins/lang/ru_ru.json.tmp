@@ -1,0 +1,16 @@
+  "item.origins.bountiful_quest": "Квест Bountiful",
+
+  "itemGroup.origins.main": "Origins",
+  "origins.book.guide.name": "Руководство по Origins",
+  "origins.book.guide.landing_text": "Добро пожаловать в Origins - мод, который добавляет классы и профессии в Minecraft! Эта книга поможет вам разобраться с возможностями, которые предоставляет мод.",
+  "mod.entry.experience": "Система опыта",
+  "mod.entry.classes": "Классы и профессии",
+  "mod.entry.quests": "Квесты",
+  "mod.entry.progression": "Система прокачки",
+  "mod.entry.class.warrior": "Класс: Воин",
+  "mod.entry.class.blacksmith": "Класс: Кузнец",
+  "mod.entry.class.brewer": "Класс: Пивовар",
+  "mod.entry.class.cook": "Класс: Повар",
+  "mod.entry.class.courier": "Класс: Курьер",
+  "mod.entry.class.miner": "Класс: Шахтер"
+}

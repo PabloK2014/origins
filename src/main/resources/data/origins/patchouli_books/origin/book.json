@@ -1,0 +1,8 @@
+{
+    "name": "кирюха лох",
+    "landing_text": "Книга с ответами",
+    "show_progress": false,
+    "dont_generate_book": false,
+    "creative_tab": "minecraft:tools_and_utilities",
+    "use_resource_pack": true
+}

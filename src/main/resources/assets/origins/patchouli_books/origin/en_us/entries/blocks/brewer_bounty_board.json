@@ -1,0 +1,17 @@
+{
+    "name": "Доска обьявлений для пивовара",
+    "icon": "origins:brewer_bounty_board",
+    "category": "origins:block_categories",
+    "pages": [
+        {
+            "type": "spotlight",
+            "item": "origins:brewer_bounty_board",
+            "link_recipe": false,
+            "text": "Доска обясвлений для игрока с классом 'Пивовар'. Все квесты в ней сгенерированный нейронкой."
+        },
+        {
+            "type": "crafting",
+            "recipe": "origins:brewer_bounty_board"
+        }
+    ]
+}

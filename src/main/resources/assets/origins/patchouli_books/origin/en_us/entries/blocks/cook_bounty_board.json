@@ -1,0 +1,17 @@
+{
+    "name": "Доска обьявлений для повара",
+    "icon": "origins:cook_bounty_board",
+    "category": "origins:block_categories",
+    "pages": [
+        {
+            "type": "spotlight",
+            "item": "origins:cook_bounty_board",
+            "link_recipe": false,
+            "text": "Доска обясвлений для игрока с классом 'повар'. Все квесты в ней сгенерированный нейронкой."
+        },
+        {
+            "type": "crafting",
+            "recipe": "origins:cook_bounty_board"
+        }
+    ]
+}

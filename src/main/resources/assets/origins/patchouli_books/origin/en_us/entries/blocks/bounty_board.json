@@ -1,0 +1,17 @@
+{
+    "name": "Доска обьявлений",
+    "icon": "origins:bounty_board",
+    "category": "origins:block_categories",
+    "pages": [
+        {
+            "type": "spotlight",
+            "item": "origins:bounty_board",
+            "link_recipe": false,
+            "text": "Обычная доска обьявлений, ее можно найти в деревен или сделать самому. В ней нахоядтся рандомные квесты для каждого класса."
+        },
+        {
+            "type": "crafting",
+            "recipe": "origins:bounty_board"
+        }
+    ]
+}

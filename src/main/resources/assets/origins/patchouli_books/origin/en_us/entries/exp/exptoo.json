@@ -1,0 +1,17 @@
+{
+    "name": "Скилл поинт 2 уровня",
+    "icon": "origins:skill_point_token_tier2",
+    "category": "origins:exp_categories",
+    "pages": [
+        {
+            "type": "spotlight",
+            "item": "origins:skill_point_token_tier2",
+            "link_recipe": false,
+            "text": "Можно получить за выполненние редких квестов из досок. даёт 1000 опыта при применении"
+        },
+        {
+            "type": "empty",
+            "draw_filler": false
+        }
+    ]
+}

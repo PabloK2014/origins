@@ -1,0 +1,17 @@
+{
+    "name": "Доска обьявлений для воина",
+    "icon": "origins:warrior_bounty_board",
+    "category": "origins:block_categories",
+    "pages": [
+        {
+            "type": "spotlight",
+            "item": "origins:warrior_bounty_board",
+            "link_recipe": false,
+            "text": "Доска обясвлений для игрока с классом 'Воин'. Все квесты в ней сгенерированный нейронкой."
+        },
+        {
+            "type": "crafting",
+            "recipe": "origins:warrior_bounty_board"
+        }
+    ]
+}
