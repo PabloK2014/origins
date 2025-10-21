@@ -20,11 +20,13 @@ public class TrapPlacerItem extends Item {
     @Override
     public ActionResult useOnBlock(ItemUsageContext context) {
         World world = context.getWorld();
-        BlockPos pos = context.getBlockPos().up(); // Place on top of the clicked block
         PlayerEntity player = context.getPlayer();
         ItemStack stack = context.getStack();
 
         if (!world.isClient) {
+            // Place the trap under the player
+            BlockPos pos = new BlockPos((int) Math.floor(player.getX()), (int) Math.floor(player.getY()) - 1, (int) Math.floor(player.getZ()));
+            
             // Check if we can place the trap
             BlockState blockState = world.getBlockState(pos);
             if (blockState.isAir() || blockState.isOf(Blocks.GRASS) || blockState.isOf(Blocks.TALL_GRASS)) {
@@ -35,10 +37,7 @@ public class TrapPlacerItem extends Item {
                 world.playSound(null, pos, SoundEvents.BLOCK_STONE_PLACE, 
                     net.minecraft.sound.SoundCategory.BLOCKS, 1.0f, 1.0f);
                 
-                // Damage the item
-                stack.damage(1, player, (p) -> p.sendToolBreakStatus(context.getHand()));
-                
-                player.sendMessage(net.minecraft.text.Text.literal("Ловушка установлена!"), true);
+                player.sendMessage(net.minecraft.text.Text.literal("Ловушка установлена под вами!"), true);
                 
                 return ActionResult.SUCCESS;
             } else {

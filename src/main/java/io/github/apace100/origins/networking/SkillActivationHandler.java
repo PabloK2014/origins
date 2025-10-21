@@ -337,6 +337,7 @@ public class SkillActivationHandler {
             case "sprint_boost" -> "Рывок";
             case "speed_surge" -> "Всплеск скорости";
             case "carry_capacity_basic" -> "Ловушка";
+            case "carry_surge" -> "Граната с перцем";
             
             // Навыки шахтера
             case "ore_highlight" -> "Подсветка руды";
@@ -375,6 +376,7 @@ public class SkillActivationHandler {
             case "sprint_boost" -> 2;
             case "speed_surge" -> 5;
             case "carry_capacity_basic" -> 3;
+            case "carry_surge" -> 3;
             
             // Навыки шахтера
             case "ore_highlight" -> 4;
@@ -413,6 +415,7 @@ public class SkillActivationHandler {
             case "sprint_boost" -> 600; // 30 секунд
             case "speed_surge" -> 1200; // 60 секунд
             case "carry_capacity_basic" -> 600; // 30 секунд
+            case "carry_surge" -> 600; // 30 секунд
             
             // Навыки шахтера
             case "ore_highlight" -> 600; // 30 секунд
@@ -530,6 +533,9 @@ public class SkillActivationHandler {
                 case "carry_capacity_basic":
                     CourierSkillHandler.handleTrap(player, skill.level);
                     break;
+                case "carry_surge":
+                    CourierSkillHandler.handleCarrySurge(player, skill.level);
+                    break;
                     
                 // Навыки шахтера
                 case "ore_highlight":
@@ -639,6 +645,11 @@ public class SkillActivationHandler {
             int trapLevel = skillComponent.getSkillLevel("carry_capacity_basic");
             if (trapLevel > 0) {
                 availableSkills.add(new SkillInfo("carry_capacity_basic", "Ловушка", trapLevel));
+            }
+            
+            int carrySurgeLevel = skillComponent.getSkillLevel("carry_surge");
+            if (carrySurgeLevel > 0) {
+                availableSkills.add(new SkillInfo("carry_surge", "Граната с перцем", carrySurgeLevel));
             }
         }
         else {

@@ -47,28 +47,21 @@ public class ModBlocks {
 
         @Override
         public void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity) {
-            if (!world.isClient && entity instanceof Monster monster) {
-                // Активируем ловушку
+            if (!world.isClient && entity instanceof LivingEntity livingEntity) {
+                // Активируем ловушку для любого живого существа (не только монстров)
                 System.out.println("Trap triggered by: " + entity.getName().getString() + " at " + pos);
 
-                // Применяем эффекты к монстру
-                if (monster instanceof LivingEntity livingEntity) {
-                    livingEntity.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
-                            net.minecraft.entity.effect.StatusEffects.SLOWNESS,
-                            40, // 2 секунды (20 тиков/сек * 2)
-                            3, // Максимальный уровень для полной остановки
-                            false,
-                            true
-                    ));
+                // Наносим урон (5 единиц = 2.5 сердца)
+                livingEntity.damage(world.getDamageSources().magic(), 5.0f);
 
-                    livingEntity.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
-                            net.minecraft.entity.effect.StatusEffects.WEAKNESS,
-                            40, // 2 секунды
-                            2, // Сильная слабость
-                            false,
-                            true
-                    ));
-                }
+                // Применяем эффекты
+                livingEntity.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                        net.minecraft.entity.effect.StatusEffects.BLINDNESS,
+                        60, // 3 секунды
+                        0,  // Базовый уровень слепоты
+                        false,
+                        true
+                ));
 
                 // Звуковой эффект
                 world.playSound(null, pos, net.minecraft.sound.SoundEvents.BLOCK_TRIPWIRE_CLICK_ON, 

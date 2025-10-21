@@ -188,6 +188,9 @@ public class Origins implements ModInitializer, OrderedResourceListenerInitializ
 		ItemGroupEvents.modifyEntriesEvent(ORIGINS_GROUP_KEY).register((content) -> {
 			// Основные предметы Origins
 			content.add(ModItems.ORB_OF_ORIGIN);
+			content.add(ModItems.FOOD_BAG);
+			content.add(ModItems.TRAP_PLACER);
+			content.add(ModItems.PEPPER_SPRAY);
 			
 			// Доски объявлений
 			content.add(io.github.apace100.origins.quest.QuestRegistry.BOUNTY_BOARD_ITEM);

@@ -89,47 +89,27 @@ public class CourierSkillHandler {
     }
     
     /**
-     * Обрабатывает навык "Граната с перцем"
+     * Обрабатывает навык "Граната с перцем" (теперь выдает перцовый баллончик)
      */
     public static void handleCarrySurge(ServerPlayerEntity player, int skillLevel) {
         if (skillLevel <= 0) return;
         
-        // Проверяем кулдаун
-        var nbt = player.writeNbt(new net.minecraft.nbt.NbtCompound());
-        long lastUse = nbt.getLong("CarrySurgeLastUse");
-        long currentTime = player.getWorld().getTime();
+        // Создаем перцовый баллончик с учетом уровня навыка
+        net.minecraft.item.ItemStack pepperSpray = io.github.apace100.origins.item.PepperSprayItem.createPepperSpray(skillLevel);
         
-        if (currentTime - lastUse >= 600) { // 30 секунд
-            nbt.putLong("CarrySurgeLastUse", currentTime);
-            player.readNbt(nbt);
-            
-            // Создаем огненный заряд
-            net.minecraft.entity.projectile.FireballEntity fireball = new net.minecraft.entity.projectile.FireballEntity(
-                player.getWorld(),
-                player,
-                player.getRotationVector().x,
-                player.getRotationVector().y,
-                player.getRotationVector().z,
-                skillLevel // Уровень влияет на силу взрыва
-            );
-            
-            // Устанавливаем позицию и направление
-            fireball.setPosition(player.getX(), player.getEyeY(), player.getZ());
-            
-            // Запускаем огненный заряд
-            player.getWorld().spawnEntity(fireball);
-            
+        // Добавляем в инвентарь игрока
+        if (player.getInventory().insertStack(pepperSpray)) {
             player.sendMessage(
-                Text.literal("Граната с перцем выпущена!")
-                    .formatted(Formatting.RED), 
+                Text.literal("Получен перцовый баллончик!")
+                    .formatted(Formatting.GREEN), 
                 true // action bar
             );
-            
         } else {
-            long cooldownLeft = 600 - (currentTime - lastUse);
+            // Если инвентарь полон, выбрасываем предмет
+            player.dropItem(pepperSpray, false);
             player.sendMessage(
-                Text.literal("Граната с перцем перезарядится через " + (cooldownLeft / 20) + " сек")
-                    .formatted(Formatting.GRAY), 
+                Text.literal("Перцовый баллончик выброшен из-за нехватки места!")
+                    .formatted(Formatting.YELLOW), 
                 true // action bar
             );
         }
@@ -289,12 +269,37 @@ public class CourierSkillHandler {
     }
     
     /**
-     * Обрабатывает навык "Базовые слоты"
+     * Обрабатывает навык "Сумка для еды" (ранее базовые слоты)
      */
-    public static int handleExtraSlots(ServerPlayerEntity player, int skillLevel) {
-        if (skillLevel <= 0) return 0;
+    public static void handleExtraSlots(ServerPlayerEntity player, int skillLevel) {
+        if (skillLevel <= 0) return;
         
-        return skillLevel; // 1 слот за уровень
+        // Выдаем сумку для еды при первом уровне (теперь это скилл "сумка для еды")
+        if (skillLevel == 1) {
+            net.minecraft.item.ItemStack foodBag = new net.minecraft.item.ItemStack(
+                io.github.apace100.origins.registry.ModItems.FOOD_BAG
+            );
+            
+            // Добавляем в инвентарь игрока
+            if (player.getInventory().insertStack(foodBag)) {
+                player.sendMessage(
+                    Text.literal("Получена сумка для еды!")
+                        .formatted(Formatting.GREEN), 
+                    true // action bar
+                );
+            } else {
+                // Если инвентарь полон, выбрасываем предмет
+                player.dropItem(foodBag, false);
+                player.sendMessage(
+                    Text.literal("Сумка для еды выброшена из-за нехватки места!")
+                        .formatted(Formatting.YELLOW), 
+                    true // action bar
+                );
+            }
+        }
+        
+        // Если раньше этот скилл увеличивал слоты, то больше не делаем этого
+        // Теперь это скилл "Сумка для еды"
     }
     
     /**
@@ -392,7 +397,7 @@ public class CourierSkillHandler {
     }
     
     /**
-     * Обрабатывает навык "Сумка для еды"
+     * Обрабатывает навык "Сумка для еды" - теперь имеет другое поведение
      */
     public static void handleInventorySurge(ServerPlayerEntity player, int skillLevel) {
         if (skillLevel <= 0) return;
@@ -406,38 +411,18 @@ public class CourierSkillHandler {
             nbt.putLong("InventorySurgeLastUse", currentTime);
             player.readNbt(nbt);
             
-            // Создаем сумку с едой
-            net.minecraft.item.ItemStack foodBag = new net.minecraft.item.ItemStack(
-                net.minecraft.item.Items.PAPER // Используем бумагу как заглушку
+            // Дополнительное хранилище для еды
+            player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
+                net.minecraft.entity.effect.StatusEffects.HASTE, 
+                600, // 30 секунд
+                skillLevel - 1 // Уровень эффекта
+            ));
+            
+            player.sendMessage(
+                Text.literal("Временное ускорение работы с едой!")
+                    .formatted(Formatting.GOLD), 
+                true // action bar
             );
-            
-            // Добавляем NBT данные для идентификации
-            var foodBagNbt = foodBag.getOrCreateNbt();
-            foodBagNbt.putString("FoodBag", "CourierFoodBag");
-            foodBagNbt.putInt("FoodLevel", skillLevel);
-            
-            // Добавляем описание
-            foodBag.setCustomName(
-                Text.literal("Сумка с едой (Уровень " + skillLevel + ")")
-                    .formatted(Formatting.GOLD)
-            );
-            
-            // Добавляем в инвентарь игрока
-            if (player.getInventory().insertStack(foodBag)) {
-                player.sendMessage(
-                    Text.literal("Сумка с едой создана!")
-                        .formatted(Formatting.GREEN), 
-                    true // action bar
-                );
-            } else {
-                // Если инвентарь полон, выбрасываем предмет
-                player.dropItem(foodBag, false);
-                player.sendMessage(
-                    Text.literal("Сумка с едой выброшена!")
-                        .formatted(Formatting.YELLOW), 
-                    true // action bar
-                );
-            }
             
         } else {
             long cooldownLeft = 1200 - (currentTime - lastUse);
@@ -522,92 +507,37 @@ public class CourierSkillHandler {
     public static void handleTrap(ServerPlayerEntity player, int skillLevel) {
         if (skillLevel <= 0) return;
         
-        // Проверяем кулдаун
-        var nbt = new net.minecraft.nbt.NbtCompound();
-        player.writeNbt(nbt);
-        long lastUse = nbt.getLong("TrapLastUse");
-        long currentTime = player.getWorld().getTime();
+        // Устанавливаем ловушку под игроком
+        net.minecraft.util.math.BlockPos pos = new net.minecraft.util.math.BlockPos(
+            (int) Math.floor(player.getX()), 
+            (int) Math.floor(player.getY()) - 1, 
+            (int) Math.floor(player.getZ())
+        );
         
-        if (currentTime - lastUse >= 600) { // 30 секунд
-            nbt.putLong("TrapLastUse", currentTime);
+        // Проверяем, можно ли разместить ловушку
+        net.minecraft.block.BlockState blockState = player.getWorld().getBlockState(pos);
+        if (blockState.isAir() || blockState.isOf(net.minecraft.block.Blocks.GRASS) || 
+            blockState.isOf(net.minecraft.block.Blocks.TALL_GRASS)) {
             
-            // Устанавливаем невидимую ловушку на текущей позиции
-            var pos = player.getBlockPos();
-            nbt.putLong("TrapX", pos.getX());
-            nbt.putLong("TrapY", pos.getY());
-            nbt.putLong("TrapZ", pos.getZ());
-            nbt.putLong("TrapTime", currentTime);
-            nbt.putInt("TrapLevel", skillLevel);
+            // Устанавливаем реальный блок ловушки
+            player.getWorld().setBlockState(pos, io.github.apace100.origins.block.ModBlocks.TRAP_BLOCK.getDefaultState());
+            
+            // Звук установки
+            player.getWorld().playSound(null, pos, 
+                net.minecraft.sound.SoundEvents.BLOCK_STONE_PLACE,
+                net.minecraft.sound.SoundCategory.BLOCKS, 1.0f, 1.0f);
             
             player.sendMessage(
-                Text.literal("Ловушка установлена!")
+                Text.literal("Ловушка установлена под вами!")
                     .formatted(Formatting.RED), 
                 true // action bar
             );
-            
-                    } else {
-            long cooldownLeft = 600 - (currentTime - lastUse);
+        } else {
             player.sendMessage(
-                Text.literal("Ловушка перезарядится через " + (cooldownLeft / 20) + " сек")
-                    .formatted(Formatting.GRAY), 
+                Text.literal("Нельзя установить ловушку здесь!")
+                    .formatted(Formatting.RED), 
                 true // action bar
             );
-        }
-    }
-    
-    /**
-     * Проверяет активацию ловушки
-     */
-    public static void checkTrapActivation(ServerPlayerEntity player, net.minecraft.entity.Entity target) {
-        var nbt = new net.minecraft.nbt.NbtCompound();
-        player.writeNbt(nbt);
-        if (!nbt.contains("TrapTime")) return;
-        
-        long trapTime = nbt.getLong("TrapTime");
-        long currentTime = player.getWorld().getTime();
-        
-        // Ловушка активна 60 секунд
-        if (currentTime - trapTime > 1200) {
-            nbt.remove("TrapTime");
-            return;
-        }
-        
-        var trapPos = new net.minecraft.util.math.BlockPos(
-            (int) nbt.getLong("TrapX"),
-            (int) nbt.getLong("TrapY"),
-            (int) nbt.getLong("TrapZ")
-        );
-        
-        // Проверяем, находится ли цель рядом с ловушкой
-        if (target.getBlockPos().isWithinDistance(trapPos, 2.0)) {
-            int trapLevel = nbt.getInt("TrapLevel");
-            
-            // Оглушаем цель
-            if (target instanceof net.minecraft.entity.LivingEntity living) {
-                living.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
-                    net.minecraft.entity.effect.StatusEffects.SLOWNESS,
-                    100 + (trapLevel * 20), // 5 + 1 сек за уровень
-                    3 // Уровень IV
-                ));
-                
-                living.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
-                    net.minecraft.entity.effect.StatusEffects.WEAKNESS,
-                    100 + (trapLevel * 20),
-                    1 // Уровень II
-                ));
-            }
-            
-            player.sendMessage(
-                Text.literal("Ловушка сработала!")
-                    .formatted(Formatting.GREEN), 
-                true // action bar
-            );
-            
-            // Удаляем ловушку после срабатывания
-            nbt.remove("TrapTime");
-            
-            Origins.LOGGER.info("Ловушка курьера {} сработала на {}", 
-                player.getName().getString(), target.getName().getString());
         }
     }
 }

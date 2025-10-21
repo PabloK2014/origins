@@ -1,6 +1,6 @@
 {
   "name": "Система Заказов",
-  "icon": "origins:bounty",
+  "icon": "origins:food_bag",
   "category": "origins:orders_category",
   "pages": [
     {
