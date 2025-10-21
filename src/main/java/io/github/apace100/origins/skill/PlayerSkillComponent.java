@@ -14,6 +14,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.math.BlockPos;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +38,11 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
     // Хранение состояния навыков (кулдауны, готовность и т.д.)
     private final Map<String, Long> skillCooldowns = new HashMap<>();
     private final Map<String, Boolean> skillStates = new HashMap<>();
+    
+    // Система отложенной установки ловушки
+    private BlockPos delayedTrapPosition = null;
+    private boolean hasDelayedTrap = false;
+    private int trapSetupDelay = 0;
     
     // Система энергии
     private int currentEnergy = 20; // Текущая энергия
@@ -432,6 +438,38 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
         }
     }
     
+    // ========== СИСТЕМА ОТЛОЖЕННОЙ УСТАНОВКИ ЛОВУШКИ ==========
+    
+    public void setDelayedTrap(BlockPos pos) {
+        this.delayedTrapPosition = pos;
+        this.hasDelayedTrap = true;
+        this.trapSetupDelay = 4; // 0.2 секунды (4 тика при 20 тпс)
+    }
+    
+    public boolean hasDelayedTrap() {
+        return hasDelayedTrap;
+    }
+    
+    public BlockPos getDelayedTrapPosition() {
+        return delayedTrapPosition;
+    }
+    
+    public void clearDelayedTrap() {
+        this.hasDelayedTrap = false;
+        this.delayedTrapPosition = null;
+        this.trapSetupDelay = 0;
+    }
+    
+    public boolean updateDelayedTrap() {
+        if (hasDelayedTrap && trapSetupDelay > 0) {
+            trapSetupDelay--;
+            if (trapSetupDelay <= 0) {
+                return true; // Время установить ловушку
+            }
+        }
+        return false; // Еще не время
+    }
+    
     /**
      * Проверяет, можно ли использовать навык (проверяет энергию и кулдаун)
      */
@@ -813,9 +851,70 @@ public class PlayerSkillComponent implements AutoSyncedComponent, ServerTickingC
             }
         }
         
+        // Обработка отложенной установки ловушки
+        if (hasDelayedTrap()) {
+            if (updateDelayedTrap()) {
+                // Время установить ловушку
+                if (player instanceof ServerPlayerEntity serverPlayer) {
+                    setDelayedTrapAtPosition(serverPlayer);
+                }
+                clearDelayedTrap();
+            }
+        }
+        
         // Применяем пассивные эффекты каждые 20 тиков (1 секунда)
         if (tickCounter % 20 == 0) {
             applyPassiveSkillEffects();
+        }
+    }
+    
+    /**
+     * Устанавливает ловушку в позиции, запомненной ранее
+     */
+    private void setDelayedTrapAtPosition(ServerPlayerEntity player) {
+        if (delayedTrapPosition != null) {
+            // Проверяем, можно ли все еще установить ловушку в этой позиции
+            net.minecraft.block.BlockState blockState = player.getWorld().getBlockState(delayedTrapPosition);
+            if (blockState.isAir() || blockState.isReplaceable() || 
+                blockState.isOf(net.minecraft.block.Blocks.GRASS) || 
+                blockState.isOf(net.minecraft.block.Blocks.TALL_GRASS) ||
+                blockState.isOf(net.minecraft.block.Blocks.SNOW) ||
+                blockState.isOf(net.minecraft.block.Blocks.DIRT) ||
+                blockState.isOf(net.minecraft.block.Blocks.COARSE_DIRT) ||
+                blockState.isOf(net.minecraft.block.Blocks.PODZOL) ||
+                blockState.isOf(net.minecraft.block.Blocks.ROOTED_DIRT) ||
+                blockState.isOf(net.minecraft.block.Blocks.SAND) ||
+                blockState.isOf(net.minecraft.block.Blocks.RED_SAND) ||
+                blockState.isOf(net.minecraft.block.Blocks.GRAVEL)) {
+                
+                try {
+                    // Попытка установки кастомной ловушки
+                    player.getWorld().setBlockState(delayedTrapPosition, io.github.apace100.origins.block.ModBlocks.TRAP_BLOCK.getDefaultState());
+                    // Звук установки
+                    player.getWorld().playSound(null, delayedTrapPosition, 
+                        net.minecraft.sound.SoundEvents.BLOCK_STONE_PLACE,
+                        net.minecraft.sound.SoundCategory.BLOCKS, 1.0f, 1.0f);
+                } catch (Throwable t) { // Используем Throwable для перехвата ExceptionInInitializerError
+                    // Если установка кастомной ловушки не удалась, используем стандартный подход
+                    player.getWorld().setBlockState(delayedTrapPosition, net.minecraft.block.Blocks.LIGHT_WEIGHTED_PRESSURE_PLATE.getDefaultState());
+                    // Звук установки
+                    player.getWorld().playSound(null, delayedTrapPosition, 
+                        net.minecraft.sound.SoundEvents.BLOCK_STONE_PLACE,
+                        net.minecraft.sound.SoundCategory.BLOCKS, 1.0f, 1.0f);
+                }
+                
+                player.sendMessage(
+                    Text.literal("Ловушка установлена под вами!")
+                        .formatted(Formatting.RED), 
+                    true // action bar
+                );
+            } else {
+                player.sendMessage(
+                    Text.literal("Нельзя установить ловушку там, где вы стояли!")
+                        .formatted(Formatting.RED), 
+                    true // action bar
+                );
+            }
         }
     }
 

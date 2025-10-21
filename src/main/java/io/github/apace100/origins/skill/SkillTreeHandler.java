@@ -66,9 +66,9 @@ public class SkillTreeHandler {
 
         // Ветка "Переноска"
         List<Skill> carryBranch = Arrays.asList(
-                new Skill("carry_capacity_basic", "Ловушка", "На земле можно установить невидимый «триггер», который оглушает врагов", SkillType.PASSIVE, 3, 1, null),
+                new Skill("carry_capacity_basic", "Ловушка", "На земле можно установить невидимый «триггер», который оглушает врагов", SkillType.ACTIVE, 3, 1, null),
                 new Skill("shulker_carry", "Карта в голове", "Видит расположение всех деревень и торговцев", SkillType.PASSIVE, 1, 2, "carry_capacity_basic"),
-                new Skill("carry_surge", "Граната с перцем", "При активации выдает перцовый баллончик. Уровень 1: 32 ед. прочности, 4 урона; Уровень 2: 64 ед. прочности, 6 урона; Уровень 3: 64 ед. прочности, 8 урона; Уровень 4: 64 ед. прочности, 8 урона + 10% шанс отравления", SkillType.ACTIVE, 1, 4, "shulker_carry")
+                new Skill("carry_surge", "Граната с перцем", "Открывает крафт перцового баллона", SkillType.GLOBAL, 1, 4, "shulker_carry")
         );
 
         courierTree.addBranch(speedBranch);

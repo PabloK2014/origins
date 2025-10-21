@@ -11,6 +11,8 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.BlockPos;
+import io.github.apace100.origins.skill.PlayerSkillComponent;
 
 import java.util.Random;
 
@@ -502,42 +504,23 @@ public class CourierSkillHandler {
     }
     
     /**
-     * Обрабатывает навык "Ловушка"
+     * Обрабатывает навык "Ловушка" - устанавливает ловушку под игроком с задержкой
      */
     public static void handleTrap(ServerPlayerEntity player, int skillLevel) {
         if (skillLevel <= 0) return;
         
-        // Устанавливаем ловушку под игроком
+        // Устанавливаем ловушку под игроком, но с задержкой
         net.minecraft.util.math.BlockPos pos = new net.minecraft.util.math.BlockPos(
             (int) Math.floor(player.getX()), 
             (int) Math.floor(player.getY()) - 1, 
             (int) Math.floor(player.getZ())
         );
         
-        // Проверяем, можно ли разместить ловушку
-        net.minecraft.block.BlockState blockState = player.getWorld().getBlockState(pos);
-        if (blockState.isAir() || blockState.isOf(net.minecraft.block.Blocks.GRASS) || 
-            blockState.isOf(net.minecraft.block.Blocks.TALL_GRASS)) {
-            
-            // Устанавливаем реальный блок ловушки
-            player.getWorld().setBlockState(pos, io.github.apace100.origins.block.ModBlocks.TRAP_BLOCK.getDefaultState());
-            
-            // Звук установки
-            player.getWorld().playSound(null, pos, 
-                net.minecraft.sound.SoundEvents.BLOCK_STONE_PLACE,
-                net.minecraft.sound.SoundCategory.BLOCKS, 1.0f, 1.0f);
-            
-            player.sendMessage(
-                Text.literal("Ловушка установлена под вами!")
-                    .formatted(Formatting.RED), 
-                true // action bar
-            );
-        } else {
-            player.sendMessage(
-                Text.literal("Нельзя установить ловушку здесь!")
-                    .formatted(Formatting.RED), 
-                true // action bar
-            );
+        // Получаем компонент игрока и устанавливаем отложенную ловушку
+        PlayerSkillComponent skillComponent = PlayerSkillComponent.KEY.get(player);
+        if (skillComponent != null) {
+            skillComponent.setDelayedTrap(pos);
+            // Сообщение будет отправлено при фактической установке в тик-методе
         }
     }
 }

@@ -485,25 +485,76 @@ public class SkillActivationHandler {
                 return;
             }
             
-            // Тратим энергию
-            if (!skillComponent.consumeEnergy(energyCost)) {
-                player.sendMessage(
-                    Text.literal("Не удалось потратить энергию")
-                        .formatted(Formatting.RED), 
-                    true
+            // Проверяем, является ли это навыком ловушки, для которого нужно сначала проверить возможность установки
+            if ("carry_capacity_basic".equals(skill.id)) {
+                // Для навыка ловушки проверяем возможность установки перед тратой ресурсов
+                net.minecraft.util.math.BlockPos pos = new net.minecraft.util.math.BlockPos(
+                    (int) Math.floor(player.getX()), 
+                    (int) Math.floor(player.getY()) - 1, 
+                    (int) Math.floor(player.getZ())
                 );
-                return;
-            }
-            
-            // Получаем кулдаун навыка
-            int cooldownTicks = getSkillCooldown(skill.id);
-            
-            // Устанавливаем кулдаун только для скиллов, кроме bottle_throw
-            if (!"bottle_throw".equals(skill.id)) {
+                
+                // Проверяем, можно ли разместить ловушку
+                net.minecraft.block.BlockState blockState = player.getWorld().getBlockState(pos);
+                boolean canPlace = blockState.isAir() || blockState.isReplaceable() || 
+                    blockState.isOf(net.minecraft.block.Blocks.GRASS) || 
+                    blockState.isOf(net.minecraft.block.Blocks.TALL_GRASS) ||
+                    blockState.isOf(net.minecraft.block.Blocks.SNOW) ||
+                    blockState.isOf(net.minecraft.block.Blocks.DIRT) ||
+                    blockState.isOf(net.minecraft.block.Blocks.COARSE_DIRT) ||
+                    blockState.isOf(net.minecraft.block.Blocks.PODZOL) ||
+                    blockState.isOf(net.minecraft.block.Blocks.ROOTED_DIRT) ||
+                    blockState.isOf(net.minecraft.block.Blocks.SAND) ||
+                    blockState.isOf(net.minecraft.block.Blocks.RED_SAND) ||
+                    blockState.isOf(net.minecraft.block.Blocks.GRAVEL);
+                
+                if (!canPlace) {
+                    player.sendMessage(
+                        Text.literal("Нельзя установить ловушку здесь!")
+                            .formatted(Formatting.RED), 
+                        true // action bar
+                    );
+                    return;
+                }
+                
+                // Если можно установить, тратим энергию и ставим кулдаун
+                if (!skillComponent.consumeEnergy(energyCost)) {
+                    player.sendMessage(
+                        Text.literal("Не удалось потратить энергию")
+                            .formatted(Formatting.RED), 
+                        true
+                    );
+                    return;
+                }
+                
+                // Устанавливаем кулдаун
+                int cooldownTicks = getSkillCooldown(skill.id);
                 skillComponent.setSkillCooldown(skill.id, cooldownTicks);
-            }
-            
-            switch (skill.id) {
+                
+                // Вызываем обработчик навыка
+                CourierSkillHandler.handleTrap(player, skill.level);
+            } else {
+                // Для других навыков используем стандартную логику
+                
+                // Тратим энергию
+                if (!skillComponent.consumeEnergy(energyCost)) {
+                    player.sendMessage(
+                        Text.literal("Не удалось потратить энергию")
+                            .formatted(Formatting.RED), 
+                        true
+                    );
+                    return;
+                }
+                
+                // Получаем кулдаун навыка
+                int cooldownTicks = getSkillCooldown(skill.id);
+                
+                // Устанавливаем кулдаун только для скиллов, кроме bottle_throw
+                if (!"bottle_throw".equals(skill.id)) {
+                    skillComponent.setSkillCooldown(skill.id, cooldownTicks);
+                }
+                
+                switch (skill.id) {
                 // Навыки кузнеца
                 case "hot_strike":
                     BlacksmithSkillHandler.handleHotStrike(player, skill.level);
@@ -530,9 +581,7 @@ public class SkillActivationHandler {
                 case "speed_surge":
                     CourierSkillHandler.handleSpeedSurge(player, skill.level);
                     break;
-                case "carry_capacity_basic":
-                    CourierSkillHandler.handleTrap(player, skill.level);
-                    break;
+
                 case "carry_surge":
                     CourierSkillHandler.handleCarrySurge(player, skill.level);
                     break;
@@ -584,6 +633,9 @@ public class SkillActivationHandler {
                     );
                     break;
             }
+        } // <--- Добавлена закрывающая скобка для else
+        
+        // ДОБАВЛЕНА ЗАКРЫВАЮЩАЯ СКОБКА ДЛЯ БЛОКА TRY
         } catch (Exception e) {
             Origins.LOGGER.error("Ошибка при активации навыка: " + e.getMessage(), e);
             player.sendMessage(
@@ -592,7 +644,7 @@ public class SkillActivationHandler {
                 true
             );
         }
-    }
+    } // <--- Добавлена закрывающая скобка для метода activateSkillByInfo
     
     /**
      * Получает список доступных активных навыков для игрока
